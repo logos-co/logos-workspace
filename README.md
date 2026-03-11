@@ -311,6 +311,85 @@ ws graph | dot -Tsvg > graph.svg
 ws graph logos-liblogos
 ```
 
+## Running an app with local changes
+
+```bash
+# Build and run logos-app-poc using your local logos-cpp-sdk
+ws run logos-app-poc --auto-local
+
+# Or with explicit overrides
+ws run logos-app-poc --local logos-cpp-sdk logos-liblogos
+```
+
+## Listing repos
+
+```bash
+# See which repos are cloned and which have flakes
+ws list
+```
+
+## Adding a new repo to the workspace
+
+1. Add the git submodule:
+
+```bash
+git submodule add --depth 1 git@github.com:logos-co/my-new-repo.git repos/my-new-repo
+```
+
+2. Add an entry to the `REPOS` array in `scripts/ws` (follow the existing format).
+
+3. If the repo has a `flake.nix`, add it as an input in the workspace `flake.nix` with appropriate `follows` declarations so its deps chain through the workspace:
+
+```nix
+my-new-repo = {
+  url = "github:logos-co/my-new-repo";
+  inputs.nixpkgs.follows = "nixpkgs";
+  inputs.logos-liblogos.follows = "logos-liblogos";
+  # ... other follows as needed
+};
+```
+
+4. Regenerate the dependency graph:
+
+```bash
+ws sync-graph
+```
+
+5. Commit the changes to `.gitmodules`, `flake.nix`, `scripts/ws`, and `nix/dep-graph.nix`.
+
+## Removing a repo from the workspace
+
+```bash
+# 1. Remove the submodule
+git submodule deinit -f repos/my-repo
+git rm -f repos/my-repo
+rm -rf .git/modules/repos/my-repo
+
+# 2. Remove its entry from the REPOS array in scripts/ws
+# 3. Remove its input and follows declarations from flake.nix
+# 4. Regenerate the dependency graph
+ws sync-graph
+
+# 5. Commit all changes
+```
+
+## Debugging overrides
+
+If `--auto-local` overrides something you didn't intend (e.g. you have a stale change in a repo):
+
+```bash
+# See exactly which repos are dirty and why
+ws status
+
+# Preview the override flags without building
+ws override-inputs logos-app-poc --auto-local
+
+# Use --local instead to control exactly what gets overridden
+ws build logos-app-poc --local logos-cpp-sdk
+```
+
+If a build fails unexpectedly with overrides, check that the dirty repo is in a buildable state — `--auto-local` uses whatever is on disk, including broken or half-finished work.
+
 ## Working across multiple repos at once
 
 ```bash
