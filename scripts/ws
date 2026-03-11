@@ -968,8 +968,11 @@ Examples:
   esac
 
   if ! command -v tokei &>/dev/null; then
-    echo -e "${RED}Error:${NC} tokei not found. Run 'ws develop' first." >&2
-    exit 1
+    echo -e "${YELLOW}tokei not found, installing...${NC}" >&2
+    nix profile install --extra-experimental-features "nix-command flakes" nixpkgs#tokei 2>/dev/null || {
+      echo -e "${RED}Error:${NC} could not install tokei. Run 'ws develop' or install tokei manually." >&2
+      exit 1
+    }
   fi
 
   local tokei_args=()
@@ -988,7 +991,8 @@ Examples:
 
       local count
       count=$(tokei "$repo_path" ${tokei_args[@]+"${tokei_args[@]}"} --output json 2>/dev/null | \
-        python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Total',{}).get('code',0))" 2>/dev/null || echo "0")
+        sed -n 's/.*"Total":{[^}]*"code":\([0-9]*\).*/\1/p' 2>/dev/null || echo "0")
+      [[ -z "$count" ]] && count=0
 
       if [[ "$count" -gt 0 ]]; then
         printf "  ${CYAN}%7s${NC}  %s\n" "$count" "$dir_name"
@@ -1033,8 +1037,11 @@ Examples:
   shift || true
 
   if ! command -v watchexec &>/dev/null; then
-    echo -e "${RED}Error:${NC} watchexec not found. Run 'ws develop' first." >&2
-    exit 1
+    echo -e "${YELLOW}watchexec not found, installing...${NC}" >&2
+    nix profile install --extra-experimental-features "nix-command flakes" nixpkgs#watchexec 2>/dev/null || {
+      echo -e "${RED}Error:${NC} could not install watchexec. Run 'ws develop' or install watchexec manually." >&2
+      exit 1
+    }
   fi
 
   case "$subcmd" in
