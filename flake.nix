@@ -454,7 +454,7 @@
       # ── Lib (for programmatic use) ────────────────────────────────────────
       lib = {
         inherit repoInputNames inputToDir;
-        # Dependency graph: input name → list of logos input names it depends on
+        # Dependency graph: input name → { deps = [ ... ]; hasTests = bool; }
         depGraph = import ./nix/dep-graph.nix;
       };
     };

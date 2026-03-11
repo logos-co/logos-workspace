@@ -81,6 +81,7 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws override-inputs <repo> [opts]` | Preview override flags |
 | `ws update [repo\|--all]` | Update flake.lock inputs |
 | `ws foreach <cmd>` | Run a command in every repo |
+| `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
 
 ### Build/Run Options
 
@@ -93,6 +94,21 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 - `ws test --all --type cpp` — Run checks only for C++ repos
 - `ws test logos-cpp-sdk` — Run checks for a specific repo
 - Types: `cpp`, `rust`, `nim`, `js`, `qml`
+
+## Adding Tests to a Repo
+
+Repos that expose tests follow two conventions so that `ws test` can discover and run them:
+
+1. **Add a `checks.<system>.tests` output** to the repo's `flake.nix`. This derivation should build *and run* the test binary (not just compile it). See `repos/logos-liblogos/flake.nix` or `repos/logos-module/flake.nix` for examples.
+
+2. **Run `ws sync-graph`** to regenerate `nix/dep-graph.nix`. This scans every repo's `flake.nix` to detect deps and whether it has a `checks` output (`hasTests`). Without `hasTests = true`, `ws test` skips the repo entirely to avoid expensive nix evaluation.
+
+```bash
+# After adding checks to a repo's flake.nix:
+ws sync-graph
+```
+
+Repos with `hasTests = false` (the default for most repos) are skipped by `ws test --all`.
 
 ## Using nix directly
 

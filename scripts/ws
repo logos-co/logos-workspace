@@ -156,6 +156,23 @@ build_override_flags() {
   echo "${flags[@]}"
 }
 
+# Check if a repo has tests according to dep-graph metadata
+has_tests() {
+  local target="$1"
+  if [[ ! -f "$DEP_GRAPH" ]]; then
+    return 0  # assume yes if no metadata
+  fi
+  local result
+  result=$(nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --raw --expr '
+      let graph = import '"$DEP_GRAPH"';
+      in if (graph.${"'"$target"'"} or null) == null then "unknown"
+         else if graph.${"'"$target"'"}.hasTests then "true"
+         else "false"
+    ' 2>/dev/null)
+  [[ "$result" != "false" ]]
+}
+
 # Get dependents of a repo (repos that depend on it)
 get_dependents() {
   local target="$1"
@@ -167,7 +184,7 @@ get_dependents() {
       let
         graph = import '"$DEP_GRAPH"';
         names = builtins.attrNames graph;
-        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}) names;
+        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
       in builtins.concatStringsSep "\n" dependents
     ' 2>/dev/null
 }
@@ -371,35 +388,170 @@ cmd_develop() {
   fi
 }
 
+_detect_system() {
+  nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --raw --expr builtins.currentSystem 2>/dev/null || echo "x86_64-linux"
+}
+
+# Parse a JSON array string like ["a","b","c"] into newline-separated values (no jq needed)
+_json_array_to_lines() {
+  echo "$1" | tr -d '[]"' | tr ',' '\n' | sed '/^$/d'
+}
+
+# Discover checks and test-like packages in a single nix eval call
+_discover_test_outputs() {
+  local repo_path="$1"
+  local system="$2"
+
+  # Single eval: get both checks and test-like packages at once
+  nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --raw --expr '
+      let
+        flake = builtins.getFlake "path:'"$repo_path"'";
+        checks = builtins.attrNames (flake.checks.'"$system"' or {});
+        packages = builtins.attrNames (flake.packages.'"$system"' or {});
+        testPkgs = builtins.filter (n: builtins.match ".*[Tt]est.*" n != null) packages;
+      in builtins.toJSON { inherit checks testPkgs; }
+    ' 2>/dev/null || echo '{"checks":[],"testPkgs":[]}'
+}
+
+# Run test for a single repo.
+# Priority:
+#   1. checks.<system>.tests          (convention: runs tests)
+#   2. Other checks.<system>.*        (also run tests)
+#   3. packages.<system>.*test*       (test packages — build only)
+#   4. Skip
+_test_one_repo() {
+  local input_name="$1"
+  local dir_name="$2"
+  local system="$3"
+  local repo_path="$REPOS_DIR/$dir_name"
+
+  echo -e "${BOLD}Testing ${CYAN}$dir_name${NC}${BOLD}...${NC}"
+
+  if [[ ! -d "$repo_path" ]]; then
+    echo -e "  ${RED}not cloned${NC}"
+    return 1
+  fi
+
+  # Fast path: skip repos known to have no tests
+  local skip_known=false
+  has_tests "$input_name" || skip_known=true
+  if $skip_known; then
+    echo -e "  ${YELLOW}SKIP${NC} no tests (per nix/dep-graph.nix)"
+    return 2
+  fi
+
+  # Discover checks + test packages in one eval
+  echo -e "  ${BLUE}Discovering test outputs...${NC}"
+  local outputs
+  outputs=$(_discover_test_outputs "$repo_path" "$system")
+
+  local checks_json test_pkgs_json
+  checks_json=$(echo "$outputs" | sed 's/.*"checks":\([^,}]*\).*/\1/')
+  test_pkgs_json=$(echo "$outputs" | sed 's/.*"testPkgs":\([^}]*\).*/\1/')
+
+  local ran_something=false
+  local all_pass=true
+
+  # 1. Run checks (convention: checks.*.tests first, then others)
+  local checks
+  checks=$(_json_array_to_lines "$checks_json")
+
+  if [[ -n "$checks" ]]; then
+    # If "tests" exists, run it first (convention)
+    if echo "$checks" | grep -qx "tests"; then
+      ran_something=true
+      echo -e "  ${YELLOW}check${NC} tests"
+      if nix build --extra-experimental-features "nix-command flakes" \
+        "path:$repo_path#checks.$system.tests" -L; then
+        echo -e "  ${GREEN}PASS${NC} tests"
+      else
+        echo -e "  ${RED}FAIL${NC} tests"
+        all_pass=false
+      fi
+    fi
+
+    # Run any other checks
+    while IFS= read -r check; do
+      [[ -z "$check" || "$check" == "tests" ]] && continue
+      ran_something=true
+      echo -e "  ${YELLOW}check${NC} $check"
+      if nix build --extra-experimental-features "nix-command flakes" \
+        "path:$repo_path#checks.$system.$check" -L; then
+        echo -e "  ${GREEN}PASS${NC} $check"
+      else
+        echo -e "  ${RED}FAIL${NC} $check"
+        all_pass=false
+      fi
+    done <<< "$checks"
+  fi
+
+  # 2. If no checks, try test-like packages (build only)
+  if ! $ran_something; then
+    while IFS= read -r pkg; do
+      [[ -z "$pkg" ]] && continue
+      ran_something=true
+      echo -e "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
+      if nix build --extra-experimental-features "nix-command flakes" \
+        "path:$repo_path#$pkg" -L; then
+        echo -e "  ${GREEN}PASS${NC} $pkg"
+      else
+        echo -e "  ${RED}FAIL${NC} $pkg"
+        all_pass=false
+      fi
+    done <<< "$(_json_array_to_lines "$test_pkgs_json")"
+  fi
+
+  # 3. Nothing found despite hasTests=true — metadata may be stale
+  if ! $ran_something; then
+    echo -e "  ${YELLOW}SKIP${NC} hasTests=true in dep-graph.nix but no checks/test packages found"
+    return 2
+  fi
+
+  $all_pass
+}
+
 cmd_test() {
-  local target="${1:-}"
+  local target=""
   local test_type=""
-  shift || true
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --type|-t) test_type="$2"; shift 2 ;;
-      *) shift ;;
+      --all) target="--all"; shift ;;
+      -*) shift ;;  # skip unknown flags
+      *)
+        # First non-flag arg is the repo name
+        [[ -z "$target" ]] && target="$1"
+        shift ;;
     esac
   done
 
-  if [[ "$target" == "--all" || -z "$target" ]]; then
-    # Run all checks
-    echo -e "${BOLD}Running all workspace checks...${NC}"
-    if [[ -n "$test_type" ]]; then
-      echo -e "${CYAN}Filtering by type: $test_type${NC}"
-      echo ""
-      local found=0
-      for entry in "${REPOS[@]}"; do
-        local input_name dir_name has_flake
-        input_name=$(get_field "$entry" 1)
-        dir_name=$(get_field "$entry" 2)
-        has_flake=$(get_field "$entry" 4)
-        [[ "$has_flake" != "yes" || -z "$input_name" ]] && continue
+  local system
+  system=$(_detect_system)
 
+  if [[ "$target" == "--all" || -z "$target" ]]; then
+    echo -e "${BOLD}Running tests across all repos (system: $system)${NC}"
+    echo ""
+
+    local passed=0 failed=0 skipped=0
+
+    for entry in "${REPOS[@]}"; do
+      local input_name dir_name has_flake
+      input_name=$(get_field "$entry" 1)
+      dir_name=$(get_field "$entry" 2)
+      has_flake=$(get_field "$entry" 4)
+
+      if [[ "$has_flake" != "yes" || -z "$input_name" ]]; then
+        skipped=$((skipped + 1))
+        continue
+      fi
+
+      # Filter by type if specified
+      if [[ -n "$test_type" ]]; then
         local repo_path="$REPOS_DIR/$dir_name"
         local matches=false
-
         case "$test_type" in
           cpp|cmake)
             [[ -f "$repo_path/CMakeLists.txt" ]] && matches=true ;;
@@ -417,57 +569,40 @@ cmd_test() {
             echo "Available types: cpp, rust, nim, js, qml" >&2
             exit 1 ;;
         esac
-
-        if $matches; then
-          found=$((found + 1))
-          echo -e "  ${YELLOW}*${NC} $dir_name"
-          nix build \
-            --extra-experimental-features "nix-command flakes" \
-            "$WORKSPACE_ROOT#checks.$(nix eval --extra-experimental-features 'nix-command flakes' --impure --raw --expr builtins.currentSystem 2>/dev/null || echo x86_64-linux).$input_name--default" \
-            2>/dev/null && echo -e "    ${GREEN}PASS${NC}" || echo -e "    ${RED}FAIL${NC}"
+        if ! $matches; then
+          skipped=$((skipped + 1))
+          continue
         fi
-      done
-      [[ $found -eq 0 ]] && echo -e "${YELLOW}No repos found matching type '$test_type'${NC}"
-    else
-      exec nix flake check \
-        --extra-experimental-features "nix-command flakes" \
-        "$WORKSPACE_ROOT"
-    fi
+      fi
+
+      local rc=0
+      _test_one_repo "$input_name" "$dir_name" "$system" || rc=$?
+      if [[ $rc -eq 0 ]]; then
+        passed=$((passed + 1))
+      elif [[ $rc -eq 2 ]]; then
+        skipped=$((skipped + 1))
+      else
+        failed=$((failed + 1))
+      fi
+      echo ""
+    done
+
+    echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
+    [[ $failed -eq 0 ]] || exit 1
   else
-    # Run checks for a specific repo
-    local input_name
+    # Single repo
+    local input_name dir_name
     input_name=$(get_input_name "$target")
+    dir_name="$target"
+
     if [[ -z "$input_name" ]]; then
       echo -e "${RED}Error:${NC} '$target' has no flake input" >&2
       exit 1
     fi
-    echo -e "${BOLD}Running checks for ${CYAN}$input_name${NC}${BOLD}...${NC}"
-    local system
-    system=$(nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr builtins.currentSystem 2>/dev/null || echo "x86_64-linux")
 
-    # Find all checks for this repo
-    local checks
-    checks=$(nix eval --extra-experimental-features "nix-command flakes" \
-      "$WORKSPACE_ROOT#checks.$system" --apply 'cs: builtins.attrNames cs' --json 2>/dev/null | \
-      jq -r ".[] | select(startswith(\"$input_name--\"))" 2>/dev/null)
-
-    if [[ -z "$checks" ]]; then
-      echo -e "${YELLOW}No checks found for $input_name, trying direct build...${NC}"
-      nix build --extra-experimental-features "nix-command flakes" "$WORKSPACE_ROOT#$input_name"
-    else
-      local all_pass=true
-      while IFS= read -r check; do
-        echo -ne "  $check ... "
-        if nix build --extra-experimental-features "nix-command flakes" \
-          "$WORKSPACE_ROOT#checks.$system.$check" 2>/dev/null; then
-          echo -e "${GREEN}PASS${NC}"
-        else
-          echo -e "${RED}FAIL${NC}"
-          all_pass=false
-        fi
-      done <<< "$checks"
-      $all_pass || exit 1
-    fi
+    local rc=0
+    _test_one_repo "$input_name" "$dir_name" "$system" || rc=$?
+    [[ $rc -eq 1 ]] && exit 1
   fi
 }
 
@@ -569,7 +704,7 @@ cmd_graph() {
     echo -e "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
     nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
       let graph = import '"$DEP_GRAPH"';
-      in builtins.concatStringsSep "\n" (graph.${"'"$target"'"} or [])
+      in builtins.concatStringsSep "\n" ((graph.${"'"$target"'"} or { deps = []; }).deps or [])
     ' 2>/dev/null | while IFS= read -r dep; do
       [[ -n "$dep" ]] && echo -e "  -> $dep"
     done
@@ -580,7 +715,7 @@ cmd_graph() {
       let
         graph = import '"$DEP_GRAPH"';
         names = builtins.attrNames graph;
-        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}) names;
+        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
       in builtins.concatStringsSep "\n" dependents
     ' 2>/dev/null | while IFS= read -r dep; do
       [[ -n "$dep" ]] && echo -e "  <- $dep"
@@ -592,7 +727,7 @@ cmd_graph() {
         graph = import '"$DEP_GRAPH"';
         names = builtins.attrNames graph;
         edges = builtins.concatMap (k:
-          map (dep: "  \"" + dep + "\" -> \"" + k + "\";") graph.${k}
+          map (dep: "  \"" + dep + "\" -> \"" + k + "\";") graph.${k}.deps
         ) names;
       in "digraph logos {\n  rankdir=BT;\n  node [shape=box, fontsize=10];\n\n"
          + builtins.concatStringsSep "\n" edges
@@ -720,6 +855,109 @@ cmd_list() {
   done
 }
 
+cmd_sync_graph() {
+  echo -e "${BOLD}Syncing nix/dep-graph.nix from repo flake.nix files...${NC}"
+  echo ""
+
+  # Build list of workspace input names
+  local ws_names=()
+  for entry in "${REPOS[@]}"; do
+    local iname
+    iname=$(get_field "$entry" 1)
+    [[ -n "$iname" ]] && ws_names+=("$iname")
+  done
+
+  # Find max name length for alignment
+  local max_len=0
+  for name in "${ws_names[@]}"; do
+    [[ ${#name} -gt $max_len ]] && max_len=${#name}
+  done
+
+  local tmpfile
+  tmpfile=$(mktemp)
+
+  cat > "$tmpfile" << 'HEADER'
+# Dependency graph: flake input name → { deps, hasTests }
+#
+# deps:     list of workspace input names this repo depends on
+#           (only logos-co deps; external deps like go-wallet-sdk are omitted)
+# hasTests: whether this repo exposes checks or test packages in its flake
+#           Used by `ws test` to skip expensive nix eval for repos without tests.
+#
+# AUTO-GENERATED by `ws sync-graph`. To update: ws sync-graph
+#
+# If you add a `checks` output to a repo's flake.nix, re-run this command
+# so that `ws test --all` picks it up.
+{
+HEADER
+
+  for entry in "${REPOS[@]}"; do
+    local input_name dir_name has_flake
+    input_name=$(get_field "$entry" 1)
+    dir_name=$(get_field "$entry" 2)
+    has_flake=$(get_field "$entry" 4)
+
+    [[ "$has_flake" != "yes" || -z "$input_name" ]] && continue
+
+    local flake_file="$REPOS_DIR/$dir_name/flake.nix"
+    if [[ ! -f "$flake_file" ]]; then
+      echo -e "  ${YELLOW}skip${NC}  $dir_name (not cloned)"
+      continue
+    fi
+
+    # Find deps: which workspace inputs does this flake reference?
+    local deps=()
+    for ws_name in "${ws_names[@]}"; do
+      [[ "$ws_name" == "$input_name" ]] && continue  # skip self
+      # Match by input name (name.url, name.follows, name = {)
+      # OR by URL referencing the repo (github:logos-co/<name>)
+      if grep -qE "^[[:space:]]+${ws_name}(\.|[[:space:]]*=)" "$flake_file" 2>/dev/null || \
+         grep -qE "logos-co/${ws_name}(\.git)?\"" "$flake_file" 2>/dev/null; then
+        deps+=("$ws_name")
+      fi
+    done
+
+    # Check hasTests: does the flake declare a checks output?
+    local has_tests="false"
+    if grep -qE '^[[:space:]]+checks[[:space:]]*=' "$flake_file" 2>/dev/null; then
+      has_tests="true"
+    fi
+
+    # Format deps
+    local deps_str="[]"
+    if [[ ${#deps[@]} -gt 0 ]]; then
+      deps_str="[ $(printf '"%s" ' "${deps[@]}")]"
+    fi
+
+    # Write entry with padding
+    local pad
+    pad=$(printf "%-${max_len}s" "$input_name")
+    echo "  ${pad} = { deps = ${deps_str}; hasTests = ${has_tests}; };" >> "$tmpfile"
+
+    # Console status
+    local marker="${GREEN}ok${NC}"
+    [[ "$has_tests" == "true" ]] && marker="${GREEN}ok${NC} ${CYAN}(tests)${NC}"
+    echo -e "  $marker  $input_name (${#deps[@]} deps)"
+  done
+
+  echo "}" >> "$tmpfile"
+  echo ""
+
+  # Compare and update
+  if [[ -f "$DEP_GRAPH" ]] && diff -q "$DEP_GRAPH" "$tmpfile" >/dev/null 2>&1; then
+    echo -e "${GREEN}No changes${NC} — nix/dep-graph.nix is already up to date."
+    rm "$tmpfile"
+  else
+    if [[ -f "$DEP_GRAPH" ]]; then
+      echo -e "${BOLD}Changes:${NC}"
+      diff --color=auto -u "$DEP_GRAPH" "$tmpfile" || true
+      echo ""
+    fi
+    mv "$tmpfile" "$DEP_GRAPH"
+    echo -e "${GREEN}Updated${NC} nix/dep-graph.nix"
+  fi
+}
+
 cmd_help() {
   cat <<'EOF'
 Logos Workspace CLI
@@ -750,6 +988,7 @@ COMMANDS:
   override-inputs <repo> [opts] Show the nix --override-input flags that would be used
   update [repo|--all]           Update flake.lock inputs
   foreach <command>             Run a command in every repo directory
+  sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
   help                          Show this help
 
 EXAMPLES:
@@ -789,6 +1028,9 @@ EXAMPLES:
 
   # Show override flags without executing
   ws override-inputs logos-app-poc --auto-local
+
+  # Regenerate dep-graph.nix after adding tests to a repo
+  ws sync-graph
 EOF
 }
 
@@ -806,6 +1048,7 @@ case "${1:-help}" in
   override-inputs|oi) shift; cmd_override_inputs "$@" ;;
   update)         shift; cmd_update "$@" ;;
   foreach)        shift; cmd_foreach "$@" ;;
+  sync-graph)     shift; cmd_sync_graph "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   help|--help|-h) cmd_help ;;
   *)
