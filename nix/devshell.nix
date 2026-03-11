@@ -151,6 +151,8 @@ let
         'graph:Show dependency graph'
         'override-inputs:Show nix override flags'
         'update:Update flake.lock inputs'
+        'loc:Count lines of code'
+        'watch:Auto-run commands on file changes'
         'foreach:Run a command in every repo'
         'worktree:Manage worktrees'
         'sync-graph:Regenerate dep-graph.nix'
@@ -163,8 +165,13 @@ let
         _describe 'command' commands
       elif (( CURRENT == 3 )); then
         case "''${words[2]}" in
-          build|run|develop|test|graph|update|override-inputs)
+          build|run|develop|test|graph|update|override-inputs|loc)
             _describe 'repo' repos
+            ;;
+          watch)
+            local -a watch_cmds
+            watch_cmds=('test:Re-run tests on change' 'build:Re-build on change' 'run:Run command on change')
+            _describe 'subcommand' watch_cmds
             ;;
           worktree)
             local -a wt_cmds
@@ -183,6 +190,14 @@ let
             local -a opts
             opts=('--all' '--type')
             _describe 'option' opts
+            ;;
+          loc)
+            local -a opts
+            opts=('--all' '--no-nix' '--code-only')
+            _describe 'option' opts
+            ;;
+          watch)
+            _describe 'repo' repos
             ;;
         esac
       fi
@@ -284,7 +299,7 @@ let
 
 
     # ── Workspace ──────────────────────────────────────────────────────
-    export LOGOS_WORKSPACE_ROOT="${toString ../.}"
+    export LOGOS_WORKSPACE_ROOT="''${LOGOS_WORKSPACE_ROOT:-$(pwd)}"
 
     # ── Welcome ────────────────────────────────────────────────────────
     if [[ -z "$LOGOS_WELCOMED" ]]; then
@@ -319,7 +334,7 @@ let
         tmux set-environment -t logos STARSHIP_CONFIG "${starshipConfig}"
         tmux set-environment -t logos GIT_PAGER "delta --paging=always"
         tmux set-environment -t logos DELTA_PAGER "less -R"
-        tmux set-environment -t logos LOGOS_WORKSPACE_ROOT "${toString ../.}"
+        tmux set-environment -t logos LOGOS_WORKSPACE_ROOT "''${LOGOS_WORKSPACE_ROOT:-$(pwd)}"
         tmux set-environment -t logos PATH "$PATH"
         exec tmux attach -t logos
       fi
@@ -364,6 +379,13 @@ in pkgs.mkShell {
 
     # ── Git ───────────────────────────────────────────────────────────
     lazygit               # interactive git TUI
+
+    # ── Code analysis & docs ─────────────────────────────────────────
+    tokei                 # lines of code counter
+    glow                  # markdown renderer
+
+    # ── File watching ────────────────────────────────────────────────
+    watchexec             # run commands on file changes
 
     # ── Editor ────────────────────────────────────────────────────────
     neovim

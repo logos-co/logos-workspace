@@ -80,6 +80,10 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws graph [repo]` | Show dependency graph |
 | `ws override-inputs <repo> [opts]` | Preview override flags |
 | `ws update [repo\|--all]` | Update flake.lock inputs |
+| `ws loc [repo\|--all] [--no-nix]` | Count lines of code (uses tokei) |
+| `ws watch test <repo>` | Re-run tests on file changes |
+| `ws watch build <repo>` | Re-build on file changes |
+| `ws watch run <cmd> [-w repo]` | Run command on file changes |
 | `ws foreach <cmd>` | Run a command in every repo |
 | `ws worktree add <name> [-b br]` | Create a worktree with submodules and `ws/<branch>` branches |
 | `ws worktree list` | List all worktrees |
@@ -218,6 +222,157 @@ ws test --all --type rust
 
 `ws test` only runs repos that have `hasTests = true` in `nix/dep-graph.nix`. Repos without tests are skipped instantly.
 
+## Watching for changes
+
+Auto-run tests or builds whenever you save a file — no manual re-running:
+
+```bash
+# Re-run tests every time you save a file in logos-module
+ws watch test logos-module
+
+# Auto-build with local overrides on save
+ws watch build logos-app-poc --auto-local
+
+# Watch specific repos and run a custom command
+ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk
+```
+
+Combine with `--auto-local` to get a live feedback loop: edit a library, save, and see the downstream build or test result immediately.
+
+## Running an app with local changes
+
+```bash
+# Build and run logos-app-poc using your local logos-cpp-sdk
+ws run logos-app-poc --auto-local
+
+# Or with explicit overrides
+ws run logos-app-poc --local logos-cpp-sdk logos-liblogos
+```
+
+## Checking what your changes affect
+
+Before pushing, see which repos depend on the code you changed:
+
+```bash
+# Show all dirty repos and their downstream dependents
+ws dirty
+
+# Show the full dependency tree for a specific repo
+ws graph logos-cpp-sdk
+
+# Preview the exact nix --override-input flags that would be used
+ws override-inputs logos-app-poc --auto-local
+```
+
+## Keeping repos up to date
+
+```bash
+# Pull latest code in every repo
+ws foreach git pull
+
+# Update a single flake input to its latest upstream
+ws update logos-cpp-sdk
+
+# Update all flake inputs
+ws update --all
+
+# Check clone/branch status across all repos
+ws status
+```
+
+## Working across multiple repos at once
+
+```bash
+# Run any command in every repo
+ws foreach git status -s
+ws foreach git stash
+
+# Chain multiple commands with quotes (|| true skips repos where nothing happens)
+ws foreach 'git add . && git commit -m "your commit message" || true'
+
+# Check which repos have local changes or unpushed commits
+ws status
+```
+
+## Working in isolated worktrees
+
+Use worktrees to work on feature branches that span multiple repos without disturbing your main workspace:
+
+```bash
+# Create a worktree for a feature branch
+ws worktree add my-feature -b my-feature-branch
+# Creates ../logos-workspace--my-feature/ with:
+#   - Workspace on branch: my-feature-branch
+#   - All repos on branch: ws/my-feature-branch
+
+# Work in the worktree
+cd ../logos-workspace--my-feature
+# Make changes in repos/logos-cpp-sdk, repos/logos-liblogos, etc.
+ws build logos-app-poc --auto-local
+
+# Commit and push changes in modified repos
+ws foreach 'git add . && git commit -m "my changes" && git push origin ws/my-feature-branch || true'
+
+# When done, remove the worktree
+cd ../logos-workspace
+ws worktree remove my-feature
+```
+
+For **claude-docker** or similar tools: the repo includes `.claude-docker/post-worktree.sh` which automatically initializes submodules and creates `ws/<branch>` branches after a worktree is created.
+
+## Entering a dev shell
+
+The workspace dev shell comes with modern CLI tools (eza, bat, fzf, delta, starship, zoxide, neovim) and handy aliases (`gst`, `ga`, `gc`, `gd`, `gl`, `wss`, `wsd`, etc.).
+
+For the best experience, install a [Nerd Font](https://www.nerdfonts.com/font-downloads) (e.g. [FiraCode Nerd Font](https://www.nerdfonts.com/font-downloads)) and set it as your terminal font. This enables file icons in `ls` and other tools.
+
+```bash
+# Workspace dev shell (has ws on PATH)
+ws develop
+
+# A specific repo's dev shell (has that repo's build tools)
+ws develop logos-module
+
+# Dev shell with local overrides for dirty repos
+ws develop logos-app-poc --auto-local
+```
+
+## Lines of code
+
+```bash
+# Full breakdown for the whole workspace
+ws loc
+
+# Lines of code for a single repo
+ws loc logos-cpp-sdk
+
+# Per-repo breakdown sorted by LOC
+ws loc --all
+
+# Exclude nix/config files — just the actual code
+ws loc --all --no-nix
+```
+
+## Visualizing the dependency graph
+
+```bash
+# Print DOT format to stdout
+ws graph
+
+# Generate an SVG
+ws graph | dot -Tsvg > graph.svg
+
+# See deps and dependents of a specific repo
+ws graph logos-liblogos
+```
+
+## Listing repos
+
+```bash
+# See which repos are cloned and which have flakes
+ws list
+```
+
 ## Adding tests to a repo
 
 When a repo gains tests for the first time:
@@ -247,54 +402,6 @@ ws sync-graph
 ws test <your-repo>
 ```
 
-## Checking what your changes affect
-
-Before pushing, see which repos depend on the code you changed:
-
-```bash
-# Show all dirty repos and their downstream dependents
-ws dirty
-
-# Show the full dependency tree for a specific repo
-ws graph logos-cpp-sdk
-
-# Preview the exact nix --override-input flags that would be used
-ws override-inputs logos-app-poc --auto-local
-```
-
-## Entering a dev shell
-
-The workspace dev shell comes with modern CLI tools (eza, bat, fzf, delta, starship, zoxide, neovim) and handy aliases (`gst`, `ga`, `gc`, `gd`, `gl`, `wss`, `wsd`, etc.).
-
-For the best experience, install a [Nerd Font](https://www.nerdfonts.com/font-downloads) (e.g. [FiraCode Nerd Font](https://www.nerdfonts.com/font-downloads)) and set it as your terminal font. This enables file icons in `ls` and other tools.
-
-```bash
-# Workspace dev shell (has ws on PATH)
-ws develop
-
-# A specific repo's dev shell (has that repo's build tools)
-ws develop logos-module
-
-# Dev shell with local overrides for dirty repos
-ws develop logos-app-poc --auto-local
-```
-
-## Keeping repos up to date
-
-```bash
-# Pull latest code in every repo
-ws foreach git pull
-
-# Update a single flake input to its latest upstream
-ws update logos-cpp-sdk
-
-# Update all flake inputs
-ws update --all
-
-# Check clone/branch status across all repos
-ws status
-```
-
 ## Updating the dependency graph
 
 After adding a new repo, changing a repo's flake inputs, or adding tests:
@@ -304,36 +411,6 @@ ws sync-graph
 ```
 
 This scans every repo's `flake.nix` and regenerates `nix/dep-graph.nix` with accurate `deps` and `hasTests` values. Commit the result.
-
-## Visualizing the dependency graph
-
-```bash
-# Print DOT format to stdout
-ws graph
-
-# Generate an SVG
-ws graph | dot -Tsvg > graph.svg
-
-# See deps and dependents of a specific repo
-ws graph logos-liblogos
-```
-
-## Running an app with local changes
-
-```bash
-# Build and run logos-app-poc using your local logos-cpp-sdk
-ws run logos-app-poc --auto-local
-
-# Or with explicit overrides
-ws run logos-app-poc --local logos-cpp-sdk logos-liblogos
-```
-
-## Listing repos
-
-```bash
-# See which repos are cloned and which have flakes
-ws list
-```
 
 ## Adding a new repo to the workspace
 
@@ -396,46 +473,6 @@ ws build logos-app-poc --local logos-cpp-sdk
 ```
 
 If a build fails unexpectedly with overrides, check that the dirty repo is in a buildable state — `--auto-local` uses whatever is on disk, including broken or half-finished work.
-
-## Working across multiple repos at once
-
-```bash
-# Run any command in every repo
-ws foreach git status -s
-ws foreach git stash
-
-# Chain multiple commands with quotes (|| true skips repos where nothing happens)
-ws foreach 'git add . && git commit -m "your commit message" || true'
-
-# Check which repos have local changes or unpushed commits
-ws status
-```
-
-## Working in isolated worktrees
-
-Use worktrees to work on feature branches that span multiple repos without disturbing your main workspace:
-
-```bash
-# Create a worktree for a feature branch
-ws worktree add my-feature -b my-feature-branch
-# Creates ../logos-workspace--my-feature/ with:
-#   - Workspace on branch: my-feature-branch
-#   - All repos on branch: ws/my-feature-branch
-
-# Work in the worktree
-cd ../logos-workspace--my-feature
-# Make changes in repos/logos-cpp-sdk, repos/logos-liblogos, etc.
-ws build logos-app-poc --auto-local
-
-# Commit and push changes in modified repos
-ws foreach 'git add . && git commit -m "my changes" && git push origin ws/my-feature-branch || true'
-
-# When done, remove the worktree
-cd ../logos-workspace
-ws worktree remove my-feature
-```
-
-For **claude-docker** or similar tools: the repo includes `.claude-docker/post-worktree.sh` which automatically initializes submodules and creates `ws/<branch>` branches after a worktree is created.
 
 ## Dev Shell Quick Reference
 
@@ -505,3 +542,13 @@ The first run takes a few seconds while nix fetches the tools. After that, the s
 | `wst` | `ws test` |
 | `wsd` | `ws dirty` |
 | `wsg` | `ws graph` |
+
+### Other Tools
+
+```bash
+# Render a markdown file
+glow README.md
+
+# Interactive git TUI
+lazygit
+```

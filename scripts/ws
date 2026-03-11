@@ -8,6 +8,11 @@ WORKSPACE_ROOT="${LOGOS_WORKSPACE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 REPOS_DIR="$WORKSPACE_ROOT/repos"
 DEP_GRAPH="$WORKSPACE_ROOT/nix/dep-graph.nix"
 
+# Show help text and exit. Usage: show_help "text"
+show_help() { echo -e "$1"; exit 0; }
+# Check if any argument is --help or -h
+wants_help() { for a in "$@"; do [[ "$a" == "--help" || "$a" == "-h" ]] && return 0; done; return 1; }
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -192,6 +197,13 @@ get_dependents() {
 # ── Commands ─────────────────────────────────────────────────────────────────
 
 cmd_init() {
+  wants_help "$@" && show_help "Usage: ws init [jobs]
+
+Clone all submodules under repos/.
+
+Arguments:
+  jobs    Number of parallel clone jobs (default: 4)"
+
   echo -e "${BOLD}Initializing workspace submodules...${NC}"
   local jobs="${1:-4}"
 
@@ -224,6 +236,19 @@ cmd_init() {
 }
 
 cmd_build() {
+  wants_help "$@" && show_help "Usage: ws build <repo> [options]
+
+Build a repo via nix.
+
+Options:
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
+
+Examples:
+  ws build logos-app-poc
+  ws build logos-app-poc --auto-local
+  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
+
   local repo="$1"; shift
   local auto_local=false
   local local_overrides=()
@@ -284,6 +309,19 @@ cmd_build() {
 }
 
 cmd_run() {
+  wants_help "$@" && show_help "Usage: ws run <repo> [options]
+
+Build and run a repo via nix.
+
+Options:
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
+
+Examples:
+  ws run logos-app-poc
+  ws run logos-app-poc --auto-local
+  ws run logos-app-poc --local logos-cpp-sdk"
+
   local repo="$1"; shift
   local input_name
   input_name=$(get_input_name "$repo")
@@ -337,6 +375,21 @@ cmd_run() {
 }
 
 cmd_develop() {
+  wants_help "$@" && show_help "Usage: ws develop [repo] [options]
+
+Enter a nix devShell. Without a repo, enters the workspace shell (zsh + tmux + tools).
+With a repo, enters that repo's own devShell.
+
+Options:
+  --fresh                       Force rebuild (clear cached shell environment)
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
+
+Examples:
+  ws develop                    Enter the workspace devShell
+  ws develop --fresh            Rebuild the workspace devShell from scratch
+  ws develop logos-cpp-sdk      Enter logos-cpp-sdk's own devShell"
+
   local repo=""
   local auto_local=false
   local fresh=false
@@ -558,6 +611,20 @@ _test_one_repo() {
 }
 
 cmd_test() {
+  wants_help "$@" && show_help "Usage: ws test [repo] [options]
+
+Run checks/tests for a repo or all repos.
+
+Options:
+  --all                         Test all repos (default if no repo given)
+  --type, -t <type>             Filter by project type: cpp, rust, nim, js, qml
+
+Examples:
+  ws test logos-module           Test a single repo
+  ws test --all                  Test all repos
+  ws test --type cpp             Test only C++ repos
+  ws test logos-module --type cpp"
+
   local target=""
   local test_type=""
 
@@ -652,6 +719,13 @@ cmd_test() {
 }
 
 cmd_status() {
+  wants_help "$@" && show_help "Usage: ws status
+
+Show git status across all repos — branch, dirty/clean, ahead/behind.
+
+Examples:
+  ws status"
+
   echo -e "${BOLD}Workspace status${NC}"
   echo ""
 
@@ -709,6 +783,13 @@ cmd_status() {
 }
 
 cmd_dirty() {
+  wants_help "$@" && show_help "Usage: ws dirty
+
+Show repos with uncommitted changes and what downstream repos they affect.
+
+Examples:
+  ws dirty"
+
   echo -e "${BOLD}Repos with local changes:${NC}"
   echo ""
 
@@ -738,6 +819,16 @@ cmd_dirty() {
 }
 
 cmd_graph() {
+  wants_help "$@" && show_help "Usage: ws graph [repo]
+
+Show the dependency graph. With a repo, shows its deps and dependents.
+Without a repo, outputs the full graph in DOT format.
+
+Examples:
+  ws graph logos-app-poc         Show deps and dependents of a repo
+  ws graph                       Output full DOT graph
+  ws graph | dot -Tsvg > g.svg   Render as SVG (requires graphviz)"
+
   local target="${1:-}"
 
   if [[ ! -f "$DEP_GRAPH" ]]; then
@@ -784,6 +875,18 @@ cmd_graph() {
 }
 
 cmd_override_inputs() {
+  wants_help "$@" && show_help "Usage: ws override-inputs <repo> [options]
+
+Print the nix --override-input flags for building a repo with local overrides.
+
+Options:
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
+
+Examples:
+  ws override-inputs logos-app-poc --auto-local
+  ws override-inputs logos-app-poc --local logos-cpp-sdk"
+
   local repo="$1"; shift || true
   local auto_local=false
   local local_overrides=()
@@ -829,7 +932,214 @@ cmd_override_inputs() {
   echo ""
 }
 
+cmd_loc() {
+  wants_help "$@" && show_help "Usage: ws loc [repo] [options]
+
+Count lines of code using tokei. Without a repo, counts the whole workspace.
+
+Options:
+  --all                         Per-repo breakdown sorted by LOC
+  --no-nix, --code-only         Exclude .nix, .lock, .json, .md files
+
+Examples:
+  ws loc                         Count all code in workspace
+  ws loc logos-cpp-sdk           Count code in a single repo
+  ws loc --all                   Per-repo breakdown
+  ws loc --all --no-nix          Per-repo breakdown, code only"
+
+  local target="${1:-}"
+  shift || true
+
+  local exclude_nix=false
+  local repos_list=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --no-nix) exclude_nix=true; shift ;;
+      --code-only) exclude_nix=true; shift ;;
+      *) repos_list+=("$1"); shift ;;
+    esac
+  done
+
+  # Also check if first arg was a flag
+  case "$target" in
+    --no-nix|--code-only) exclude_nix=true; target="" ;;
+    --all) target="--all" ;;
+  esac
+
+  if ! command -v tokei &>/dev/null; then
+    echo -e "${RED}Error:${NC} tokei not found. Run 'ws develop' first." >&2
+    exit 1
+  fi
+
+  local tokei_args=()
+  if $exclude_nix; then
+    tokei_args+=(-e '*.nix' -e '*.lock' -e 'flake.lock' -e '*.json' -e '*.md')
+  fi
+
+  if [[ "$target" == "--all" ]]; then
+    # Per-repo breakdown
+    local total_header_shown=false
+    for entry in "${REPOS[@]}"; do
+      local dir_name
+      dir_name=$(get_field "$entry" 2)
+      local repo_path="$REPOS_DIR/$dir_name"
+      [[ -d "$repo_path" ]] || continue
+
+      local count
+      count=$(tokei "$repo_path" ${tokei_args[@]+"${tokei_args[@]}"} --output json 2>/dev/null | \
+        python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Total',{}).get('code',0))" 2>/dev/null || echo "0")
+
+      if [[ "$count" -gt 0 ]]; then
+        printf "  ${CYAN}%7s${NC}  %s\n" "$count" "$dir_name"
+      fi
+    done | sort -rn -k1
+
+    echo ""
+    echo -e "${BOLD}Total across all repos:${NC}"
+    tokei "$REPOS_DIR" ${tokei_args[@]+"${tokei_args[@]}"}
+
+  elif [[ -n "$target" ]]; then
+    # Single repo
+    local repo_path="$REPOS_DIR/$target"
+    if [[ ! -d "$repo_path" ]]; then
+      echo -e "${RED}Error:${NC} repo '$target' not found" >&2
+      exit 1
+    fi
+    tokei "$repo_path" ${tokei_args[@]+"${tokei_args[@]}"}
+
+  else
+    # Whole workspace
+    tokei "$REPOS_DIR" ${tokei_args[@]+"${tokei_args[@]}"}
+  fi
+}
+
+cmd_watch() {
+  wants_help "$@" && show_help "Usage: ws watch <test|build|run> [args]
+
+Auto-run commands on file changes using watchexec.
+
+Subcommands:
+  test <repo> [opts]            Re-run tests when repo files change
+  build <repo> [opts]           Re-build when repo files change
+  run <cmd> [-w repo ...]       Run arbitrary command on file changes
+
+Examples:
+  ws watch test logos-module
+  ws watch build logos-app-poc --auto-local
+  ws watch run 'ws test logos-module' -w logos-module -w logos-cpp-sdk"
+
+  local subcmd="${1:-}"
+  shift || true
+
+  if ! command -v watchexec &>/dev/null; then
+    echo -e "${RED}Error:${NC} watchexec not found. Run 'ws develop' first." >&2
+    exit 1
+  fi
+
+  case "$subcmd" in
+    test)
+      local repo="${1:-}"
+      if [[ -z "$repo" ]]; then
+        echo -e "${RED}Usage:${NC} ws watch test <repo> [ws-test-opts]" >&2
+        exit 1
+      fi
+      shift
+      local repo_path="$REPOS_DIR/$repo"
+      if [[ ! -d "$repo_path" ]]; then
+        echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
+        exit 1
+      fi
+      echo -e "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — running tests on save${NC}"
+      exec watchexec -w "$repo_path" --restart -- \
+        "$WORKSPACE_ROOT/scripts/ws" test "$repo" "$@"
+      ;;
+
+    build)
+      local repo="${1:-}"
+      if [[ -z "$repo" ]]; then
+        echo -e "${RED}Usage:${NC} ws watch build <repo> [ws-build-opts]" >&2
+        exit 1
+      fi
+      shift
+      local repo_path="$REPOS_DIR/$repo"
+      if [[ ! -d "$repo_path" ]]; then
+        echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
+        exit 1
+      fi
+      echo -e "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — building on save${NC}"
+      exec watchexec -w "$repo_path" --restart -- \
+        "$WORKSPACE_ROOT/scripts/ws" build "$repo" "$@"
+      ;;
+
+    run)
+      local cmd="${1:-}"
+      if [[ -z "$cmd" ]]; then
+        echo -e "${RED}Usage:${NC} ws watch run <command> [-w repo1 -w repo2 ...]" >&2
+        echo "  Runs <command> whenever watched files change." >&2
+        echo "" >&2
+        echo "Examples:" >&2
+        echo "  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk" >&2
+        echo "  ws watch run 'echo changed' -w logos-liblogos" >&2
+        exit 1
+      fi
+      shift
+
+      # Collect -w flags and convert repo names to paths
+      local watch_args=()
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          -w)
+            local repo_name="$2"
+            local rpath="$REPOS_DIR/$repo_name"
+            if [[ -d "$rpath" ]]; then
+              watch_args+=(-w "$rpath")
+            else
+              watch_args+=(-w "$repo_name")
+            fi
+            shift 2
+            ;;
+          *) shift ;;
+        esac
+      done
+
+      if [[ ${#watch_args[@]} -eq 0 ]]; then
+        watch_args=(-w "$REPOS_DIR")
+      fi
+
+      echo -e "${BOLD}Watching for changes...${NC}"
+      exec watchexec "${watch_args[@]}" --restart -- bash -c "$cmd"
+      ;;
+
+    *)
+      echo -e "${RED}Usage:${NC} ws watch <test|build|run>" >&2
+      echo "" >&2
+      echo "  test <repo> [opts]      Re-run tests on file changes" >&2
+      echo "  build <repo> [opts]     Re-build on file changes" >&2
+      echo "  run <cmd> [-w repo...]  Run arbitrary command on file changes" >&2
+      echo "" >&2
+      echo "Examples:" >&2
+      echo "  ws watch test logos-module" >&2
+      echo "  ws watch build logos-app-poc --auto-local" >&2
+      echo "  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk" >&2
+      exit 1
+      ;;
+  esac
+}
+
 cmd_foreach() {
+  wants_help "$@" && show_help "Usage: ws foreach <command>
+
+Run a command in every cloned repo.
+
+When the command is a single quoted string with spaces, it runs via bash -c
+(so shell operators like && and || work).
+
+Examples:
+  ws foreach git status -s
+  ws foreach 'git add . && git commit -m \"update\"'
+  ws foreach pwd"
+
   local cmd=("$@")
 
   if [[ ${#cmd[@]} -eq 0 ]]; then
@@ -853,6 +1163,21 @@ cmd_foreach() {
 }
 
 cmd_worktree() {
+  wants_help "$@" && show_help "Usage: ws worktree <add|list|remove>
+
+Manage workspace worktrees for isolated multi-repo feature branches.
+
+Subcommands:
+  add <name> [-b branch]        Create a worktree with submodules and ws/<branch> branches
+  list                          List all worktrees
+  remove <name>                 Remove a worktree
+
+Examples:
+  ws worktree add my-feature
+  ws worktree add my-feature -b custom-branch
+  ws worktree list
+  ws worktree remove my-feature"
+
   local subcmd="${1:-}"
   shift || true
 
@@ -941,6 +1266,14 @@ cmd_worktree() {
 }
 
 cmd_update() {
+  wants_help "$@" && show_help "Usage: ws update [repo]
+
+Update flake.lock inputs. Without a repo, updates all inputs.
+
+Examples:
+  ws update                      Update all flake inputs
+  ws update logos-cpp-sdk        Update a single input"
+
   local target="${1:-}"
 
   if [[ "$target" == "--all" || -z "$target" ]]; then
@@ -960,6 +1293,13 @@ cmd_update() {
 }
 
 cmd_list() {
+  wants_help "$@" && show_help "Usage: ws list
+
+List all repos in the workspace with their flake and clone status.
+
+Examples:
+  ws list"
+
   echo -e "${BOLD}Workspace repos (${#REPOS[@]} total)${NC}"
   echo ""
 
@@ -989,6 +1329,14 @@ cmd_list() {
 }
 
 cmd_sync_graph() {
+  wants_help "$@" && show_help "Usage: ws sync-graph
+
+Regenerate nix/dep-graph.nix by scanning each repo's flake.nix for
+workspace dependencies and test outputs.
+
+Examples:
+  ws sync-graph"
+
   echo -e "${BOLD}Syncing nix/dep-graph.nix from repo flake.nix files...${NC}"
   echo ""
 
@@ -1121,6 +1469,10 @@ COMMANDS:
   graph [repo]                  Show dependency graph (DOT format, or repo details)
   override-inputs <repo> [opts] Show the nix --override-input flags that would be used
   update [repo|--all]           Update flake.lock inputs
+  loc [repo|--all] [--no-nix]   Count lines of code (uses tokei)
+  watch test <repo>             Re-run tests on file changes
+  watch build <repo>            Re-build on file changes
+  watch run <cmd> [-w repo...]  Run command on file changes
   foreach <command>             Run a command in every repo directory
   worktree add <name> [-b br]  Create a worktree with submodules and ws/<branch> branches
   worktree list                List all worktrees
@@ -1173,6 +1525,21 @@ EXAMPLES:
   # Remove a worktree when done
   ws worktree remove my-feature
 
+  # Lines of code across all repos
+  ws loc --all --no-nix
+
+  # Lines of code for a single repo
+  ws loc logos-cpp-sdk
+
+  # Auto-run tests when files change
+  ws watch test logos-module
+
+  # Auto-build on changes with local overrides
+  ws watch build logos-app-poc --auto-local
+
+  # Watch specific repos and run a custom command
+  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk
+
   # Regenerate dep-graph.nix after adding tests to a repo
   ws sync-graph
 EOF
@@ -1191,6 +1558,8 @@ case "${1:-help}" in
   graph)          shift; cmd_graph "$@" ;;
   override-inputs|oi) shift; cmd_override_inputs "$@" ;;
   update)         shift; cmd_update "$@" ;;
+  loc)            shift; cmd_loc "$@" ;;
+  watch)          shift; cmd_watch "$@" ;;
   foreach)        shift; cmd_foreach "$@" ;;
   worktree|wt)    shift; cmd_worktree "$@" ;;
   sync-graph)     shift; cmd_sync_graph "$@" ;;
