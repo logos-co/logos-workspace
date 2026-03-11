@@ -128,19 +128,10 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 
 ## Repo Categories
 
-- **Foundation**: logos-cpp-sdk, logos-module, logos-liblogos, logos-capability-module, logos-package, logos-module-builder
-- **App**: logos-app-poc
-- **Modules**: accounts, blockchain, chat, chatsdk, irc, waku, package-manager, storage, wallet, libp2p, simple, template, webview-app
-- **UI**: logos-design-system, various *-ui repos
-- **SDKs**: logos-cpp-sdk, logos-js-sdk, logos-nim-sdk, logos-rust-sdk
-- **Docs**: logos-docs, logos-website, logos-tutorial
-- **Other**: counter, counter_qml, node-configs, logos-modules, logos-module-viewer
-
-## Notes
-
-- All sub-repos use branch `master` (not main)
-- The HackMD list references `logos-package-manager`, but the actual repo is `logos-package-manager-module`
-- `logos-chat-ui` and `logos-irc-module` depend on `logos-chat-legacy-module` (not `logos-chat-module`)
-- External dependencies (go-wallet-sdk, logos-delivery, logos-storage-nim, nim-libp2p) are not overridden by the workspace — they use each repo's own pinned versions
-- `logos-design-system` originally uses nixos-24.11; the workspace forces nixos-unstable via follows
-- Repos without a flake.nix (logos-docs, logos-website, logos-tutorial, logos-template-module, logos-blockchain-module, node-configs) are submodules only — not wired into the Nix dependency graph
+- **Foundation**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-module](https://github.com/logos-co/logos-module), [logos-liblogos](https://github.com/logos-co/logos-liblogos), [logos-capability-module](https://github.com/logos-co/logos-capability-module), [logos-package](https://github.com/logos-co/logos-package), [logos-module-builder](https://github.com/logos-co/logos-module-builder)
+- **App**: [logos-app-poc](https://github.com/logos-co/logos-app-poc)
+- **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-accounts-ui](https://github.com/logos-co/logos-accounts-ui), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chat-tui](https://github.com/logos-co/logos-chat-tui), [logos-chat-ui](https://github.com/logos-co/logos-chat-ui), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-chatsdk-ui](https://github.com/logos-co/logos-chatsdk-ui), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-waku-ui](https://github.com/logos-co/logos-waku-ui), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-package-manager-ui](https://github.com/logos-co/logos-package-manager-ui), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-storage-ui](https://github.com/logos-co/logos-storage-ui), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-wallet-ui](https://github.com/logos-co/logos-wallet-ui), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-simple-module](https://github.com/logos-co/logos-simple-module), [logos-template-module](https://github.com/logos-co/logos-template-module), [logos-webview-app](https://github.com/logos-co/logos-webview-app)
+- **UI**: [logos-design-system](https://github.com/logos-co/logos-design-system)
+- **SDKs**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-js-sdk](https://github.com/logos-co/logos-js-sdk), [logos-nim-sdk](https://github.com/logos-co/logos-nim-sdk), [logos-rust-sdk](https://github.com/logos-co/logos-rust-sdk)
+- **Docs**: [logos-docs](https://github.com/logos-co/logos-docs), [logos-website](https://github.com/logos-co/logos-website), [logos-tutorial](https://github.com/logos-co/logos-tutorial)
+- **Other**: [counter](https://github.com/logos-co/counter), [counter_qml](https://github.com/logos-co/counter_qml), [node-configs](https://github.com/logos-co/node-configs), [logos-modules](https://github.com/logos-co/logos-modules), [logos-module-viewer](https://github.com/logos-co/logos-module-viewer)
