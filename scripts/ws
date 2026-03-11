@@ -602,7 +602,7 @@ cmd_test() {
 
     local rc=0
     _test_one_repo "$input_name" "$dir_name" "$system" || rc=$?
-    [[ $rc -eq 1 ]] && exit 1
+    if [[ $rc -eq 1 ]]; then exit 1; fi
   fi
 }
 
@@ -705,7 +705,7 @@ cmd_graph() {
     nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
       let graph = import '"$DEP_GRAPH"';
       in builtins.concatStringsSep "\n" ((graph.${"'"$target"'"} or { deps = []; }).deps or [])
-    ' 2>/dev/null | while IFS= read -r dep; do
+    ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
       [[ -n "$dep" ]] && echo -e "  -> $dep"
     done
 
@@ -717,7 +717,7 @@ cmd_graph() {
         names = builtins.attrNames graph;
         dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
       in builtins.concatStringsSep "\n" dependents
-    ' 2>/dev/null | while IFS= read -r dep; do
+    ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
       [[ -n "$dep" ]] && echo -e "  <- $dep"
     done
   else
