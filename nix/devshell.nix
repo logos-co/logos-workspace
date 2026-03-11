@@ -136,6 +136,59 @@ let
     zstyle ':completion:*:descriptions' format '%F{cyan}-- %d --%f'
     zstyle ':completion:*' group-name '''
 
+    # ── ws tab completion ─────────────────────────────────────────────
+    _ws() {
+      local -a commands
+      commands=(
+        'init:Clone all submodules'
+        'list:List all repos and their status'
+        'build:Build a repo via nix'
+        'run:Build and run a repo'
+        'develop:Enter a nix devShell'
+        'test:Run checks/tests'
+        'status:Git status across all repos'
+        'dirty:Show dirty repos and what they affect'
+        'graph:Show dependency graph'
+        'override-inputs:Show nix override flags'
+        'update:Update flake.lock inputs'
+        'foreach:Run a command in every repo'
+        'worktree:Manage worktrees'
+        'sync-graph:Regenerate dep-graph.nix'
+        'help:Show help'
+      )
+      local -a repos
+      repos=($(ls "$LOGOS_WORKSPACE_ROOT/repos/" 2>/dev/null))
+
+      if (( CURRENT == 2 )); then
+        _describe 'command' commands
+      elif (( CURRENT == 3 )); then
+        case "''${words[2]}" in
+          build|run|develop|test|graph|update|override-inputs)
+            _describe 'repo' repos
+            ;;
+          worktree)
+            local -a wt_cmds
+            wt_cmds=('add:Create a worktree' 'list:List worktrees' 'remove:Remove a worktree')
+            _describe 'subcommand' wt_cmds
+            ;;
+        esac
+      elif (( CURRENT >= 4 )); then
+        case "''${words[2]}" in
+          build|run|develop|override-inputs)
+            local -a opts
+            opts=('--auto-local' '--local' '--fresh')
+            _describe 'option' opts
+            ;;
+          test)
+            local -a opts
+            opts=('--all' '--type')
+            _describe 'option' opts
+            ;;
+        esac
+      fi
+    }
+    compdef _ws ws
+
     # ── Plugins ────────────────────────────────────────────────────────
     source ${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
     source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -196,6 +249,7 @@ let
     alias gb='git branch'
     alias gcp='git cherry-pick'
     alias grb='git rebase'
+    alias lg='lazygit'
 
     # ── Environment ────────────────────────────────────────────────────
     export EDITOR=nvim
@@ -306,6 +360,9 @@ in pkgs.mkShell {
     dust                  # modern du
     duf                   # modern df
     procs                 # modern ps
+
+    # ── Git ───────────────────────────────────────────────────────────
+    lazygit               # interactive git TUI
 
     # ── Editor ────────────────────────────────────────────────────────
     neovim

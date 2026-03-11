@@ -441,7 +441,7 @@ For **claude-docker** or similar tools: the repo includes `.claude-docker/post-w
 
 `ws develop` drops you into a modern shell environment with zsh, tmux, and a curated set of tools. For the best experience, install a [Nerd Font](https://www.nerdfonts.com/font-downloads) (e.g. Monaco Nerd Font or FiraCode Nerd Font).
 
-Use `ws develop --fresh` to force rebuild the shell if you've changed the configuration.
+The first run takes a few seconds while nix fetches the tools. After that, the shell is cached and starts near-instantly. Use `ws develop --fresh` to force rebuild the shell if you've changed the configuration.
 
 ### Tmux
 
