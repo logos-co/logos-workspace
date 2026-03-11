@@ -807,6 +807,94 @@ cmd_foreach() {
   done
 }
 
+cmd_worktree() {
+  local subcmd="${1:-}"
+  shift || true
+
+  case "$subcmd" in
+    add)
+      local name=""
+      local branch=""
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          -b) branch="$2"; shift 2 ;;
+          *)  name="$1"; shift ;;
+        esac
+      done
+
+      if [[ -z "$name" ]]; then
+        echo -e "${RED}Usage:${NC} ws worktree add <name> [-b branch]" >&2
+        echo "  Creates a workspace worktree with submodules initialized." >&2
+        echo "  Each subrepo gets a ws/<branch> branch." >&2
+        exit 1
+      fi
+
+      branch="${branch:-$name}"
+      local wt_path="$WORKSPACE_ROOT/../logos-workspace--$name"
+
+      if [[ -d "$wt_path" ]]; then
+        echo -e "${RED}Worktree already exists:${NC} $wt_path" >&2
+        exit 1
+      fi
+
+      echo -e "${BOLD}Creating workspace worktree...${NC}"
+      git -C "$WORKSPACE_ROOT" worktree add "$wt_path" -b "$branch"
+
+      echo -e "${BOLD}Initializing submodules...${NC}"
+      (cd "$wt_path" && git submodule update --init --depth 1 --jobs 4)
+
+      local repo_branch="ws/$branch"
+      echo -e "${BOLD}Creating branch ${CYAN}$repo_branch${NC}${BOLD} in all repos...${NC}"
+      for entry in "${REPOS[@]}"; do
+        local dir_name
+        dir_name=$(get_field "$entry" 2)
+        local repo_path="$wt_path/repos/$dir_name"
+        if [[ -d "$repo_path/.git" ]] || [[ -f "$repo_path/.git" ]]; then
+          (cd "$repo_path" && git checkout -b "$repo_branch" 2>/dev/null && \
+            echo -e "  ${GREEN}✓${NC} $dir_name") || \
+            echo -e "  ${YELLOW}skip${NC} $dir_name (branch may already exist)"
+        fi
+      done
+
+      echo ""
+      echo -e "${GREEN}Worktree ready:${NC} $wt_path"
+      echo -e "  Workspace branch: ${CYAN}$branch${NC}"
+      echo -e "  Subrepo branches: ${CYAN}$repo_branch${NC}"
+      ;;
+
+    list)
+      git -C "$WORKSPACE_ROOT" worktree list
+      ;;
+
+    remove)
+      local name="${1:-}"
+      if [[ -z "$name" ]]; then
+        echo -e "${RED}Usage:${NC} ws worktree remove <name>" >&2
+        exit 1
+      fi
+
+      local wt_path="$WORKSPACE_ROOT/../logos-workspace--$name"
+
+      if [[ ! -d "$wt_path" ]]; then
+        echo -e "${RED}Worktree not found:${NC} $wt_path" >&2
+        exit 1
+      fi
+
+      echo -e "${BOLD}Removing worktree...${NC}"
+      git -C "$WORKSPACE_ROOT" worktree remove "$wt_path" --force
+      echo -e "${GREEN}Removed:${NC} $wt_path"
+      ;;
+
+    *)
+      echo -e "${RED}Usage:${NC} ws worktree <add|list|remove>" >&2
+      echo "  add <name> [-b branch]   Create a worktree with submodules and branches" >&2
+      echo "  list                      List all worktrees" >&2
+      echo "  remove <name>             Remove a worktree" >&2
+      exit 1
+      ;;
+  esac
+}
+
 cmd_update() {
   local target="${1:-}"
 
@@ -988,6 +1076,9 @@ COMMANDS:
   override-inputs <repo> [opts] Show the nix --override-input flags that would be used
   update [repo|--all]           Update flake.lock inputs
   foreach <command>             Run a command in every repo directory
+  worktree add <name> [-b br]  Create a worktree with submodules and ws/<branch> branches
+  worktree list                List all worktrees
+  worktree remove <name>       Remove a worktree
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
   help                          Show this help
 
@@ -1029,6 +1120,13 @@ EXAMPLES:
   # Show override flags without executing
   ws override-inputs logos-app-poc --auto-local
 
+  # Create an isolated worktree for a feature branch
+  ws worktree add my-feature -b my-feature-branch
+  # Result: ../logos-workspace--my-feature/ with all repos on ws/my-feature-branch
+
+  # Remove a worktree when done
+  ws worktree remove my-feature
+
   # Regenerate dep-graph.nix after adding tests to a repo
   ws sync-graph
 EOF
@@ -1048,6 +1146,7 @@ case "${1:-help}" in
   override-inputs|oi) shift; cmd_override_inputs "$@" ;;
   update)         shift; cmd_update "$@" ;;
   foreach)        shift; cmd_foreach "$@" ;;
+  worktree|wt)    shift; cmd_worktree "$@" ;;
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   help|--help|-h) cmd_help ;;

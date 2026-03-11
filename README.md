@@ -81,6 +81,9 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws override-inputs <repo> [opts]` | Preview override flags |
 | `ws update [repo\|--all]` | Update flake.lock inputs |
 | `ws foreach <cmd>` | Run a command in every repo |
+| `ws worktree add <name> [-b br]` | Create a worktree with submodules and `ws/<branch>` branches |
+| `ws worktree list` | List all worktrees |
+| `ws worktree remove <name>` | Remove a worktree |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
 
 ### Build/Run Options
@@ -403,3 +406,29 @@ ws foreach 'git add . && git commit -m "your commit message" || true'
 # Check which repos have local changes or unpushed commits
 ws status
 ```
+
+## Working in isolated worktrees
+
+Use worktrees to work on feature branches that span multiple repos without disturbing your main workspace:
+
+```bash
+# Create a worktree for a feature branch
+ws worktree add my-feature -b my-feature-branch
+# Creates ../logos-workspace--my-feature/ with:
+#   - Workspace on branch: my-feature-branch
+#   - All repos on branch: ws/my-feature-branch
+
+# Work in the worktree
+cd ../logos-workspace--my-feature
+# Make changes in repos/logos-cpp-sdk, repos/logos-liblogos, etc.
+ws build logos-app-poc --auto-local
+
+# Commit and push changes in modified repos
+ws foreach 'git add . && git commit -m "my changes" && git push origin ws/my-feature-branch || true'
+
+# When done, remove the worktree
+cd ../logos-workspace
+ws worktree remove my-feature
+```
+
+For **claude-docker** or similar tools: the repo includes `.claude-docker/post-worktree.sh` which automatically initializes submodules and creates `ws/<branch>` branches after a worktree is created.
