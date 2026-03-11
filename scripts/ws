@@ -370,6 +370,50 @@ cmd_develop() {
 
   if [[ -z "$repo" ]]; then
     # Workspace devShell
+    # Use cached dev environment to skip slow nix flake evaluation.
+    # Cache is invalidated when devshell.nix, flake.nix, or flake.lock change.
+    # Use --fresh to force rebuild.
+    local cache_dir="$WORKSPACE_ROOT/.dev-shell-cache"
+    local cache_env="$cache_dir/dev-env.sh"
+    local cache_hash_file="$cache_dir/hash"
+
+    if [[ "${flags[*]:-}" == *"--fresh"* ]] || [[ "${1:-}" == "--fresh" ]]; then
+      rm -rf "$cache_dir"
+    fi
+
+    local flake_hash=""
+    if command -v shasum &>/dev/null; then
+      flake_hash=$(cat "$WORKSPACE_ROOT/nix/devshell.nix" "$WORKSPACE_ROOT/flake.nix" "$WORKSPACE_ROOT/flake.lock" 2>/dev/null | shasum | cut -d' ' -f1)
+    fi
+
+    # Check cache validity
+    local use_cache=false
+    if [[ ${#flags[@]} -eq 0 && -n "$flake_hash" && -f "$cache_hash_file" && -f "$cache_env" ]]; then
+      local cached_hash
+      cached_hash=$(cat "$cache_hash_file" 2>/dev/null)
+      [[ "$cached_hash" == "$flake_hash" ]] && use_cache=true
+    fi
+
+    if $use_cache; then
+      # Fast path: source cached env + run shellHook (sub-second)
+      set +eu
+      source "$cache_env"
+      eval "$shellHook"
+      return 0
+    fi
+
+    # Slow path: full nix evaluation
+    # Cache the result in background for next time
+    if [[ ${#flags[@]} -eq 0 && -n "$flake_hash" ]]; then
+      mkdir -p "$cache_dir"
+      echo ".dev-shell-cache/" >> "$WORKSPACE_ROOT/.gitignore" 2>/dev/null || true
+      nix print-dev-env \
+        --extra-experimental-features "nix-command flakes" \
+        "$WORKSPACE_ROOT" > "$cache_env.tmp" 2>/dev/null && \
+        mv "$cache_env.tmp" "$cache_env" && \
+        echo "$flake_hash" > "$cache_hash_file" &
+    fi
+
     exec nix develop \
       --extra-experimental-features "nix-command flakes" \
       "$WORKSPACE_ROOT" \
@@ -1066,6 +1110,7 @@ COMMANDS:
   develop [repo] [opts]         Enter a nix devShell (workspace shell if no repo)
     --auto-local, -a              Include overrides for dirty repos
     --local, -l <r1> <r2> ...    Include specific local overrides
+    --fresh                       Force rebuild (ignore cache)
 
   test [repo|--all] [--type T]  Run checks/tests
     --type, -t <type>             Filter by: cpp, rust, nim, js, qml

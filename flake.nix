@@ -418,23 +418,9 @@
       devShells = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
-
           wsScript = pkgs.writeShellScriptBin "ws" (builtins.readFile ./scripts/ws);
-
         in {
-          default = pkgs.mkShell {
-            name = "logos-workspace";
-            packages = with pkgs; [
-              git
-              jq
-              nix
-              wsScript
-            ];
-            shellHook = ''
-              export LOGOS_WORKSPACE_ROOT="${toString ./.}"
-              echo "Logos Workspace — run 'ws help' for commands"
-            '';
-          };
+          default = import ./nix/devshell.nix { inherit pkgs wsScript; };
         }
       );
 

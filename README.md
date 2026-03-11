@@ -264,6 +264,10 @@ ws override-inputs logos-app-poc --auto-local
 
 ## Entering a dev shell
 
+The workspace dev shell comes with modern CLI tools (eza, bat, fzf, delta, starship, zoxide, neovim) and handy aliases (`gst`, `ga`, `gc`, `gd`, `gl`, `wss`, `wsd`, etc.).
+
+For the best experience, install a [Nerd Font](https://www.nerdfonts.com/font-downloads) (e.g. [FiraCode Nerd Font](https://www.nerdfonts.com/font-downloads)) and set it as your terminal font. This enables file icons in `ls` and other tools.
+
 ```bash
 # Workspace dev shell (has ws on PATH)
 ws develop
@@ -432,3 +436,72 @@ ws worktree remove my-feature
 ```
 
 For **claude-docker** or similar tools: the repo includes `.claude-docker/post-worktree.sh` which automatically initializes submodules and creates `ws/<branch>` branches after a worktree is created.
+
+## Dev Shell Quick Reference
+
+`ws develop` drops you into a modern shell environment with zsh, tmux, and a curated set of tools. For the best experience, install a [Nerd Font](https://www.nerdfonts.com/font-downloads) (e.g. Monaco Nerd Font or FiraCode Nerd Font).
+
+Use `ws develop --fresh` to force rebuild the shell if you've changed the configuration.
+
+### Tmux
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl-A \|` | Split pane horizontally |
+| `Ctrl-A -` | Split pane vertically |
+| `Ctrl-A c` | New tab |
+| `Ctrl-A n` / `Ctrl-A p` | Next / previous tab |
+| `Ctrl-A 1-9` | Switch to tab by number |
+| `Ctrl-A h/j/k/l` | Navigate panes (vim-style) |
+| `Ctrl-A d` | Detach (re-enter with `ws develop`) |
+| `Ctrl-A z` | Zoom current pane (toggle fullscreen) |
+
+### Fuzzy Finder & Navigation
+
+| Shortcut / Command | Action |
+|---------------------|--------|
+| `Ctrl-R` | Fuzzy search command history |
+| `Ctrl-T` | Fuzzy find files |
+| `z <partial>` | Jump to a previously visited directory |
+
+### File & Directory Commands
+
+| Command | Tool | Description |
+|---------|------|-------------|
+| `ls` | eza | File listing with icons (supports `-ltra`, `-la`, etc.) |
+| `ll` | eza | Long listing with all files |
+| `lt` | eza | Tree view (3 levels deep) |
+| `cat <file>` | bat | Syntax-highlighted file viewer |
+| `less <file>` | bat | Paged syntax-highlighted viewer |
+| `rg <pattern>` | ripgrep | Fast recursive search |
+| `fd <pattern>` | fd | Fast file finder |
+| `dust <dir>` | dust | Visual disk usage |
+| `duf` | duf | Disk free overview |
+
+### Git Aliases
+
+| Alias | Command |
+|-------|---------|
+| `gst` | `git status` |
+| `gs` | `git status -s` |
+| `ga` | `git add` |
+| `gc` | `git commit` |
+| `gcm` | `git commit -m` |
+| `gd` | `git diff` (side-by-side via delta) |
+| `gds` | `git diff --staged` |
+| `gl` | `git log --oneline --graph --decorate` |
+| `glog` | `git log --graph --oneline --all` |
+| `gp` | `git pull` |
+| `gps` | `git push` |
+| `gco` | `git checkout` |
+| `gb` | `git branch` |
+
+### Workspace Aliases
+
+| Alias | Command |
+|-------|---------|
+| `wss` | `ws status` |
+| `wsb` | `ws build` |
+| `wst` | `ws test` |
+| `wsd` | `ws dirty` |
+| `wsg` | `ws graph` |
