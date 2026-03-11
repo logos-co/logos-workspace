@@ -203,10 +203,16 @@ let
     export PAGER='less -R'
     export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
-    # Git — use delta as pager with proper config
+    # Git — use delta as pager via env vars only (no global config changes)
     export GIT_PAGER='delta --paging=always'
     export DELTA_PAGER='less -R'
-    git config --global include.path "${deltaConfig}" 2>/dev/null || true
+    export GIT_CONFIG_COUNT=3
+    export GIT_CONFIG_KEY_0="delta.navigate"
+    export GIT_CONFIG_VALUE_0="true"
+    export GIT_CONFIG_KEY_1="delta.side-by-side"
+    export GIT_CONFIG_VALUE_1="true"
+    export GIT_CONFIG_KEY_2="delta.line-numbers"
+    export GIT_CONFIG_VALUE_2="true"
 
     # Starship prompt
     export STARSHIP_CONFIG="${starshipConfig}"
