@@ -397,6 +397,9 @@ If a build fails unexpectedly with overrides, check that the dirty repo is in a 
 ws foreach git status -s
 ws foreach git stash
 
+# Chain multiple commands with quotes (|| true skips repos where nothing happens)
+ws foreach 'git add . && git commit -m "your commit message" || true'
+
 # Check which repos have local changes or unpushed commits
 ws status
 ```

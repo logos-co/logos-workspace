@@ -39,10 +39,10 @@
   logos-webview-app            = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   counter_qml                  = { deps = [ "logos-cpp-sdk" ]; hasTests = false; };
   counter                      = { deps = [ "logos-cpp-sdk" ]; hasTests = false; };
-  logos-design-system          = { deps = []; hasTests = false; };
-  logos-js-sdk                 = { deps = [ "logos-liblogos" "logos-capability-module" ]; hasTests = false; };
-  logos-nim-sdk                = { deps = [ "logos-liblogos" ]; hasTests = false; };
+  logos-design-system          = { deps = [ "logos-cpp-sdk" ]; hasTests = false; };
+  logos-js-sdk                 = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" ]; hasTests = false; };
+  logos-nim-sdk                = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-rust-sdk               = { deps = []; hasTests = false; };
-  logos-modules                = { deps = [ "logos-package" ]; hasTests = false; };
+  logos-modules                = { deps = [ "logos-cpp-sdk" "logos-package" ]; hasTests = false; };
   logos-module-viewer          = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package-manager-module" ]; hasTests = false; };
 }

@@ -279,8 +279,8 @@ cmd_build() {
   exec nix build \
     --extra-experimental-features "nix-command flakes" \
     "$WORKSPACE_ROOT#$input_name" \
-    "${flags[@]}" \
-    "${extra_args[@]}"
+    ${flags[@]+"${flags[@]}"} \
+    ${extra_args[@]+"${extra_args[@]}"}
 }
 
 cmd_run() {
@@ -332,8 +332,8 @@ cmd_run() {
   exec nix run \
     --extra-experimental-features "nix-command flakes" \
     "$WORKSPACE_ROOT#$input_name" \
-    "${flags[@]}" \
-    "${extra_args[@]}"
+    ${flags[@]+"${flags[@]}"} \
+    ${extra_args[@]+"${extra_args[@]}"}
 }
 
 cmd_develop() {
@@ -373,7 +373,7 @@ cmd_develop() {
     exec nix develop \
       --extra-experimental-features "nix-command flakes" \
       "$WORKSPACE_ROOT" \
-      "${flags[@]}"
+      ${flags[@]+"${flags[@]}"}
   else
     # Sub-repo devShell — use the repo's own flake directly
     local repo_path="$REPOS_DIR/$repo"
@@ -384,7 +384,7 @@ cmd_develop() {
     exec nix develop \
       --extra-experimental-features "nix-command flakes" \
       "path:$repo_path" \
-      "${flags[@]}"
+      ${flags[@]+"${flags[@]}"}
   fi
 }
 
@@ -802,7 +802,7 @@ cmd_foreach() {
     fi
 
     echo -e "${BOLD}── $dir_name ──${NC}"
-    (cd "$repo_path" && "${cmd[@]}") || true
+    (cd "$repo_path" && if [[ ${#cmd[@]} -eq 1 && "${cmd[0]}" == *" "* ]]; then bash -c "${cmd[0]}"; else "${cmd[@]}"; fi) || true
     echo ""
   done
 }

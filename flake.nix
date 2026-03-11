@@ -2,7 +2,10 @@
   description = "Logos Workspace — unified multi-repo development environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # ── nixpkgs ────────────────────────────────────────────────────────────────
+    # Follows logos-cpp-sdk's pinned nixpkgs so that ALL repos use the same
+    # Qt version and system libraries.  Do NOT pin a separate nixpkgs here.
+    nixpkgs.follows = "logos-cpp-sdk/nixpkgs";
 
     # ── Shared build tooling (not developed locally, but needed for follows) ──
 
@@ -17,15 +20,12 @@
 
     # ── Foundation ────────────────────────────────────────────────────────────
     #
-    # logos-cpp-sdk is the root of the dependency tree.
-    # Most repos eventually depend on it via logos-liblogos.
+    # logos-cpp-sdk is the root of the dependency tree.  Its pinned nixpkgs
+    # is the single source of truth for Qt and system library versions.
     # Overriding logos-cpp-sdk here propagates to ALL downstream consumers
     # thanks to the follows declarations below.
 
-    logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    logos-cpp-sdk.url = "github:logos-co/logos-cpp-sdk";
 
     logos-module = {
       url = "github:logos-co/logos-module";
@@ -295,8 +295,8 @@
 
     logos-design-system = {
       url = "github:logos-co/logos-design-system";
-      # NB: Originally uses nixos-24.11; following unstable may need attention
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
     };
 
     # ── SDKs ──────────────────────────────────────────────────────────────────
@@ -304,6 +304,7 @@
     logos-js-sdk = {
       url = "github:logos-co/logos-js-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-capability-module.follows = "logos-capability-module";
     };
@@ -311,6 +312,7 @@
     logos-nim-sdk = {
       url = "github:logos-co/logos-nim-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
     };
 
@@ -324,6 +326,7 @@
     logos-modules = {
       url = "github:logos-co/logos-modules";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-package.follows = "logos-package";
     };
 
