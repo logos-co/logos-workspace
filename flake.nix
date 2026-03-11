@@ -37,7 +37,12 @@
       url = "github:logos-co/logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-capability-module.follows = "logos-capability-module";
+      # NOT following logos-capability-module here to break circular dep:
+      #   logos-liblogos → logos-capability-module → logos-liblogos
+      # logos-capability-module.inputs.logos-liblogos DOES follow, so edits
+      # to logos-liblogos still propagate into logos-capability-module.
+      # To override logos-capability-module in logos-liblogos, pass it explicitly:
+      #   --override-input logos-liblogos/logos-capability-module path:./repos/logos-capability-module
       inputs.logos-module.follows = "logos-module";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
