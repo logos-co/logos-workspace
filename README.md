@@ -12,8 +12,26 @@ cd logos-workspace
 # 2. Or if already cloned, initialize submodules
 ./scripts/ws init
 
-# 3. Enter the dev shell (optional, adds ws to PATH)
-nix develop --extra-experimental-features "nix-command flakes"
+# 3. Add ws to your PATH (or alias it)
+alias ws=./scripts/ws
+# or: export PATH="$PWD/scripts:$PATH"
+
+# 4. Enter the dev shell (optional, adds ws to PATH automatically)
+nix develop
+```
+
+### Enabling Nix flakes
+
+The examples in this README assume flakes are enabled globally. If they aren't, you can pass the flags explicitly:
+
+```bash
+nix build '.#logos-liblogos' --extra-experimental-features 'nix-command flakes'
+```
+
+To enable globally so you don't need these flags for each command, add the following to `~/.config/nix/nix.conf` (create the file if it doesn't exist):
+
+```
+experimental-features = nix-command flakes
 ```
 
 ## The Key Feature: Local Dependency Overrides
