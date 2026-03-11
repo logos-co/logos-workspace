@@ -169,3 +169,155 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 - **SDKs**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-js-sdk](https://github.com/logos-co/logos-js-sdk), [logos-nim-sdk](https://github.com/logos-co/logos-nim-sdk), [logos-rust-sdk](https://github.com/logos-co/logos-rust-sdk)
 - **Docs**: [logos-docs](https://github.com/logos-co/logos-docs), [logos-website](https://github.com/logos-co/logos-website), [logos-tutorial](https://github.com/logos-co/logos-tutorial)
 - **Other**: [counter](https://github.com/logos-co/counter), [counter_qml](https://github.com/logos-co/counter_qml), [node-configs](https://github.com/logos-co/node-configs), [logos-modules](https://github.com/logos-co/logos-modules), [logos-module-viewer](https://github.com/logos-co/logos-module-viewer)
+
+# Workflows
+
+## Developing a library and testing it in a downstream app
+
+The most common workflow: you're changing a library (e.g. `logos-cpp-sdk`) and want to see the effect in something that uses it (e.g. `logos-liblogos` or `logos-app-poc`).
+
+```bash
+# 1. Make your changes
+cd repos/logos-cpp-sdk
+vim cpp/logos_api.h
+
+# 2. Build a downstream repo using your local changes
+ws build logos-liblogos --auto-local
+
+# 3. Or test a downstream repo with your changes
+ws test logos-liblogos --auto-local
+
+# 4. Check what else your changes affect
+ws dirty
+```
+
+`--auto-local` detects every dirty repo and overrides it in the build. If you only want to override specific repos:
+
+```bash
+ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+```
+
+## Running tests
+
+```bash
+# Test a single repo
+ws test logos-module
+
+# Test all repos that have tests
+ws test --all
+
+# Test only C++ repos
+ws test --all --type cpp
+
+# Test only Rust repos
+ws test --all --type rust
+```
+
+`ws test` only runs repos that have `hasTests = true` in `nix/dep-graph.nix`. Repos without tests are skipped instantly.
+
+## Adding tests to a repo
+
+When a repo gains tests for the first time:
+
+1. Add a `checks.<system>.tests` output to the repo's `flake.nix`. This derivation should build **and run** the tests, not just compile them. Example from `logos-module/flake.nix`:
+
+```nix
+checks = forAllSystems ({ pkgs }:
+  let
+    common = import ./nix/default.nix { inherit pkgs; };
+    src = ./.;
+  in {
+    tests = import ./nix/all.nix { inherit pkgs common src; };
+  }
+);
+```
+
+2. Regenerate the dependency graph so `ws test` picks it up:
+
+```bash
+ws sync-graph
+```
+
+3. Verify it works:
+
+```bash
+ws test <your-repo>
+```
+
+## Checking what your changes affect
+
+Before pushing, see which repos depend on the code you changed:
+
+```bash
+# Show all dirty repos and their downstream dependents
+ws dirty
+
+# Show the full dependency tree for a specific repo
+ws graph logos-cpp-sdk
+
+# Preview the exact nix --override-input flags that would be used
+ws override-inputs logos-app-poc --auto-local
+```
+
+## Entering a dev shell
+
+```bash
+# Workspace dev shell (has ws on PATH)
+ws develop
+
+# A specific repo's dev shell (has that repo's build tools)
+ws develop logos-module
+
+# Dev shell with local overrides for dirty repos
+ws develop logos-app-poc --auto-local
+```
+
+## Keeping repos up to date
+
+```bash
+# Pull latest code in every repo
+ws foreach git pull
+
+# Update a single flake input to its latest upstream
+ws update logos-cpp-sdk
+
+# Update all flake inputs
+ws update --all
+
+# Check clone/branch status across all repos
+ws status
+```
+
+## Updating the dependency graph
+
+After adding a new repo, changing a repo's flake inputs, or adding tests:
+
+```bash
+ws sync-graph
+```
+
+This scans every repo's `flake.nix` and regenerates `nix/dep-graph.nix` with accurate `deps` and `hasTests` values. Commit the result.
+
+## Visualizing the dependency graph
+
+```bash
+# Print DOT format to stdout
+ws graph
+
+# Generate an SVG
+ws graph | dot -Tsvg > graph.svg
+
+# See deps and dependents of a specific repo
+ws graph logos-liblogos
+```
+
+## Working across multiple repos at once
+
+```bash
+# Run any command in every repo
+ws foreach git status -s
+ws foreach git stash
+
+# Check which repos have local changes or unpushed commits
+ws status
+```
