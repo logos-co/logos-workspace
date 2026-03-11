@@ -334,6 +334,7 @@ in pkgs.mkShell {
   packages = with pkgs; [
     # ── Core ──────────────────────────────────────────────────────────
     git
+    openssh
     jq
     nix
     wsScript

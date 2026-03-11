@@ -337,20 +337,21 @@ cmd_run() {
 }
 
 cmd_develop() {
-  local repo="${1:-}"
-  shift || true
-
+  local repo=""
   local auto_local=false
+  local fresh=false
   local local_overrides=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --auto-local|-a) auto_local=true; shift ;;
+      --fresh) fresh=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
           local_overrides+=("$1"); shift
         done ;;
-      *) shift ;;
+      -*) shift ;;
+      *) [[ -z "$repo" ]] && repo="$1"; shift ;;
     esac
   done
 
@@ -377,7 +378,7 @@ cmd_develop() {
     local cache_env="$cache_dir/dev-env.sh"
     local cache_hash_file="$cache_dir/hash"
 
-    if [[ "${flags[*]:-}" == *"--fresh"* ]] || [[ "${1:-}" == "--fresh" ]]; then
+    if $fresh; then
       rm -rf "$cache_dir"
     fi
 
