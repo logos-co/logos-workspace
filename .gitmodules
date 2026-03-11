@@ -1,0 +1,123 @@
+[submodule "repos/logos-cpp-sdk"]
+	path = repos/logos-cpp-sdk
+	url = https://github.com/logos-co/logos-cpp-sdk.git
+[submodule "repos/logos-module"]
+	path = repos/logos-module
+	url = https://github.com/logos-co/logos-module.git
+[submodule "repos/logos-liblogos"]
+	path = repos/logos-liblogos
+	url = https://github.com/logos-co/logos-liblogos.git
+[submodule "repos/logos-capability-module"]
+	path = repos/logos-capability-module
+	url = https://github.com/logos-co/logos-capability-module.git
+[submodule "repos/logos-package"]
+	path = repos/logos-package
+	url = https://github.com/logos-co/logos-package.git
+[submodule "repos/logos-module-builder"]
+	path = repos/logos-module-builder
+	url = https://github.com/logos-co/logos-module-builder.git
+[submodule "repos/logos-app-poc"]
+	path = repos/logos-app-poc
+	url = https://github.com/logos-co/logos-app-poc.git
+[submodule "repos/logos-accounts-module"]
+	path = repos/logos-accounts-module
+	url = https://github.com/logos-co/logos-accounts-module.git
+[submodule "repos/logos-accounts-ui"]
+	path = repos/logos-accounts-ui
+	url = https://github.com/logos-co/logos-accounts-ui.git
+[submodule "repos/logos-blockchain-module"]
+	path = repos/logos-blockchain-module
+	url = https://github.com/logos-blockchain/logos-blockchain-module.git
+[submodule "repos/logos-chat-module"]
+	path = repos/logos-chat-module
+	url = https://github.com/logos-co/logos-chat-module.git
+[submodule "repos/logos-chat-legacy-module"]
+	path = repos/logos-chat-legacy-module
+	url = https://github.com/logos-co/logos-chat-legacy-module.git
+[submodule "repos/logos-chat-tui"]
+	path = repos/logos-chat-tui
+	url = https://github.com/logos-co/logos-chat-tui.git
+[submodule "repos/logos-chat-ui"]
+	path = repos/logos-chat-ui
+	url = https://github.com/logos-co/logos-chat-ui.git
+[submodule "repos/logos-chatsdk-module"]
+	path = repos/logos-chatsdk-module
+	url = https://github.com/logos-co/logos-chatsdk-module.git
+[submodule "repos/logos-chatsdk-ui"]
+	path = repos/logos-chatsdk-ui
+	url = https://github.com/logos-co/logos-chatsdk-ui.git
+[submodule "repos/logos-irc-module"]
+	path = repos/logos-irc-module
+	url = https://github.com/logos-co/logos-irc-module.git
+[submodule "repos/logos-waku-module"]
+	path = repos/logos-waku-module
+	url = https://github.com/logos-co/logos-waku-module.git
+[submodule "repos/logos-waku-ui"]
+	path = repos/logos-waku-ui
+	url = https://github.com/logos-co/logos-waku-ui.git
+[submodule "repos/logos-package-manager-module"]
+	path = repos/logos-package-manager-module
+	url = https://github.com/logos-co/logos-package-manager-module.git
+[submodule "repos/logos-package-manager-ui"]
+	path = repos/logos-package-manager-ui
+	url = https://github.com/logos-co/logos-package-manager-ui.git
+[submodule "repos/logos-storage-module"]
+	path = repos/logos-storage-module
+	url = https://github.com/logos-co/logos-storage-module.git
+[submodule "repos/logos-storage-ui"]
+	path = repos/logos-storage-ui
+	url = https://github.com/logos-co/logos-storage-ui.git
+[submodule "repos/logos-wallet-module"]
+	path = repos/logos-wallet-module
+	url = https://github.com/logos-co/logos-wallet-module.git
+[submodule "repos/logos-wallet-ui"]
+	path = repos/logos-wallet-ui
+	url = https://github.com/logos-co/logos-wallet-ui.git
+[submodule "repos/logos-libp2p-module"]
+	path = repos/logos-libp2p-module
+	url = https://github.com/logos-co/logos-libp2p-module.git
+[submodule "repos/logos-simple-module"]
+	path = repos/logos-simple-module
+	url = https://github.com/logos-co/logos-simple-module.git
+[submodule "repos/logos-template-module"]
+	path = repos/logos-template-module
+	url = https://github.com/logos-co/logos-template-module.git
+[submodule "repos/logos-webview-app"]
+	path = repos/logos-webview-app
+	url = https://github.com/logos-co/logos-webview-app.git
+[submodule "repos/counter_qml"]
+	path = repos/counter_qml
+	url = https://github.com/logos-co/counter_qml.git
+[submodule "repos/counter"]
+	path = repos/counter
+	url = https://github.com/logos-co/counter.git
+[submodule "repos/logos-design-system"]
+	path = repos/logos-design-system
+	url = https://github.com/logos-co/logos-design-system.git
+[submodule "repos/logos-js-sdk"]
+	path = repos/logos-js-sdk
+	url = https://github.com/logos-co/logos-js-sdk.git
+[submodule "repos/logos-nim-sdk"]
+	path = repos/logos-nim-sdk
+	url = https://github.com/logos-co/logos-nim-sdk.git
+[submodule "repos/logos-rust-sdk"]
+	path = repos/logos-rust-sdk
+	url = https://github.com/logos-co/logos-rust-sdk.git
+[submodule "repos/logos-docs"]
+	path = repos/logos-docs
+	url = https://github.com/logos-co/logos-docs.git
+[submodule "repos/logos-website"]
+	path = repos/logos-website
+	url = https://github.com/logos-co/logos-website.git
+[submodule "repos/logos-tutorial"]
+	path = repos/logos-tutorial
+	url = https://github.com/logos-co/logos-tutorial.git
+[submodule "repos/node-configs"]
+	path = repos/node-configs
+	url = https://github.com/logos-co/node-configs.git
+[submodule "repos/logos-modules"]
+	path = repos/logos-modules
+	url = https://github.com/logos-co/logos-modules.git
+[submodule "repos/logos-module-viewer"]
+	path = repos/logos-module-viewer
+	url = https://github.com/logos-co/logos-module-viewer.git

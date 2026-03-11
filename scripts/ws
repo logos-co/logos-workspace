@@ -1,0 +1,816 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ── Logos Workspace CLI ──────────────────────────────────────────────────────
+# Unified interface for building, testing, and managing the multi-repo workspace.
+
+WORKSPACE_ROOT="${LOGOS_WORKSPACE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+REPOS_DIR="$WORKSPACE_ROOT/repos"
+DEP_GRAPH="$WORKSPACE_ROOT/nix/dep-graph.nix"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+# ── Repo registry ───────────────────────────────────────────────────────────
+# Format: "input_name|directory_name|git_url|has_flake"
+# input_name: name in flake.nix inputs (empty string for non-flake repos)
+# directory_name: submodule dir under repos/
+# git_url: clone URL
+# has_flake: "yes" or "no"
+
+REPOS=(
+  # Foundation
+  "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
+  "logos-module|logos-module|https://github.com/logos-co/logos-module.git|yes"
+  "logos-liblogos|logos-liblogos|https://github.com/logos-co/logos-liblogos.git|yes"
+  "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
+  "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
+  "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
+
+  # App
+  "logos-app-poc|logos-app-poc|https://github.com/logos-co/logos-app-poc.git|yes"
+
+  # Accounts
+  "logos-accounts-module|logos-accounts-module|https://github.com/logos-co/logos-accounts-module.git|yes"
+  "logos-accounts-ui|logos-accounts-ui|https://github.com/logos-co/logos-accounts-ui.git|yes"
+
+  # Chat & Messaging
+  "logos-chat-module|logos-chat-module|https://github.com/logos-co/logos-chat-module.git|yes"
+  "logos-chat-legacy-module|logos-chat-legacy-module|https://github.com/logos-co/logos-chat-legacy-module.git|yes"
+  "logos-chat-tui|logos-chat-tui|https://github.com/logos-co/logos-chat-tui.git|yes"
+  "logos-chat-ui|logos-chat-ui|https://github.com/logos-co/logos-chat-ui.git|yes"
+  "logos-chatsdk-module|logos-chatsdk-module|https://github.com/logos-co/logos-chatsdk-module.git|yes"
+  "logos-chatsdk-ui|logos-chatsdk-ui|https://github.com/logos-co/logos-chatsdk-ui.git|yes"
+  "logos-irc-module|logos-irc-module|https://github.com/logos-co/logos-irc-module.git|yes"
+
+  # Waku
+  "logos-waku-module|logos-waku-module|https://github.com/logos-co/logos-waku-module.git|yes"
+  "logos-waku-ui|logos-waku-ui|https://github.com/logos-co/logos-waku-ui.git|yes"
+
+  # Package Manager
+  "logos-package-manager-module|logos-package-manager-module|https://github.com/logos-co/logos-package-manager-module.git|yes"
+  "logos-package-manager-ui|logos-package-manager-ui|https://github.com/logos-co/logos-package-manager-ui.git|yes"
+
+  # Storage
+  "logos-storage-module|logos-storage-module|https://github.com/logos-co/logos-storage-module.git|yes"
+  "logos-storage-ui|logos-storage-ui|https://github.com/logos-co/logos-storage-ui.git|yes"
+
+  # Wallet
+  "logos-wallet-module|logos-wallet-module|https://github.com/logos-co/logos-wallet-module.git|yes"
+  "logos-wallet-ui|logos-wallet-ui|https://github.com/logos-co/logos-wallet-ui.git|yes"
+
+  # Other modules
+  "logos-libp2p-module|logos-libp2p-module|https://github.com/logos-co/logos-libp2p-module.git|yes"
+  "logos-simple-module|logos-simple-module|https://github.com/logos-co/logos-simple-module.git|yes"
+  "logos-webview-app|logos-webview-app|https://github.com/logos-co/logos-webview-app.git|yes"
+  "counter_qml|counter_qml|https://github.com/logos-co/counter_qml.git|yes"
+  "counter|counter|https://github.com/logos-co/counter.git|yes"
+
+  # UI
+  "logos-design-system|logos-design-system|https://github.com/logos-co/logos-design-system.git|yes"
+
+  # SDKs
+  "logos-js-sdk|logos-js-sdk|https://github.com/logos-co/logos-js-sdk.git|yes"
+  "logos-nim-sdk|logos-nim-sdk|https://github.com/logos-co/logos-nim-sdk.git|yes"
+  "logos-rust-sdk|logos-rust-sdk|https://github.com/logos-co/logos-rust-sdk.git|yes"
+
+  # Other
+  "logos-modules|logos-modules|https://github.com/logos-co/logos-modules.git|yes"
+  "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
+
+  # Non-flake repos (submodules only)
+  "|logos-blockchain-module|https://github.com/logos-blockchain/logos-blockchain-module.git|no"
+  "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
+  "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
+  "|logos-website|https://github.com/logos-co/logos-website.git|no"
+  "|logos-tutorial|https://github.com/logos-co/logos-tutorial.git|no"
+  "|node-configs|https://github.com/logos-co/node-configs.git|no"
+)
+
+# ── Helper functions ─────────────────────────────────────────────────────────
+
+get_field() {
+  echo "$1" | cut -d'|' -f"$2"
+}
+
+find_repo_entry() {
+  local query="$1"
+  for entry in "${REPOS[@]}"; do
+    local input_name dir_name
+    input_name=$(get_field "$entry" 1)
+    dir_name=$(get_field "$entry" 2)
+    if [[ "$dir_name" == "$query" || "$input_name" == "$query" ]]; then
+      echo "$entry"
+      return 0
+    fi
+  done
+  return 1
+}
+
+get_input_name() {
+  local dir_name="$1"
+  for entry in "${REPOS[@]}"; do
+    if [[ "$(get_field "$entry" 2)" == "$dir_name" ]]; then
+      echo "$(get_field "$entry" 1)"
+      return 0
+    fi
+  done
+  echo "$dir_name"
+}
+
+# Get repos that are dirty (have local uncommitted changes)
+get_dirty_repos() {
+  local dirty=()
+  for entry in "${REPOS[@]}"; do
+    local dir_name
+    dir_name=$(get_field "$entry" 2)
+    local repo_path="$REPOS_DIR/$dir_name"
+    if [[ -d "$repo_path/.git" ]] || [[ -f "$repo_path/.git" ]]; then
+      if [[ -n "$(git -C "$repo_path" status --porcelain 2>/dev/null)" ]] || \
+         [[ -n "$(git -C "$repo_path" log '@{upstream}..HEAD' --oneline 2>/dev/null)" ]]; then
+        dirty+=("$dir_name")
+      fi
+    fi
+  done
+  echo "${dirty[@]}"
+}
+
+# Build --override-input flags for dirty repos
+build_override_flags() {
+  local flags=()
+  local explicit_overrides=("$@")
+
+  for dir_name in "${explicit_overrides[@]}"; do
+    local input_name
+    input_name=$(get_input_name "$dir_name")
+    if [[ -n "$input_name" ]]; then
+      flags+=("--override-input" "$input_name" "path:$REPOS_DIR/$dir_name")
+    fi
+  done
+  echo "${flags[@]}"
+}
+
+# Get dependents of a repo (repos that depend on it)
+get_dependents() {
+  local target="$1"
+  if [[ ! -f "$DEP_GRAPH" ]]; then
+    return
+  fi
+  nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --raw --expr '
+      let
+        graph = import '"$DEP_GRAPH"';
+        names = builtins.attrNames graph;
+        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}) names;
+      in builtins.concatStringsSep "\n" dependents
+    ' 2>/dev/null
+}
+
+# ── Commands ─────────────────────────────────────────────────────────────────
+
+cmd_init() {
+  echo -e "${BOLD}Initializing workspace submodules...${NC}"
+  local jobs="${1:-4}"
+
+  # Add submodules that don't exist yet
+  local count=0
+  local total=${#REPOS[@]}
+
+  for entry in "${REPOS[@]}"; do
+    local dir_name git_url
+    dir_name=$(get_field "$entry" 2)
+    git_url=$(get_field "$entry" 3)
+    count=$((count + 1))
+
+    if [[ -d "$REPOS_DIR/$dir_name/.git" ]] || [[ -f "$REPOS_DIR/$dir_name/.git" ]]; then
+      echo -e "  [${count}/${total}] ${GREEN}exists${NC}  $dir_name"
+      continue
+    fi
+
+    echo -e "  [${count}/${total}] ${YELLOW}cloning${NC} $dir_name ..."
+    git -C "$WORKSPACE_ROOT" submodule add --depth 1 "$git_url" "repos/$dir_name" 2>/dev/null || \
+      echo -e "  ${RED}failed${NC}  $dir_name (may already be in .gitmodules)"
+  done
+
+  echo ""
+  echo -e "${BOLD}Initializing and updating submodules...${NC}"
+  git -C "$WORKSPACE_ROOT" submodule update --init --depth 1 --jobs "$jobs"
+
+  echo ""
+  echo -e "${GREEN}Done.${NC} $(ls -d "$REPOS_DIR"/*/ 2>/dev/null | wc -l) repos under repos/"
+}
+
+cmd_build() {
+  local repo="$1"; shift
+  local auto_local=false
+  local local_overrides=()
+  local extra_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --auto-local|-a)
+        auto_local=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
+      *)
+        extra_args+=("$1"); shift ;;
+    esac
+  done
+
+  # Resolve input name
+  local input_name
+  input_name=$(get_input_name "$repo")
+  if [[ -z "$input_name" ]]; then
+    echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
+    exit 1
+  fi
+
+  # Auto-detect dirty repos
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      if [[ -n "$name" ]]; then
+        local_overrides+=("$dir")
+      fi
+    done
+  fi
+
+  # Build override flags
+  local flags=()
+  if [[ ${#local_overrides[@]} -gt 0 ]]; then
+    local unique_overrides
+    unique_overrides=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+    echo -e "${CYAN}Local overrides:${NC}"
+    for dir in "${unique_overrides[@]}"; do
+      echo -e "  ${YELLOW}*${NC} $dir → path:$REPOS_DIR/$dir"
+    done
+    echo ""
+    flags=($(build_override_flags "${unique_overrides[@]}"))
+  fi
+
+  echo -e "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+  exec nix build \
+    --extra-experimental-features "nix-command flakes" \
+    "$WORKSPACE_ROOT#$input_name" \
+    "${flags[@]}" \
+    "${extra_args[@]}"
+}
+
+cmd_run() {
+  local repo="$1"; shift
+  local input_name
+  input_name=$(get_input_name "$repo")
+  if [[ -z "$input_name" ]]; then
+    echo -e "${RED}Error:${NC} repo '$repo' has no flake input" >&2
+    exit 1
+  fi
+
+  local auto_local=false
+  local local_overrides=()
+  local extra_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --auto-local|-a) auto_local=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
+      *)
+        extra_args+=("$1"); shift ;;
+    esac
+  done
+
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      [[ -n "$name" ]] && local_overrides+=("$dir")
+    done
+  fi
+
+  local flags=()
+  if [[ ${#local_overrides[@]} -gt 0 ]]; then
+    local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+    echo -e "${CYAN}Local overrides:${NC}"
+    for dir in "${unique[@]}"; do
+      echo -e "  ${YELLOW}*${NC} $dir"
+    done
+    echo ""
+    flags=($(build_override_flags "${unique[@]}"))
+  fi
+
+  echo -e "${BOLD}Running ${CYAN}$input_name${NC}${BOLD}...${NC}"
+  exec nix run \
+    --extra-experimental-features "nix-command flakes" \
+    "$WORKSPACE_ROOT#$input_name" \
+    "${flags[@]}" \
+    "${extra_args[@]}"
+}
+
+cmd_develop() {
+  local repo="${1:-}"
+  shift || true
+
+  local auto_local=false
+  local local_overrides=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --auto-local|-a) auto_local=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
+      *) shift ;;
+    esac
+  done
+
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      [[ -n "$name" ]] && local_overrides+=("$dir")
+    done
+  fi
+
+  local flags=()
+  if [[ ${#local_overrides[@]} -gt 0 ]]; then
+    local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+    flags=($(build_override_flags "${unique[@]}"))
+  fi
+
+  if [[ -z "$repo" ]]; then
+    # Workspace devShell
+    exec nix develop \
+      --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT" \
+      "${flags[@]}"
+  else
+    # Sub-repo devShell — use the repo's own flake directly
+    local repo_path="$REPOS_DIR/$repo"
+    if [[ ! -d "$repo_path" ]]; then
+      echo -e "${RED}Error:${NC} repo '$repo' not found at $repo_path" >&2
+      exit 1
+    fi
+    exec nix develop \
+      --extra-experimental-features "nix-command flakes" \
+      "path:$repo_path" \
+      "${flags[@]}"
+  fi
+}
+
+cmd_test() {
+  local target="${1:-}"
+  local test_type=""
+  shift || true
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --type|-t) test_type="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+
+  if [[ "$target" == "--all" || -z "$target" ]]; then
+    # Run all checks
+    echo -e "${BOLD}Running all workspace checks...${NC}"
+    if [[ -n "$test_type" ]]; then
+      echo -e "${CYAN}Filtering by type: $test_type${NC}"
+      echo ""
+      local found=0
+      for entry in "${REPOS[@]}"; do
+        local input_name dir_name has_flake
+        input_name=$(get_field "$entry" 1)
+        dir_name=$(get_field "$entry" 2)
+        has_flake=$(get_field "$entry" 4)
+        [[ "$has_flake" != "yes" || -z "$input_name" ]] && continue
+
+        local repo_path="$REPOS_DIR/$dir_name"
+        local matches=false
+
+        case "$test_type" in
+          cpp|cmake)
+            [[ -f "$repo_path/CMakeLists.txt" ]] && matches=true ;;
+          rust|cargo)
+            [[ -f "$repo_path/Cargo.toml" ]] && matches=true ;;
+          nim|nimble)
+            ls "$repo_path"/*.nimble >/dev/null 2>&1 && matches=true ;;
+          js|node|npm)
+            [[ -f "$repo_path/package.json" ]] && matches=true ;;
+          qml)
+            ls "$repo_path"/*.qml >/dev/null 2>&1 && matches=true
+            [[ -f "$repo_path/CMakeLists.txt" ]] && grep -q "qml" "$repo_path/CMakeLists.txt" 2>/dev/null && matches=true ;;
+          *)
+            echo -e "${RED}Unknown type: $test_type${NC}" >&2
+            echo "Available types: cpp, rust, nim, js, qml" >&2
+            exit 1 ;;
+        esac
+
+        if $matches; then
+          found=$((found + 1))
+          echo -e "  ${YELLOW}*${NC} $dir_name"
+          nix build \
+            --extra-experimental-features "nix-command flakes" \
+            "$WORKSPACE_ROOT#checks.$(nix eval --extra-experimental-features 'nix-command flakes' --impure --raw --expr builtins.currentSystem 2>/dev/null || echo x86_64-linux).$input_name--default" \
+            2>/dev/null && echo -e "    ${GREEN}PASS${NC}" || echo -e "    ${RED}FAIL${NC}"
+        fi
+      done
+      [[ $found -eq 0 ]] && echo -e "${YELLOW}No repos found matching type '$test_type'${NC}"
+    else
+      exec nix flake check \
+        --extra-experimental-features "nix-command flakes" \
+        "$WORKSPACE_ROOT"
+    fi
+  else
+    # Run checks for a specific repo
+    local input_name
+    input_name=$(get_input_name "$target")
+    if [[ -z "$input_name" ]]; then
+      echo -e "${RED}Error:${NC} '$target' has no flake input" >&2
+      exit 1
+    fi
+    echo -e "${BOLD}Running checks for ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    local system
+    system=$(nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr builtins.currentSystem 2>/dev/null || echo "x86_64-linux")
+
+    # Find all checks for this repo
+    local checks
+    checks=$(nix eval --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT#checks.$system" --apply 'cs: builtins.attrNames cs' --json 2>/dev/null | \
+      jq -r ".[] | select(startswith(\"$input_name--\"))" 2>/dev/null)
+
+    if [[ -z "$checks" ]]; then
+      echo -e "${YELLOW}No checks found for $input_name, trying direct build...${NC}"
+      nix build --extra-experimental-features "nix-command flakes" "$WORKSPACE_ROOT#$input_name"
+    else
+      local all_pass=true
+      while IFS= read -r check; do
+        echo -ne "  $check ... "
+        if nix build --extra-experimental-features "nix-command flakes" \
+          "$WORKSPACE_ROOT#checks.$system.$check" 2>/dev/null; then
+          echo -e "${GREEN}PASS${NC}"
+        else
+          echo -e "${RED}FAIL${NC}"
+          all_pass=false
+        fi
+      done <<< "$checks"
+      $all_pass || exit 1
+    fi
+  fi
+}
+
+cmd_status() {
+  echo -e "${BOLD}Workspace status${NC}"
+  echo ""
+
+  local dirty=0 clean=0 missing=0
+
+  for entry in "${REPOS[@]}"; do
+    local dir_name has_flake
+    dir_name=$(get_field "$entry" 2)
+    has_flake=$(get_field "$entry" 4)
+    local repo_path="$REPOS_DIR/$dir_name"
+
+    if [[ ! -d "$repo_path" ]]; then
+      echo -e "  ${RED}missing${NC}  $dir_name"
+      missing=$((missing + 1))
+      continue
+    fi
+
+    if [[ ! -d "$repo_path/.git" && ! -f "$repo_path/.git" ]]; then
+      echo -e "  ${RED}no-git${NC}  $dir_name"
+      missing=$((missing + 1))
+      continue
+    fi
+
+    local status
+    status=$(git -C "$repo_path" status --porcelain 2>/dev/null)
+    local branch
+    branch=$(git -C "$repo_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "???")
+    local ahead_behind
+    ahead_behind=$(git -C "$repo_path" rev-list --left-right --count '@{upstream}...HEAD' 2>/dev/null || echo "")
+
+    if [[ -n "$status" ]]; then
+      local modified added untracked
+      modified=$(echo "$status" | grep -c '^ M\| ^M' 2>/dev/null || echo 0)
+      added=$(echo "$status" | grep -c '^A ' 2>/dev/null || echo 0)
+      untracked=$(echo "$status" | grep -c '^??' 2>/dev/null || echo 0)
+      echo -e "  ${YELLOW}dirty${NC}   $dir_name ${BLUE}($branch)${NC} [M:$modified A:$added ?:$untracked]"
+      dirty=$((dirty + 1))
+    else
+      local marker="${GREEN}clean${NC}"
+      if [[ -n "$ahead_behind" ]]; then
+        local behind ahead
+        behind=$(echo "$ahead_behind" | awk '{print $1}')
+        ahead=$(echo "$ahead_behind" | awk '{print $2}')
+        if [[ "$ahead" -gt 0 ]]; then
+          marker="${GREEN}clean${NC} ${CYAN}+${ahead}${NC}"
+        fi
+      fi
+      echo -e "  $marker   $dir_name ${BLUE}($branch)${NC}"
+      clean=$((clean + 1))
+    fi
+  done
+
+  echo ""
+  echo -e "  ${GREEN}$clean clean${NC}  ${YELLOW}$dirty dirty${NC}  ${RED}$missing missing${NC}"
+}
+
+cmd_dirty() {
+  echo -e "${BOLD}Repos with local changes:${NC}"
+  echo ""
+
+  local dirty_repos
+  dirty_repos=($(get_dirty_repos))
+
+  if [[ ${#dirty_repos[@]} -eq 0 ]]; then
+    echo -e "  ${GREEN}All repos are clean.${NC}"
+    return
+  fi
+
+  for dir_name in "${dirty_repos[@]}"; do
+    local input_name
+    input_name=$(get_input_name "$dir_name")
+    echo -e "  ${YELLOW}*${NC} ${BOLD}$dir_name${NC}"
+
+    # Show what would be affected
+    local dependents
+    dependents=$(get_dependents "${input_name:-$dir_name}")
+    if [[ -n "$dependents" ]]; then
+      echo -e "    affects: $(echo "$dependents" | tr '\n' ' ')"
+    fi
+  done
+
+  echo ""
+  echo -e "Use ${CYAN}ws build <repo> --auto-local${NC} to build with these overrides."
+}
+
+cmd_graph() {
+  local target="${1:-}"
+
+  if [[ ! -f "$DEP_GRAPH" ]]; then
+    echo -e "${RED}Error:${NC} dep-graph.nix not found" >&2
+    exit 1
+  fi
+
+  if [[ -n "$target" ]]; then
+    echo -e "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
+    nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
+      let graph = import '"$DEP_GRAPH"';
+      in builtins.concatStringsSep "\n" (graph.${"'"$target"'"} or [])
+    ' 2>/dev/null | while IFS= read -r dep; do
+      [[ -n "$dep" ]] && echo -e "  -> $dep"
+    done
+
+    echo ""
+    echo -e "${BOLD}Dependents (repos that depend on ${CYAN}$target${NC}${BOLD}):${NC}"
+    nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
+      let
+        graph = import '"$DEP_GRAPH"';
+        names = builtins.attrNames graph;
+        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}) names;
+      in builtins.concatStringsSep "\n" dependents
+    ' 2>/dev/null | while IFS= read -r dep; do
+      [[ -n "$dep" ]] && echo -e "  <- $dep"
+    done
+  else
+    # Full graph in DOT format
+    nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
+      let
+        graph = import '"$DEP_GRAPH"';
+        names = builtins.attrNames graph;
+        edges = builtins.concatMap (k:
+          map (dep: "  \"" + dep + "\" -> \"" + k + "\";") graph.${k}
+        ) names;
+      in "digraph logos {\n  rankdir=BT;\n  node [shape=box, fontsize=10];\n\n"
+         + builtins.concatStringsSep "\n" edges
+         + "\n}"
+    ' 2>/dev/null
+    echo ""
+    echo -e "${CYAN}Pipe to 'dot -Tsvg > graph.svg' for visualization${NC}" >&2
+  fi
+}
+
+cmd_override_inputs() {
+  local repo="$1"; shift || true
+  local auto_local=false
+  local local_overrides=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --auto-local|-a) auto_local=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
+      *) shift ;;
+    esac
+  done
+
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      [[ -n "$name" ]] && local_overrides+=("$dir")
+    done
+  fi
+
+  if [[ ${#local_overrides[@]} -eq 0 ]]; then
+    echo -e "${YELLOW}No local overrides specified.${NC}"
+    echo "Use --auto-local or --local <repo1> <repo2> ..."
+    return
+  fi
+
+  local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+
+  echo -e "${BOLD}Override flags for building ${CYAN}$repo${NC}${BOLD}:${NC}"
+  echo ""
+  echo -n "nix build .#$repo"
+  for dir in "${unique[@]}"; do
+    local input_name
+    input_name=$(get_input_name "$dir")
+    echo -n " \\"
+    echo ""
+    echo -n "  --override-input $input_name path:./repos/$dir"
+  done
+  echo ""
+}
+
+cmd_foreach() {
+  local cmd=("$@")
+
+  if [[ ${#cmd[@]} -eq 0 ]]; then
+    echo -e "${RED}Usage:${NC} ws foreach <command>" >&2
+    exit 1
+  fi
+
+  for entry in "${REPOS[@]}"; do
+    local dir_name
+    dir_name=$(get_field "$entry" 2)
+    local repo_path="$REPOS_DIR/$dir_name"
+
+    if [[ ! -d "$repo_path" ]]; then
+      continue
+    fi
+
+    echo -e "${BOLD}── $dir_name ──${NC}"
+    (cd "$repo_path" && "${cmd[@]}") || true
+    echo ""
+  done
+}
+
+cmd_update() {
+  local target="${1:-}"
+
+  if [[ "$target" == "--all" || -z "$target" ]]; then
+    echo -e "${BOLD}Updating all flake inputs...${NC}"
+    nix flake update \
+      --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT"
+  else
+    local input_name
+    input_name=$(get_input_name "$target")
+    echo -e "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    nix flake lock \
+      --extra-experimental-features "nix-command flakes" \
+      --update-input "$input_name" \
+      "$WORKSPACE_ROOT"
+  fi
+}
+
+cmd_list() {
+  echo -e "${BOLD}Workspace repos (${#REPOS[@]} total)${NC}"
+  echo ""
+
+  local current_section=""
+  for entry in "${REPOS[@]}"; do
+    local input_name dir_name has_flake
+    input_name=$(get_field "$entry" 1)
+    dir_name=$(get_field "$entry" 2)
+    has_flake=$(get_field "$entry" 4)
+
+    local flake_marker=""
+    if [[ "$has_flake" == "yes" ]]; then
+      flake_marker="${GREEN}flake${NC}"
+    else
+      flake_marker="${YELLOW}no-flake${NC}"
+    fi
+
+    local exists_marker=""
+    if [[ -d "$REPOS_DIR/$dir_name/.git" ]] || [[ -f "$REPOS_DIR/$dir_name/.git" ]]; then
+      exists_marker="${GREEN}cloned${NC}"
+    else
+      exists_marker="${RED}not-cloned${NC}"
+    fi
+
+    printf "  %-35s  %-15b  %b\n" "$dir_name" "$flake_marker" "$exists_marker"
+  done
+}
+
+cmd_help() {
+  cat <<'EOF'
+Logos Workspace CLI
+
+USAGE:
+  ws <command> [args]
+
+COMMANDS:
+  init [jobs]                   Clone all submodules (default: 4 parallel jobs)
+  list                          List all repos and their status
+
+  build <repo> [opts]           Build a repo via nix
+    --auto-local, -a              Auto-detect dirty repos and use as overrides
+    --local, -l <r1> <r2> ...    Use specific local repos as overrides
+
+  run <repo> [opts]             Build and run a repo (same options as build)
+
+  develop [repo] [opts]         Enter a nix devShell (workspace shell if no repo)
+    --auto-local, -a              Include overrides for dirty repos
+    --local, -l <r1> <r2> ...    Include specific local overrides
+
+  test [repo|--all] [--type T]  Run checks/tests
+    --type, -t <type>             Filter by: cpp, rust, nim, js, qml
+
+  status                        Git status across all repos
+  dirty                         Show dirty repos and what they affect
+  graph [repo]                  Show dependency graph (DOT format, or repo details)
+  override-inputs <repo> [opts] Show the nix --override-input flags that would be used
+  update [repo|--all]           Update flake.lock inputs
+  foreach <command>             Run a command in every repo directory
+  help                          Show this help
+
+EXAMPLES:
+  # Set up the workspace
+  ws init
+
+  # Edit logos-cpp-sdk, then build logos-app-poc using your local changes
+  cd repos/logos-cpp-sdk && vim src/something.cpp
+  ws build logos-app-poc --auto-local
+
+  # Explicitly override specific deps
+  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+
+  # Run all tests
+  ws test --all
+
+  # Run only C++ repo tests
+  ws test --all --type cpp
+
+  # Test a specific repo
+  ws test logos-cpp-sdk
+
+  # See what your dirty repos affect
+  ws dirty
+
+  # Enter logos-app-poc's devShell with local logos-cpp-sdk
+  ws develop logos-app-poc --local logos-cpp-sdk
+
+  # Visualize the dependency graph
+  ws graph | dot -Tsvg > graph.svg
+
+  # See deps of a specific repo
+  ws graph logos-app-poc
+
+  # Run git pull in every repo
+  ws foreach git pull
+
+  # Show override flags without executing
+  ws override-inputs logos-app-poc --auto-local
+EOF
+}
+
+# ── Main dispatch ────────────────────────────────────────────────────────────
+
+case "${1:-help}" in
+  init)           shift; cmd_init "$@" ;;
+  build)          shift; cmd_build "$@" ;;
+  run)            shift; cmd_run "$@" ;;
+  develop|dev)    shift; cmd_develop "$@" ;;
+  test)           shift; cmd_test "$@" ;;
+  status|st)      shift; cmd_status "$@" ;;
+  dirty)          shift; cmd_dirty "$@" ;;
+  graph)          shift; cmd_graph "$@" ;;
+  override-inputs|oi) shift; cmd_override_inputs "$@" ;;
+  update)         shift; cmd_update "$@" ;;
+  foreach)        shift; cmd_foreach "$@" ;;
+  list|ls)        shift; cmd_list "$@" ;;
+  help|--help|-h) cmd_help ;;
+  *)
+    echo -e "${RED}Unknown command:${NC} $1" >&2
+    echo "Run 'ws help' for usage." >&2
+    exit 1
+    ;;
+esac
