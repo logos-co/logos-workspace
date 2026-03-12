@@ -153,6 +153,8 @@ UI modules need `type: ui` in module.yaml and must implement `QWidget* createWid
 
 ## Packaging for distribution
 
+Manual packaging with `lgx`:
+
 ```bash
 # Create .lgx package
 lgx create my_module.lgx --name my_module
@@ -164,6 +166,11 @@ lgx add-variant my_module.lgx --variant darwin-arm64 --files ./result/lib/my_mod
 # Install locally
 lgpm install --file my_module.lgx
 ```
+
+Automated Nix-based packaging uses `nix-bundle-lgx` (which uses `nix-bundle-dir` underneath):
+- `nix-bundle-dir` — bundles Nix derivations into portable self-contained directories (rewrites rpaths, resolves dependencies)
+- `nix-bundle-lgx` — wraps the bundled output into `.lgx` packages with platform variants and metadata
+- Bundlers: `default` (requires Nix store at runtime) or `portable` (fully self-contained)
 
 ## Common pitfalls
 

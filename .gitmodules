@@ -121,3 +121,9 @@
 [submodule "repos/logos-module-viewer"]
 	path = repos/logos-module-viewer
 	url = git@github.com:logos-co/logos-module-viewer.git
+[submodule "repos/nix-bundle-dir"]
+	path = repos/nix-bundle-dir
+	url = git@github.com:logos-co/nix-bundle-dir.git
+[submodule "repos/nix-bundle-lgx"]
+	path = repos/nix-bundle-lgx
+	url = git@github.com:logos-co/nix-bundle-lgx.git

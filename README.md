@@ -1,6 +1,6 @@
 # Logos Workspace
 
-Unified multi-repo development environment for the Logos project. All repos live under `repos/` as git submodules. A Nix flake wires them together so that local changes propagate through the dependency chain automatically.
+Unified multi-repo development environment for the Logos project. All ~43 repos live under `repos/` as git submodules. A Nix flake wires them together so that local changes propagate through the dependency chain automatically.
 
 ## Quick Start
 
@@ -163,6 +163,8 @@ nixpkgs
         └── logos-liblogos
               ├── logos-capability-module
               ├── logos-package → logos-package-manager-module → logos-package-manager-ui
+              │                 └── nix-bundle-lgx (LGX bundler, uses nix-bundle-dir)
+              ├── nix-bundle-dir (portable bundling for Nix derivations)
               ├── logos-module-builder → logos-libp2p-module
               ├── logos-webview-app
               ├── logos-waku-module → logos-chat-module, logos-chat-legacy-module,
@@ -184,6 +186,7 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 ## Repo Categories
 
 - **Foundation**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-module](https://github.com/logos-co/logos-module), [logos-liblogos](https://github.com/logos-co/logos-liblogos), [logos-capability-module](https://github.com/logos-co/logos-capability-module), [logos-package](https://github.com/logos-co/logos-package), [logos-module-builder](https://github.com/logos-co/logos-module-builder)
+- **Packaging**: [nix-bundle-dir](https://github.com/logos-co/nix-bundle-dir), [nix-bundle-lgx](https://github.com/logos-co/nix-bundle-lgx)
 - **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-simple-module](https://github.com/logos-co/logos-simple-module), [logos-template-module](https://github.com/logos-co/logos-template-module)
 - **Apps**: [logos-app-poc](https://github.com/logos-co/logos-app-poc), [logos-accounts-ui](https://github.com/logos-co/logos-accounts-ui), [logos-chat-tui](https://github.com/logos-co/logos-chat-tui), [logos-chat-ui](https://github.com/logos-co/logos-chat-ui), [logos-chatsdk-ui](https://github.com/logos-co/logos-chatsdk-ui), [logos-waku-ui](https://github.com/logos-co/logos-waku-ui), [logos-package-manager-ui](https://github.com/logos-co/logos-package-manager-ui), [logos-storage-ui](https://github.com/logos-co/logos-storage-ui), [logos-wallet-ui](https://github.com/logos-co/logos-wallet-ui), [logos-webview-app](https://github.com/logos-co/logos-webview-app)
 - **UI**: [logos-design-system](https://github.com/logos-co/logos-design-system)

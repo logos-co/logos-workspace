@@ -1,6 +1,6 @@
 # Logos Workspace
 
-Nix-based multi-repo workspace for the Logos modular application platform. ~41 repos as git submodules under `repos/`. C++17/Qt 6, CMake, Nix flakes.
+Nix-based multi-repo workspace for the Logos modular application platform. ~43 repos as git submodules under `repos/`. C++17/Qt 6, CMake, Nix flakes.
 
 ## Setup
 
@@ -85,6 +85,8 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-module-builder | Scaffolding + build system (module.yaml -> CMake) |
 | logos-app-poc | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
+| nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
+| nix-bundle-lgx | Bundles Nix derivations into distributable `.lgx` packages |
 
 ## Building and testing a repo
 
@@ -129,7 +131,8 @@ nixpkgs (pinned by logos-cpp-sdk)
   -> logos-cpp-sdk
     -> logos-module
     -> logos-liblogos
-      -> logos-capability-module, logos-package, logos-module-builder
+      -> logos-capability-module, logos-package, logos-module-builder, nix-bundle-dir
+      -> nix-bundle-lgx (uses logos-package + nix-bundle-dir)
       -> logos-accounts-module, logos-chat-module, logos-waku-module, ...
       -> logos-app-poc (aggregates many modules)
 ```

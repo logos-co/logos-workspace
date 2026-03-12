@@ -12,13 +12,15 @@
 {
   logos-cpp-sdk                = { deps = []; hasTests = false; };
   logos-module                 = { deps = [ "logos-cpp-sdk" ]; hasTests = true; };
-  logos-liblogos               = { deps = [ "logos-cpp-sdk" "logos-module" "logos-capability-module" ]; hasTests = true; };
+  logos-liblogos               = { deps = [ "logos-cpp-sdk" "logos-module" "logos-capability-module" "nix-bundle-dir" ]; hasTests = true; };
   logos-capability-module      = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-package                = { deps = [ "logos-liblogos" ]; hasTests = true; };
   logos-module-builder         = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
-  logos-app-poc                = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package" "logos-package-manager-module" "logos-package-manager-ui" "logos-webview-app" "counter_qml" "counter" "logos-design-system" ]; hasTests = false; };
+  nix-bundle-dir               = { deps = []; hasTests = false; };
+  nix-bundle-lgx               = { deps = [ "logos-package" "nix-bundle-dir" ]; hasTests = false; };
+  logos-app-poc                = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package" "logos-package-manager-module" "logos-package-manager-ui" "logos-webview-app" "counter_qml" "counter" "logos-design-system" "nix-bundle-lgx" "nix-bundle-dir" ]; hasTests = false; };
   logos-accounts-module        = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
-  logos-accounts-ui            = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-accounts-module" "logos-package-manager-module" ]; hasTests = false; };
+  logos-accounts-ui            = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-accounts-module" "logos-package-manager-module" "nix-bundle-lgx" ]; hasTests = false; };
   logos-chat-module            = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-waku-module" ]; hasTests = false; };
   logos-chat-legacy-module     = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-waku-module" ]; hasTests = false; };
   logos-chat-tui               = { deps = [ "logos-liblogos" "logos-capability-module" "logos-chat-module" "logos-waku-module" "logos-rust-sdk" ]; hasTests = false; };
@@ -28,7 +30,7 @@
   logos-irc-module             = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-chat-module" "logos-chat-legacy-module" "logos-waku-module" ]; hasTests = false; };
   logos-waku-module            = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-waku-ui                = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-waku-module" ]; hasTests = false; };
-  logos-package-manager-module = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-package" ]; hasTests = false; };
+  logos-package-manager-module = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-package" "nix-bundle-dir" ]; hasTests = false; };
   logos-package-manager-ui     = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package-manager-module" ]; hasTests = false; };
   logos-storage-module         = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-storage-ui             = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-storage-module" "logos-design-system" ]; hasTests = false; };

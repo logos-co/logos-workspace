@@ -9,12 +9,24 @@
 
     # ── Shared build tooling (not developed locally, but needed for follows) ──
 
-    nix-bundle-dir.url = "github:logos-co/nix-bundle-dir";
     nix-bundle-appimage.url = "github:logos-co/nix-bundle-appimage";
-    nix-bundle-lgx.url = "github:logos-co/nix-bundle-lgx";
     nix-bundle-macos-app = {
       url = "github:logos-co/nix-bundle-macos-app";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+    };
+
+    # ── Packaging / Bundling ───────────────────────────────────────────────────
+
+    nix-bundle-dir = {
+      url = "github:logos-co/nix-bundle-dir";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-bundle-lgx = {
+      url = "github:logos-co/nix-bundle-lgx";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
     };
 
@@ -355,6 +367,8 @@
         # Foundation
         "logos-cpp-sdk" "logos-module" "logos-liblogos"
         "logos-capability-module" "logos-package" "logos-module-builder"
+        # Packaging / Bundling
+        "nix-bundle-dir" "nix-bundle-lgx"
         # App
         "logos-app-poc"
         # Accounts

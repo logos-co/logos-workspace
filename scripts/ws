@@ -38,6 +38,10 @@ REPOS=(
   "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
   "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
 
+  # Packaging / Bundling
+  "nix-bundle-dir|nix-bundle-dir|https://github.com/logos-co/nix-bundle-dir.git|yes"
+  "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
+
   # App
   "logos-app-poc|logos-app-poc|https://github.com/logos-co/logos-app-poc.git|yes"
 
