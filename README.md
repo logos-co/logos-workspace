@@ -52,7 +52,7 @@ ws build logos-app-poc --auto-local
 ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
 ```
 
-The `--auto-local` flag detects all repos with uncommitted changes and generates the appropriate `--override-input` flags.
+The `--auto-local` flag scans the workspace for repos that have uncommitted changes or unpushed commits, and automatically overrides those deps. So if you're editing `logos-cpp-sdk`, you don't need to specify `--local logos-cpp-sdk` — `--auto-local` detects it for you.
 
 ### How it works
 
@@ -228,8 +228,9 @@ lgpm --modules-dir ./modules --release v2.0.0 install my_module
 
 ### Build/Run/Test Options
 
-- `--auto-local`, `-a` — Auto-detect dirty repos and use them as local overrides
-- `--local`, `-l <repo1> <repo2> ...` — Explicitly specify local overrides
+- `--auto-local`, `-a` — Scans the workspace for repos with uncommitted changes or unpushed commits, and automatically uses them as local overrides. If you're editing `logos-cpp-sdk` and run `ws build logos-app-poc --auto-local`, it detects `logos-cpp-sdk` is dirty and overrides it — no need to specify `--local logos-cpp-sdk` manually.
+- `--local`, `-l <repo1> <repo2> ...` — Explicitly specify which repos to use as local overrides. Use this when you want precise control over what gets overridden.
+- `--workspace`, `-w` — Override **all** workspace repos as local deps, regardless of dirty status. Useful in CI where repos are clean checkouts but you want tests to use the workspace's dependency versions instead of each repo's pinned `flake.lock`. *(Currently `ws test` only.)*
 
 These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
 
@@ -239,10 +240,8 @@ These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
 - `ws test --all --type cpp` — Run checks only for C++ repos
 - `ws test logos-cpp-sdk` — Run checks for a specific repo
 - `ws test logos-test-modules --local logos-liblogos` — Test with local dependency override
-- `ws test --all --workspace` — Override all deps with local workspace repos (used in CI)
+- `ws test --all --workspace` — Test using the workspace's dependency versions (see `--workspace` above)
 - Types: `cpp`, `rust`, `nim`, `js`, `qml`
-
-The `--workspace` / `-w` flag overrides every dependency with the local workspace version. Without it, each repo's tests use whatever versions are pinned in its own `flake.lock`. This is important in CI where the workspace submodule pointers define the intended dependency versions.
 
 ## Adding Tests to a Repo
 
