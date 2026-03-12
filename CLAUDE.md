@@ -21,6 +21,7 @@ ws run <repo> [--auto-local]         # Build and run
 ws test <repo> [--auto-local]        # Run repo's nix checks
 ws test <repo> --local dep1 dep2     # Test with explicit local overrides
 ws test --all [--type cpp|rust|nim]  # Test all repos
+ws test --all --workspace            # Test using all local workspace deps
 ws develop [repo] [--auto-local]     # Enter dev shell (zsh+tmux+tools)
 
 # Watching (auto-rebuild/test on save, flags pass through)
