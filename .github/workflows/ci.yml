@@ -20,7 +20,10 @@ jobs:
           fetch-depth: 0  # full history for change detection
 
       - name: Initialize submodules
-        run: git submodule update --init --depth 1 --jobs 4
+        run: |
+          # Rewrite SSH URLs to HTTPS so CI can clone without SSH keys
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth 1 --jobs 4
 
       - name: Check for docs-only changes
         id: filter
