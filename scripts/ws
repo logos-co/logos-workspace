@@ -1485,6 +1485,13 @@ COMMANDS:
   worktree list                List all worktrees
   worktree remove <name>       Remove a worktree
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
+
+  lm <args>                     Module inspector (auto-builds logos-module)
+  logoscore <args>              Headless runtime (auto-builds logos-liblogos)
+  lgx <args>                    Package tool (auto-builds logos-package)
+  lgpm <args>                   Package manager (auto-builds logos-package-manager-module)
+  logos-cpp-generator <args>    SDK code generator (auto-builds logos-cpp-sdk)
+
   help                          Show this help
 
 EXAMPLES:
@@ -1572,6 +1579,9 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   help|--help|-h) cmd_help ;;
+  # CLI tool wrappers — delegate to scripts/
+  lm|logoscore|lgx|lgpm|logos-cpp-generator)
+    exec "$WORKSPACE_ROOT/scripts/$1" "${@:2}" ;;
   *)
     echo -e "${RED}Unknown command:${NC} $1" >&2
     echo "Run 'ws help' for usage." >&2

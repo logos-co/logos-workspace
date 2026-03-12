@@ -2,6 +2,13 @@
 
 Nix-based multi-repo workspace for the Logos modular application platform. ~41 repos as git submodules under `repos/`. C++17/Qt 6, CMake, Nix flakes.
 
+## Setup
+
+Run this first to add workspace tools to PATH:
+```bash
+export PATH="/workspace/scripts:$PATH"
+```
+
 ## The `ws` CLI
 
 The workspace has a custom CLI (`scripts/ws`) that manages all repos. Use it instead of raw nix commands.
@@ -151,14 +158,13 @@ nix develop path:./repos/logos-cpp-sdk
 nix build .#logos-app-poc --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
 ```
 
-## CLI tools (auto-build on first use)
+## CLI tools (auto-build, auto-rebuild)
 
-These are in `scripts/` and auto-build from the local repo on first run:
+Available directly or as `ws` subcommands (e.g. `lgx` or `ws lgx`).
+Auto-build on first use, auto-rebuild when source files change. Only builds the specific binary, not the full repo.
 
-- `lm` — module inspector: `lm metadata <plugin>`, `lm methods <plugin>`
-- `logoscore` — headless runtime: `logoscore -m <dir> --load-modules <name>`
-- `lgx` — package tool: `lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`
-- `lgpm` — package manager: `lgpm install`, `lgpm search`, `lgpm list`
-- `logos-cpp-generator` — SDK code generator from plugin metadata
-
-Each wrapper checks `repos/<repo>/result/bin/<tool>` and builds the repo if the binary isn't there yet.
+- `lm` (logos-module) — module inspector: `lm metadata <plugin>`, `lm methods <plugin>`
+- `logoscore` (logos-liblogos) — headless runtime: `logoscore -m <dir> --load-modules <name>`
+- `lgx` (logos-package) — package tool: `lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`
+- `lgpm` (logos-package-manager-module) — package manager: `lgpm install`, `lgpm search`, `lgpm list`
+- `logos-cpp-generator` (logos-cpp-sdk) — SDK code generator from plugin metadata

@@ -12,9 +12,9 @@ cd logos-workspace
 # 2. Or if already cloned, initialize submodules
 ./scripts/ws init
 
-# 3. Add ws to your PATH (or alias it)
-alias ws=./scripts/ws
-# or: export PATH="$PWD/scripts:$PATH"
+# 3. Add scripts to your PATH (ws + CLI tools like lm, lgx, logoscore)
+export PATH="$PWD/scripts:$PATH"
+# Add this to your ~/.zshrc or ~/.bashrc with the full path to persist it
 
 # 4. Enter the dev shell (optional, adds ws to PATH automatically)
 nix develop
@@ -89,6 +89,20 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws worktree list` | List all worktrees |
 | `ws worktree remove <name>` | Remove a worktree |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
+
+### CLI Tools
+
+These are also in `scripts/` and auto-build from the local repo on first use. They rebuild automatically when source files change.
+
+| Command | Repo | Description |
+|---------|------|-------------|
+| `lm` | logos-module | Module inspector (`lm metadata <plugin>`, `lm methods <plugin>`) |
+| `logoscore` | logos-liblogos | Headless runtime (`logoscore -m <dir> --load-modules <name>`) |
+| `lgx` | logos-package | Package tool (`lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`) |
+| `lgpm` | logos-package-manager-module | Package manager (`lgpm install`, `lgpm search`, `lgpm list`) |
+| `logos-cpp-generator` | logos-cpp-sdk | SDK code generator from plugin metadata |
+
+All CLI tools are also available as `ws` subcommands (e.g. `ws lgx`, `ws lm`, `ws logoscore`).
 
 ### Build/Run Options
 
@@ -319,7 +333,6 @@ ws worktree remove my-feature
 ```
 
 For **claude-docker** or similar tools: the repo includes `.claude-docker/post-worktree.sh` which automatically initializes submodules and creates `ws/<branch>` branches after a worktree is created.
-
 ## Entering a dev shell
 
 The workspace dev shell comes with modern CLI tools (eza, bat, fzf, delta, starship, zoxide, neovim) and handy aliases (`gst`, `ga`, `gc`, `gd`, `gl`, `wss`, `wsd`, etc.).

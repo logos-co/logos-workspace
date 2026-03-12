@@ -117,6 +117,8 @@ All cross-module calls return `LogosResult`:
 
 ## CLI tools
 
+All tools are available directly (or as `ws <tool>`) and auto-build/rebuild from the local repo.
+
 ```bash
 # Module inspector
 lm metadata <plugin-file> [--json]
@@ -136,6 +138,10 @@ lgpm install <pkg>
 lgpm install --file <path.lgx>
 lgpm search <query>
 lgpm list [--installed]
+
+# SDK code generator
+logos-cpp-generator <plugin-file> [--output-dir <dir>]
+logos-cpp-generator --metadata <metadata.json> --module-dir <dir>
 ```
 
 ## Module types
