@@ -28,6 +28,7 @@ NC='\033[0m'
 # Logging: log() is suppressed in quiet mode; errors always print to stderr
 log() { $QUIET || echo -e "$@"; }
 
+
 # ── Repo registry ───────────────────────────────────────────────────────────
 # Format: "input_name|directory_name|git_url|has_flake"
 # input_name: name in flake.nix inputs (empty string for non-flake repos)
@@ -377,11 +378,63 @@ Examples:
   fi
 
   log "${BOLD}Running ${CYAN}$input_name${NC}${BOLD}...${NC}"
-  exec nix run \
-    --extra-experimental-features "nix-command flakes" \
-    "$WORKSPACE_ROOT#$input_name" \
-    ${flags[@]+"${flags[@]}"} \
-    ${extra_args[@]+"${extra_args[@]}"}
+
+  # For app repos, build first and check for Qt conflicts before launching.
+  case "$input_name" in
+    logos-app-poc|logos-app|logos-basecamp)
+      local store_path
+      store_path=$(nix build --extra-experimental-features "nix-command flakes" \
+        --no-link --print-out-paths "$WORKSPACE_ROOT#$input_name" \
+        ${flags[@]+"${flags[@]}"}) || exit $?
+
+      # Check closure for multiple Qt versions
+      local qt_versions
+      qt_versions=$(nix-store -qR "$store_path" 2>/dev/null | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+' | sort -u || true)
+      local qt_count
+      qt_count=$(echo "$qt_versions" | grep -c . 2>/dev/null || true)
+      if [[ "$qt_count" -gt 1 ]]; then
+        echo -e "${YELLOW}WARNING: Multiple Qt versions found in closure:${NC}" >&2
+        echo "$qt_versions" | while read -r v; do echo -e "  ${YELLOW}*${NC} $v" >&2; done
+        echo -e "${YELLOW}If the app crashes, run: ${BOLD}ws check-qt $repo${NC}" >&2
+      fi
+
+      # Check for stale local module cache
+      local app_qt
+      app_qt=$(nix-store -qR "$store_path" 2>/dev/null | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | tail -1 || true)
+      if [[ -n "$app_qt" ]]; then
+        local cache_dir
+        if [[ "$(uname)" == "Darwin" ]]; then
+          cache_dir="$HOME/Library/Application Support/LogosAppNix"
+        else
+          cache_dir="${XDG_DATA_HOME:-$HOME/.local/share}/LogosAppNix"
+        fi
+        if [[ -d "$cache_dir" ]]; then
+          local cached_qt
+          cached_qt=$(find "$cache_dir" -type f \( -name "*.dylib" -o -name "*.so" \) -print0 2>/dev/null \
+            | xargs -0 strings 2>/dev/null | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+' | sort -u || true)
+          if [[ -n "$cached_qt" && "$cached_qt" != *"$app_qt"* ]]; then
+            echo -e "${RED}STALE MODULE CACHE: Local modules use $cached_qt but build uses $app_qt${NC}" >&2
+            echo -e "${YELLOW}Fix: rm -rf $(printf '%q' "$cache_dir")${NC}" >&2
+            echo -e "${YELLOW}Then run again.${NC}" >&2
+            exit 1
+          fi
+        fi
+      fi
+
+      # Run the already-built output directly from the store
+      exec nix run --extra-experimental-features "nix-command flakes" \
+        "$WORKSPACE_ROOT#$input_name" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}
+      ;;
+    *)
+      exec nix run \
+        --extra-experimental-features "nix-command flakes" \
+        "$WORKSPACE_ROOT#$input_name" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}
+      ;;
+  esac
 }
 
 cmd_develop() {
@@ -1456,6 +1509,152 @@ HEADER
   fi
 }
 
+cmd_check_qt() {
+  wants_help "$@" && show_help "Usage: ws check-qt <repo>
+
+Check a repo's build for Qt version conflicts that cause runtime crashes
+('Class QT_ROOT_LEVEL_POOL ... is implemented in both ...').
+
+Checks two things:
+  1. Whether the repo's nix closure has a DIRECT dependency on multiple Qt
+     versions (broken follows chain — nix-level fix needed).
+  2. Whether the user's local module cache contains modules built against a
+     different Qt than the current build (stale cache — clear the data dir).
+
+Examples:
+  ws check-qt logos-app-poc
+  ws check-qt logos-liblogos"
+
+  local repo="${1:?Usage: ws check-qt <repo>}"
+  local input_name
+  input_name=$(get_input_name "$repo")
+  if [[ -z "$input_name" ]]; then
+    echo -e "${RED}Error:${NC} repo '$repo' has no flake input" >&2
+    exit 1
+  fi
+
+  log "${BOLD}Checking Qt versions for ${CYAN}$input_name${NC}${BOLD}...${NC}"
+
+  local store_path
+  store_path=$(nix build --extra-experimental-features "nix-command flakes" \
+    --no-link --print-out-paths "$WORKSPACE_ROOT#$input_name" 2>/dev/null)
+  if [[ -z "$store_path" ]]; then
+    echo -e "${RED}Error:${NC} failed to build $input_name" >&2
+    exit 1
+  fi
+
+  # Find all qtbase store paths in the transitive closure
+  local all_qt_paths
+  all_qt_paths=$(nix-store -qR "$store_path" 2>/dev/null | grep 'qtbase-[0-9]' || true)
+  if [[ -z "$all_qt_paths" ]]; then
+    echo -e "${GREEN}OK:${NC} No Qt found in closure (non-Qt repo)"
+    return 0
+  fi
+
+  # Use nix why-depends to check which Qt versions the build DIRECTLY depends on.
+  # External deps (logos-chat, logos-delivery, etc.) may bring their own nixpkgs
+  # with a different qtbase transitively, but that's harmless if it's not loaded
+  # by the app at runtime.
+  local direct_qt=()
+  while IFS= read -r qt_path; do
+    if nix why-depends --extra-experimental-features "nix-command flakes" \
+        "$WORKSPACE_ROOT#$input_name" "$qt_path" >/dev/null 2>&1; then
+      local ver
+      ver=$(echo "$qt_path" | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+')
+      direct_qt+=("$ver")
+    fi
+  done <<< "$all_qt_paths"
+
+  # Deduplicate
+  local unique_qt
+  unique_qt=$(printf '%s\n' "${direct_qt[@]}" | sort -u)
+  local qt_count
+  qt_count=$(echo "$unique_qt" | grep -c . 2>/dev/null || true)
+
+  if [[ "$qt_count" -gt 1 ]]; then
+    echo -e "${RED}CONFLICT:${NC} Build directly depends on multiple Qt versions:"
+    echo "$unique_qt" | while read -r v; do echo -e "  ${YELLOW}*${NC} $v"; done
+    echo ""
+    echo -e "This ${BOLD}will crash${NC} at runtime. Fix the follows chain in flake.nix."
+    echo -e "Trace each version with:"
+    while IFS= read -r qt_path; do
+      local ver
+      ver=$(echo "$qt_path" | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+')
+      if nix why-depends --extra-experimental-features "nix-command flakes" \
+          "$WORKSPACE_ROOT#$input_name" "$qt_path" >/dev/null 2>&1; then
+        echo -e "  ${BOLD}nix why-depends .#$input_name $qt_path${NC}"
+      fi
+    done <<< "$all_qt_paths"
+    exit 1
+  elif [[ "$qt_count" -eq 1 ]]; then
+    echo -e "${GREEN}OK:${NC} Single Qt version in direct deps: $unique_qt"
+  fi
+
+  # Note transitive Qt versions (informational, not a build error)
+  local all_qt_versions
+  all_qt_versions=$(echo "$all_qt_paths" | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+' | sort -u)
+  local all_qt_count
+  all_qt_count=$(echo "$all_qt_versions" | grep -c . 2>/dev/null || true)
+  if [[ "$all_qt_count" -gt 1 ]]; then
+    log ""
+    log "${YELLOW}Note:${NC} Transitive closure contains other Qt versions (from external deps):"
+    echo "$all_qt_versions" | while read -r v; do
+      if [[ "$unique_qt" != *"$v"* ]]; then
+        log "  ${YELLOW}*${NC} $v (indirect — not loaded by $input_name)"
+      fi
+    done
+    log "This is harmless unless modules built against these versions are loaded at runtime."
+  fi
+
+  # Check local module cache for stale Qt
+  local app_qt
+  app_qt=$(echo "$unique_qt" | head -1)
+  if [[ -n "$app_qt" ]]; then
+    local cache_dirs=()
+    if [[ "$(uname)" == "Darwin" ]]; then
+      cache_dirs+=("$HOME/Library/Application Support/LogosAppNix/modules")
+      cache_dirs+=("$HOME/Library/Application Support/LogosAppNix/plugins")
+      cache_dirs+=("$HOME/Library/Application Support/LogosApp/modules")
+      cache_dirs+=("$HOME/Library/Application Support/LogosApp/plugins")
+    else
+      local xdg="${XDG_DATA_HOME:-$HOME/.local/share}"
+      cache_dirs+=("$xdg/LogosAppNix/modules" "$xdg/LogosAppNix/plugins")
+      cache_dirs+=("$xdg/LogosApp/modules" "$xdg/LogosApp/plugins")
+    fi
+
+    local stale_found=false
+    for dir in "${cache_dirs[@]}"; do
+      [[ -d "$dir" ]] || continue
+      local cached_qt
+      cached_qt=$(find "$dir" -type f \( -name "*.dylib" -o -name "*.so" \) -exec strings {} + 2>/dev/null \
+        | grep -oE 'qtbase-[0-9]+\.[0-9]+\.[0-9]+' | sort -u || true)
+      if [[ -n "$cached_qt" && "$cached_qt" != *"$app_qt"* ]]; then
+        if ! $stale_found; then
+          echo ""
+          echo -e "${RED}STALE MODULE CACHE:${NC} Local modules reference a different Qt:"
+          stale_found=true
+        fi
+        echo -e "  ${YELLOW}$dir${NC} → $cached_qt (build uses $app_qt)"
+      fi
+    done
+
+    if $stale_found; then
+      echo ""
+      echo -e "${YELLOW}Fix:${NC} Clear the stale cache:"
+      if [[ "$(uname)" == "Darwin" ]]; then
+        echo -e "  ${BOLD}rm -rf ~/Library/Application\\ Support/LogosAppNix${NC}"
+      else
+        echo -e "  ${BOLD}rm -rf \${XDG_DATA_HOME:-~/.local/share}/LogosAppNix${NC}"
+      fi
+      exit 1
+    fi
+
+    if ! $stale_found; then
+      echo -e "${GREEN}OK:${NC} No stale modules in local cache"
+    fi
+  fi
+}
+
 cmd_help() {
   cat <<'EOF'
 Logos Workspace CLI
@@ -1498,6 +1697,7 @@ COMMANDS:
   worktree list                List all worktrees
   worktree remove <name>       Remove a worktree
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
+  check-qt <repo>               Check for Qt version conflicts in a repo's nix closure
 
   lm <args>                     Module inspector (auto-builds logos-module)
   logoscore <args>              Headless runtime (auto-builds logos-liblogos)
@@ -1604,6 +1804,7 @@ case "${1:-help}" in
   foreach)        shift; cmd_foreach "$@" ;;
   worktree|wt)    shift; cmd_worktree "$@" ;;
   sync-graph)     shift; cmd_sync_graph "$@" ;;
+  check-qt)       shift; cmd_check_qt "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   help|--help|-h) cmd_help ;;
   # CLI tool wrappers — delegate to scripts/
