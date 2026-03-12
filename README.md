@@ -104,17 +104,127 @@ ws test --all --quiet
 
 ### CLI Tools
 
-These are also in `scripts/` and auto-build from the local repo on first use. They rebuild automatically when source files change.
+These are also in `scripts/` and auto-build from the local repo on first use. They rebuild automatically when source files change. All are also available as `ws` subcommands (e.g. `ws lgx`, `ws lm`, `ws logoscore`).
 
-| Command | Repo | Description |
-|---------|------|-------------|
-| `lm` | logos-module | Module inspector (`lm metadata <plugin>`, `lm methods <plugin>`) |
-| `logoscore` | logos-liblogos | Headless runtime (`logoscore -m <dir> --load-modules <name>`) |
-| `lgx` | logos-package | Package tool (`lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`) |
-| `lgpm` | logos-package-manager-module | Package manager (`lgpm install`, `lgpm search`, `lgpm list`) |
-| `logos-cpp-generator` | logos-cpp-sdk | SDK code generator from plugin metadata |
+#### `logoscore` — headless module runtime (logos-liblogos)
 
-All CLI tools are also available as `ws` subcommands (e.g. `ws lgx`, `ws lm`, `ws logoscore`).
+Loads modules and calls their methods without the full GUI. Essential for testing.
+
+```
+logoscore [options]
+  -m, --modules-dir <path>         Directory to scan for plugins (repeatable)
+  -l, --load-modules <mod1,mod2>   Comma-separated modules to load (auto-resolves deps)
+  -c, --call <module.method(args)> Call a method after loading (repeatable, sequential)
+  -h, --help                       Show help
+  --version                        Show version
+```
+
+Method call syntax for `-c`: `module_name.method(arg1, arg2)`
+- Type auto-detection: `true`/`false` → bool, `42` → int, `3.14` → double, else → string
+- `@filename` reads file content as the argument (e.g. `@config.json` for JSON configs)
+- 30-second timeout per call; exit code 1 on any failure
+
+```bash
+# Load a module (auto-resolves transitive dependencies)
+logoscore -m ./modules --load-modules my_module
+
+# Load and call a method
+logoscore -m ./modules -l my_module -c "my_module.doSomething(hello)"
+
+# Sequential calls with a file parameter
+logoscore -m ./modules -l storage_module \
+  -c "storage_module.init(@config.json)" \
+  -c "storage_module.start()"
+
+# Multiple modules — dependencies resolved automatically
+logoscore -m ./modules -l waku_module,chat,my_module
+```
+
+#### `lm` — module inspector (logos-module)
+
+Introspects compiled Qt plugin files to show metadata and method signatures.
+
+```
+lm [command] <plugin-path> [options]
+
+Commands:
+  (default)    Show both metadata and methods
+  metadata     Show plugin metadata only (name, version, description, author, type, deps)
+  methods      Show exposed Q_INVOKABLE methods only (name, signature, return type, params)
+
+Options:
+  --json       Output structured JSON
+  --debug      Show Qt debug output during plugin loading
+  -h, --help
+  -v, --version
+```
+
+```bash
+lm ./result/lib/my_module_plugin.so                    # everything
+lm metadata ./result/lib/my_module_plugin.so           # metadata only
+lm methods ./result/lib/my_module_plugin.so --json     # methods as JSON
+```
+
+#### `lgx` — LGX package tool (logos-package)
+
+Creates and manages `.lgx` packages (gzip tar archives with platform-specific variants).
+
+```
+lgx <command> [options]
+
+Commands:
+  create <name>                     Create empty .lgx package
+  add <pkg> -v <variant> -f <path>  Add files to a variant (replaces if exists)
+    --variant, -v <name>              e.g. linux-x86_64, darwin-arm64
+    --files, -f <path>                File or directory to add
+    --main, -m <relpath>              Main entry point (required if --files is a dir)
+    --yes, -y                         Skip confirmation prompts
+  remove <pkg> -v <variant>         Remove a variant
+  extract <pkg> [-v <variant>] [-o <dir>]  Extract variant(s)
+  verify <pkg>                      Validate against LGX spec
+  sign <pkg>                        (not yet implemented)
+  publish <pkg>                     (not yet implemented)
+```
+
+```bash
+lgx create my_module
+lgx add my_module.lgx -v linux-x86_64 -f ./result/lib/my_module_plugin.so
+lgx add my_module.lgx -v darwin-arm64 -f ./result/lib/my_module_plugin.dylib
+lgx verify my_module.lgx
+lgx extract my_module.lgx -v linux-x86_64 -o ./extracted
+```
+
+#### `lgpm` — package manager (logos-package-manager-module)
+
+Installs, searches, and manages module packages. Fetches from GitHub releases with automatic dependency resolution.
+
+```
+lgpm [global-options] <command> [options]
+
+Global options:
+  --modules-dir <path>       Target directory for core modules
+  --ui-plugins-dir <path>    Target directory for UI plugins
+  --release <tag>            GitHub release tag (default: latest)
+  --json                     Output JSON format
+  -h, --help
+
+Commands:
+  search <query>             Search packages by name/description
+  list [--category <cat>] [--installed]  List packages
+  info <package>             Show package details
+  categories                 List available categories
+  install <pkg> [pkgs...]    Install packages (auto-resolves deps)
+    --file <path>              Install from local .lgx file instead
+```
+
+```bash
+lgpm search waku
+lgpm list --installed
+lgpm info my_module
+lgpm --modules-dir ./modules install my_module             # from registry
+lgpm --modules-dir ./modules install --file ./my_module.lgx  # from local file
+lgpm --modules-dir ./modules --release v2.0.0 install my_module
+```
 
 ### Build/Run Options
 

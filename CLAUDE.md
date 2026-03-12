@@ -168,8 +168,207 @@ nix build .#logos-app-poc --override-input logos-cpp-sdk path:./repos/logos-cpp-
 Available directly or as `ws` subcommands (e.g. `lgx` or `ws lgx`).
 Auto-build on first use, auto-rebuild when source files change. Only builds the specific binary, not the full repo.
 
-- `lm` (logos-module) — module inspector: `lm metadata <plugin>`, `lm methods <plugin>`
-- `logoscore` (logos-liblogos) — headless runtime: `logoscore -m <dir> --load-modules <name>`
-- `lgx` (logos-package) — package tool: `lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`
-- `lgpm` (logos-package-manager-module) — package manager: `lgpm install`, `lgpm search`, `lgpm list`
-- `logos-cpp-generator` (logos-cpp-sdk) — SDK code generator from plugin metadata
+### `logoscore` — headless module runtime (logos-liblogos)
+
+Loads modules and optionally calls their methods. Essential for testing modules without the full GUI app.
+
+```bash
+logoscore [options]
+  -m, --modules-dir <path>         Directory to scan for module plugins (repeatable)
+  -l, --load-modules <mod1,mod2>   Comma-separated modules to load (auto-resolves deps)
+  -c, --call <module.method(args)> Call a method after loading (repeatable, sequential)
+  -h, --help                       Show help
+  --version                        Show version
+```
+
+Method call syntax for `-c`: `module_name.method(arg1, arg2)`
+- Type auto-detection: `true`/`false` → bool, `42` → int, `3.14` → double, else → string
+- `@filename` loads file content as the argument (e.g. `@config.json`)
+- 30-second timeout per call; exit code 1 on failure
+
+```bash
+# Load a module (auto-resolves transitive dependencies)
+logoscore -m ./modules --load-modules my_module
+
+# Load and call a method
+logoscore -m ./modules -l my_module -c "my_module.doSomething(hello)"
+
+# Sequential calls with file parameter
+logoscore -m ./modules -l storage_module \
+  -c "storage_module.init(@config.json)" \
+  -c "storage_module.start()"
+
+# Multiple modules (deps resolved automatically)
+logoscore -m ./modules -l waku_module,chat,my_module
+```
+
+### `lm` — module inspector (logos-module)
+
+Introspects compiled Qt plugin files to show metadata and method signatures.
+
+```bash
+lm [command] <plugin-path> [options]
+
+Commands:
+  (none)       Show both metadata and methods
+  metadata     Show plugin metadata only
+  methods      Show exposed Q_INVOKABLE methods only
+
+Options:
+  --json       Output structured JSON (works with all commands)
+  --debug      Show Qt debug output during plugin loading
+  -h, --help   Show help
+  -v, --version
+```
+
+```bash
+# Inspect a built module
+lm ./result/lib/my_module_plugin.so
+lm metadata ./result/lib/my_module_plugin.so
+lm methods ./result/lib/my_module_plugin.so --json
+
+# JSON metadata output includes: name, version, description, author, type, dependencies
+# JSON methods output includes: name, signature, returnType, isInvokable, parameters[]
+```
+
+### `lgx` — LGX package tool (logos-package)
+
+Creates and manages `.lgx` packages (gzip tar archives with platform-specific variants).
+
+```bash
+lgx <command> [options]
+
+Commands:
+  create <name>                     Create empty .lgx package
+  add <pkg> -v <variant> -f <path>  Add files to a variant (replaces if exists)
+    --variant, -v <name>              Variant name (e.g. linux-x86_64, darwin-arm64)
+    --files, -f <path>                File or directory to add
+    --main, -m <relpath>              Main entry point (required if --files is a directory)
+    --yes, -y                         Skip confirmation prompts
+  remove <pkg> -v <variant>         Remove a variant
+  extract <pkg> [-v <variant>] [-o <dir>]  Extract variant(s)
+  verify <pkg>                      Validate against LGX spec
+  sign <pkg>                        (not yet implemented)
+  publish <pkg>                     (not yet implemented)
+```
+
+```bash
+# Create and populate a package
+lgx create my_module
+lgx add my_module.lgx -v linux-x86_64 -f ./result/lib/my_module_plugin.so
+lgx add my_module.lgx -v darwin-arm64 -f ./result/lib/my_module_plugin.dylib
+
+# Add a directory variant with main entry point
+lgx add my_module.lgx -v web -f ./dist --main index.js -y
+
+# Inspect and verify
+lgx verify my_module.lgx
+lgx extract my_module.lgx -v linux-x86_64 -o ./extracted
+```
+
+### `lgpm` — package manager (logos-package-manager-module)
+
+Installs, searches, and manages module packages. Fetches from GitHub releases with automatic dependency resolution.
+
+```bash
+lgpm [global-options] <command> [options]
+
+Global options:
+  --modules-dir <path>       Target directory for core modules
+  --ui-plugins-dir <path>    Target directory for UI plugins
+  --release <tag>            GitHub release tag (default: latest)
+  --json                     Output JSON format
+  -h, --help
+
+Commands:
+  search <query>             Search packages by name/description
+  list [--category <cat>] [--installed]  List packages
+  info <package>             Show package details
+  categories                 List available categories
+  install <pkg> [pkgs...]    Install packages (resolves deps automatically)
+    --file <path>              Install from local .lgx file instead
+```
+
+```bash
+# Search and browse
+lgpm search waku
+lgpm list --installed
+lgpm list --category networking
+lgpm info my_module
+
+# Install from registry (with automatic dep resolution)
+lgpm --modules-dir ./modules install my_module
+
+# Install from local .lgx file
+lgpm --modules-dir ./modules install --file ./my_module.lgx
+
+# Install specific release
+lgpm --modules-dir ./modules --release v2.0.0 install my_module
+```
+
+## Creating a new module
+
+Scaffold, build, test, package — the full lifecycle:
+
+```bash
+# 1. Scaffold
+mkdir logos-my-module && cd logos-my-module
+nix flake init -t github:logos-co/logos-module-builder
+# Edit module.yaml (name, version, deps) and src/ files
+# For modules wrapping external C/C++ libs, use the #with-external-lib template instead
+
+# 2. Build
+git init && git add -A   # nix needs files tracked by git
+nix build                # outputs: result/lib/<name>_plugin.so, result/include/
+
+# 3. Inspect
+lm ./result/lib/my_module_plugin.so              # metadata + methods
+lm methods ./result/lib/my_module_plugin.so --json  # method signatures as JSON
+
+# 4. Test with logoscore
+logoscore -m ./result/lib -l my_module -c "my_module.someMethod(arg)"
+
+# 5. Package
+lgx create my_module
+lgx add my_module.lgx -v linux-x86_64 -f ./result/lib/my_module_plugin.so
+lgx verify my_module.lgx
+
+# 6. Install locally
+lgpm --modules-dir ./test-modules install --file ./my_module.lgx
+
+# 7. Run with other modules
+logoscore -m ./test-modules -l my_module -c "my_module.someMethod(test)"
+```
+
+Key files in a module:
+- `module.yaml` — name, version, type, category, dependencies, nix_packages, external_libraries, cmake settings
+- `flake.nix` — ~15 lines, calls `logos-module-builder.lib.mkLogosModule`
+- `src/<name>_interface.h` — pure virtual interface (inherits `PluginInterface`)
+- `src/<name>_plugin.h` — `Q_OBJECT` + `Q_INVOKABLE` methods = public API
+- `src/<name>_plugin.cpp` — implementation
+- `CMakeLists.txt` — uses `logos_module()` macro from LogosModule.cmake
+
+Every `Q_INVOKABLE` method is automatically discoverable by `lm`, callable by `logoscore -c`, and accessible from other modules via `LogosAPI`.
+
+## Inter-module communication
+
+Modules receive a `LogosAPI*` pointer via `initLogos()`. Use it to call other modules:
+
+```cpp
+// Raw call
+LogosAPIClient* client = logosAPI->getClient("other_module");
+QVariant result = client->invokeRemoteMethod("other_module", "method", arg1, arg2);
+
+// Or use generated type-safe wrappers (from logos-cpp-generator):
+LogosModules* logos = new LogosModules(logosAPI);
+QString result = logos->other_module.doSomething("hello");
+```
+
+Return structured results with `LogosResult`:
+```cpp
+Q_INVOKABLE LogosResult fetchData(const QString& id) {
+    if (id.isEmpty()) return {false, QVariant(), "ID cannot be empty"};
+    QVariantMap data; data["id"] = id; data["count"] = 42;
+    return {true, data};
+}
+```
