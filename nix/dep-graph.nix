@@ -38,6 +38,7 @@
   logos-wallet-ui              = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-wallet-module" ]; hasTests = false; };
   logos-libp2p-module          = { deps = [ "logos-module-builder" ]; hasTests = true; };
   logos-simple-module          = { deps = []; hasTests = true; };
+  scala                        = { deps = ["logos-module-builder" "logos-liblogos"]; hasTests = true; };
   logos-webview-app            = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   counter_qml                  = { deps = [ "logos-cpp-sdk" ]; hasTests = false; };
   counter                      = { deps = [ "logos-cpp-sdk" ]; hasTests = false; };

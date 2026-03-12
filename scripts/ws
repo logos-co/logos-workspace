@@ -95,6 +95,9 @@ REPOS=(
   "logos-nim-sdk|logos-nim-sdk|https://github.com/logos-co/logos-nim-sdk.git|yes"
   "logos-rust-sdk|logos-rust-sdk|https://github.com/logos-co/logos-rust-sdk.git|yes"
 
+  # Scala — Secure Calendar App
+  "scala|scala|https://github.com/jimmy-claw/scala.git|yes"
+
   # Other
   "logos-modules|logos-modules|https://github.com/logos-co/logos-modules.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
