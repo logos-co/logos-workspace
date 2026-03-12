@@ -239,7 +239,10 @@ These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
 - `ws test --all --type cpp` — Run checks only for C++ repos
 - `ws test logos-cpp-sdk` — Run checks for a specific repo
 - `ws test logos-test-modules --local logos-liblogos` — Test with local dependency override
+- `ws test --all --workspace` — Override all deps with local workspace repos (used in CI)
 - Types: `cpp`, `rust`, `nim`, `js`, `qml`
+
+The `--workspace` / `-w` flag overrides every dependency with the local workspace version. Without it, each repo's tests use whatever versions are pinned in its own `flake.lock`. This is important in CI where the workspace submodule pointers define the intended dependency versions.
 
 ## Adding Tests to a Repo
 
@@ -303,7 +306,7 @@ nixpkgs
               ├── logos-nim-sdk, logos-js-sdk
               └── logos-app-poc (aggregates many of the above)
 
-  Standalone: logos-rust-sdk, logos-design-system, logos-simple-module
+  Standalone: logos-rust-sdk, logos-design-system
 ```
 
 Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
@@ -312,7 +315,7 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 
 - **Foundation**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-module](https://github.com/logos-co/logos-module), [logos-liblogos](https://github.com/logos-co/logos-liblogos), [logos-capability-module](https://github.com/logos-co/logos-capability-module), [logos-package](https://github.com/logos-co/logos-package), [logos-module-builder](https://github.com/logos-co/logos-module-builder)
 - **Packaging**: [nix-bundle-dir](https://github.com/logos-co/nix-bundle-dir), [nix-bundle-lgx](https://github.com/logos-co/nix-bundle-lgx)
-- **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-simple-module](https://github.com/logos-co/logos-simple-module), [logos-template-module](https://github.com/logos-co/logos-template-module)
+- **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-template-module](https://github.com/logos-co/logos-template-module)
 - **Apps**: [logos-app-poc](https://github.com/logos-co/logos-app-poc), [logos-accounts-ui](https://github.com/logos-co/logos-accounts-ui), [logos-chat-tui](https://github.com/logos-co/logos-chat-tui), [logos-chat-ui](https://github.com/logos-co/logos-chat-ui), [logos-chatsdk-ui](https://github.com/logos-co/logos-chatsdk-ui), [logos-waku-ui](https://github.com/logos-co/logos-waku-ui), [logos-package-manager-ui](https://github.com/logos-co/logos-package-manager-ui), [logos-storage-ui](https://github.com/logos-co/logos-storage-ui), [logos-wallet-ui](https://github.com/logos-co/logos-wallet-ui), [logos-webview-app](https://github.com/logos-co/logos-webview-app)
 - **UI**: [logos-design-system](https://github.com/logos-co/logos-design-system)
 - **SDKs**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-js-sdk](https://github.com/logos-co/logos-js-sdk), [logos-nim-sdk](https://github.com/logos-co/logos-nim-sdk), [logos-rust-sdk](https://github.com/logos-co/logos-rust-sdk)
@@ -366,11 +369,14 @@ ws test --all --type cpp
 
 # Test only Rust repos
 ws test --all --type rust
+
+# Test all repos using workspace dependency versions (used in CI)
+ws test --all --workspace
 ```
 
 `ws test` only runs repos that have `hasTests = true` in `nix/dep-graph.nix`. Repos without tests are skipped instantly.
 
-The `--auto-local` and `--local` flags work the same as for `ws build` — they pass `--override-input` flags to nix so your local changes are used in the test build.
+The `--auto-local` and `--local` flags work the same as for `ws build` — they pass `--override-input` flags to nix so your local changes are used in the test build. The `--workspace` flag goes further and overrides *all* deps with local workspace repos, ensuring tests reflect the workspace's dependency versions rather than each repo's pinned `flake.lock`.
 
 ## Watching for changes
 

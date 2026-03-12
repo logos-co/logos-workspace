@@ -278,12 +278,6 @@
       # libp2p: external dep (vacp2p org), left as-is
     };
 
-    logos-simple-module = {
-      url = "github:logos-co/logos-simple-module";
-      # NB: This repo uses flake=false for its deps (pinned source, not flake inputs).
-      # Follows won't propagate here — it's effectively standalone.
-    };
-
     logos-webview-app = {
       url = "github:logos-co/logos-webview-app";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -394,7 +388,7 @@
         # Wallet
         "logos-wallet-module" "logos-wallet-ui"
         # Other modules
-        "logos-libp2p-module" "logos-simple-module" "logos-webview-app"
+        "logos-libp2p-module" "logos-webview-app"
         "counter_qml" "counter"
         # UI
         "logos-design-system"

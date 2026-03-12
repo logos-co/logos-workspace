@@ -76,9 +76,6 @@
 [submodule "repos/logos-libp2p-module"]
 	path = repos/logos-libp2p-module
 	url = git@github.com:logos-co/logos-libp2p-module.git
-[submodule "repos/logos-simple-module"]
-	path = repos/logos-simple-module
-	url = git@github.com:logos-co/logos-simple-module.git
 [submodule "repos/logos-template-module"]
 	path = repos/logos-template-module
 	url = git@github.com:logos-co/logos-template-module.git

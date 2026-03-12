@@ -132,4 +132,4 @@ jobs:
 
       - name: Run tests
         if: steps.filter.outputs.skip_build != 'true'
-        run: ws test --all --quiet
+        run: ws test --all --quiet --workspace
