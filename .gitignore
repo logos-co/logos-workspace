@@ -2,13 +2,5 @@ result
 result-*
 .direnv/
 .dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
-.dev-shell-cache/
+.build-stamps/
 .dev-shell-cache/

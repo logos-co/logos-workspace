@@ -151,10 +151,14 @@ nix develop path:./repos/logos-cpp-sdk
 nix build .#logos-app-poc --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
 ```
 
-## CLI tools (available after building relevant repos)
+## CLI tools (auto-build on first use)
+
+These are in `scripts/` and auto-build from the local repo on first run:
 
 - `lm` — module inspector: `lm metadata <plugin>`, `lm methods <plugin>`
 - `logoscore` — headless runtime: `logoscore -m <dir> --load-modules <name>`
 - `lgx` — package tool: `lgx create`, `lgx add-variant`, `lgx list`, `lgx verify`
 - `lgpm` — package manager: `lgpm install`, `lgpm search`, `lgpm list`
 - `logos-cpp-generator` — SDK code generator from plugin metadata
+
+Each wrapper checks `repos/<repo>/result/bin/<tool>` and builds the repo if the binary isn't there yet.

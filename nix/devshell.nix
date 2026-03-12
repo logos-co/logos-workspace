@@ -300,6 +300,7 @@ let
 
     # ── Workspace ──────────────────────────────────────────────────────
     export LOGOS_WORKSPACE_ROOT="''${LOGOS_WORKSPACE_ROOT:-$(pwd)}"
+    export PATH="$LOGOS_WORKSPACE_ROOT/scripts:$PATH"
 
     # ── Welcome ────────────────────────────────────────────────────────
     if [[ -z "$LOGOS_WELCOMED" ]]; then

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Shared helper for CLI tool wrappers.
+# Usage: source _tool-wrapper <repo> <derivation> <binary> "$@"
+#
+# - Builds the specific derivation if the binary doesn't exist
+# - Rebuilds if any repo file is newer than last build (source changed)
+# - Runs the binary with all passed arguments
+set -euo pipefail
+
+_REPO="$1"; _DERIV="$2"; _BIN="$3"; shift 3
+
+WORKSPACE_ROOT="${LOGOS_WORKSPACE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+REPO_PATH="$WORKSPACE_ROOT/repos/$_REPO"
+RESULT_LINK="$REPO_PATH/result"
+RESULT_BIN="$RESULT_LINK/bin/$_BIN"
+STAMP_DIR="$WORKSPACE_ROOT/.build-stamps"
+BUILD_STAMP="$STAMP_DIR/$_REPO"
+
+_needs_build() {
+  # No binary yet
+  [[ ! -x "$RESULT_BIN" ]] && return 0
+  # No stamp yet (first build was external)
+  [[ ! -f "$BUILD_STAMP" ]] && return 0
+  # Any repo file newer than last build
+  [[ -n "$(find "$REPO_PATH" -newer "$BUILD_STAMP" \
+    -not -path '*/.git/*' -not -path '*/result' -not -path '*/result/*' \
+    -not -name '.build-stamp' \
+    -print -quit 2>/dev/null)" ]] && return 0
+  return 1
+}
+
+if _needs_build; then
+  echo "Building $_REPO#$_DERIV..." >&2
+  nix build --extra-experimental-features "nix-command flakes" \
+    "path:$REPO_PATH#$_DERIV" \
+    --out-link "$RESULT_LINK"
+  mkdir -p "$STAMP_DIR"
+  touch "$BUILD_STAMP"
+fi
+
+exec "$RESULT_BIN" "$@"
