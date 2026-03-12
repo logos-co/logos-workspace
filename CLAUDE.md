@@ -14,15 +14,17 @@ export PATH="/workspace/scripts:$PATH"
 The workspace has a custom CLI (`scripts/ws`) that manages all repos. Use it instead of raw nix commands.
 
 ```bash
-# Building and running
+# Building, running, and testing (all support --auto-local / --local)
 ws build <repo> [--auto-local]       # Build (auto-override dirty deps)
 ws build <repo> --local dep1 dep2    # Build with explicit local overrides
 ws run <repo> [--auto-local]         # Build and run
-ws test <repo>                       # Run repo's nix checks
+ws test <repo> [--auto-local]        # Run repo's nix checks
+ws test <repo> --local dep1 dep2     # Test with explicit local overrides
 ws test --all [--type cpp|rust|nim]  # Test all repos
+ws develop [repo] [--auto-local]     # Enter dev shell (zsh+tmux+tools)
 
-# Watching (auto-rebuild/test on save)
-ws watch test <repo>                 # Re-test on file change
+# Watching (auto-rebuild/test on save, flags pass through)
+ws watch test <repo> [--auto-local]  # Re-test on file change
 ws watch build <repo> --auto-local   # Re-build on file change
 
 # Cross-repo operations
@@ -33,7 +35,6 @@ ws foreach <cmd>                     # Run command in every repo
 ws foreach 'git add . && git commit -m "msg" || true'
 
 # Other
-ws develop [repo]                    # Enter dev shell (zsh+tmux+tools)
 ws update [repo]                     # Update flake inputs
 ws loc [repo] [--all] [--no-nix]    # Lines of code
 ws worktree add <name> [-b branch]  # Isolated multi-repo feature branch

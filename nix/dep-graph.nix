@@ -47,4 +47,5 @@
   logos-rust-sdk               = { deps = []; hasTests = false; };
   logos-modules                = { deps = [ "logos-cpp-sdk" "logos-package" ]; hasTests = false; };
   logos-module-viewer          = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package-manager-module" ]; hasTests = false; };
+  logos-test-modules           = { deps = [ "logos-module-builder" "logos-liblogos" ]; hasTests = true; };
 }

@@ -74,7 +74,7 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws build <repo> [opts]` | Build a repo via nix |
 | `ws run <repo> [opts]` | Build and run a repo |
 | `ws develop [repo] [opts]` | Enter a nix devShell |
-| `ws test [repo\|--all] [--type T]` | Run checks/tests |
+| `ws test [repo\|--all] [--type T] [--auto-local\|--local ...]` | Run checks/tests |
 | `ws status` | Git status across all repos |
 | `ws dirty` | Show dirty repos and what they affect |
 | `ws graph [repo]` | Show dependency graph |
@@ -226,16 +226,19 @@ lgpm --modules-dir ./modules install --file ./my_module.lgx  # from local file
 lgpm --modules-dir ./modules --release v2.0.0 install my_module
 ```
 
-### Build/Run Options
+### Build/Run/Test Options
 
 - `--auto-local`, `-a` — Auto-detect dirty repos and use them as local overrides
 - `--local`, `-l <repo1> <repo2> ...` — Explicitly specify local overrides
+
+These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
 
 ### Test Options
 
 - `ws test --all` — Run `nix flake check` (all repos)
 - `ws test --all --type cpp` — Run checks only for C++ repos
 - `ws test logos-cpp-sdk` — Run checks for a specific repo
+- `ws test logos-test-modules --local logos-liblogos` — Test with local dependency override
 - Types: `cpp`, `rust`, `nim`, `js`, `qml`
 
 ## Adding Tests to a Repo
@@ -349,6 +352,12 @@ ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
 # Test a single repo
 ws test logos-module
 
+# Test with local dependency overrides
+ws test logos-test-modules --local logos-liblogos
+
+# Test with auto-detected dirty repos as overrides
+ws test logos-test-modules --auto-local
+
 # Test all repos that have tests
 ws test --all
 
@@ -361,6 +370,8 @@ ws test --all --type rust
 
 `ws test` only runs repos that have `hasTests = true` in `nix/dep-graph.nix`. Repos without tests are skipped instantly.
 
+The `--auto-local` and `--local` flags work the same as for `ws build` — they pass `--override-input` flags to nix so your local changes are used in the test build.
+
 ## Watching for changes
 
 Auto-run tests or builds whenever you save a file — no manual re-running:
@@ -369,12 +380,17 @@ Auto-run tests or builds whenever you save a file — no manual re-running:
 # Re-run tests every time you save a file in logos-module
 ws watch test logos-module
 
+# Re-run tests with local overrides on save
+ws watch test logos-test-modules --local logos-liblogos
+
 # Auto-build with local overrides on save
 ws watch build logos-app-poc --auto-local
 
 # Watch specific repos and run a custom command
 ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk
 ```
+
+`--auto-local` and `--local` flags pass through to the underlying `ws build` / `ws test` commands.
 
 Combine with `--auto-local` to get a live feedback loop: edit a library, save, and see the downstream build or test result immediately.
 

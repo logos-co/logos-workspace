@@ -1128,6 +1128,29 @@
         "type": "github"
       }
     },
+    "logos-test-modules": {
+      "inputs": {
+        "logos-module-builder": [
+          "logos-module-builder"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773330748,
+        "narHash": "sha256-a6904ZDE3NejcwhJ1JLKhaTYUK8GemqiTz0rznhr7vc=",
+        "owner": "logos-co",
+        "repo": "logos-test-modules",
+        "rev": "6e25cd8f44a23a41fcce5003aae082824c9cc0e0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-test-modules",
+        "type": "github"
+      }
+    },
     "logos-waku-module": {
       "inputs": {
         "logos-cpp-sdk": [
@@ -1557,6 +1580,7 @@
         "logos-simple-module": "logos-simple-module",
         "logos-storage-module": "logos-storage-module",
         "logos-storage-ui": "logos-storage-ui",
+        "logos-test-modules": "logos-test-modules",
         "logos-waku-module": "logos-waku-module",
         "logos-waku-ui": "logos-waku-ui",
         "logos-wallet-module": "logos-wallet-module",

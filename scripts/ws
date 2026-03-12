@@ -96,6 +96,9 @@ REPOS=(
   "logos-nim-sdk|logos-nim-sdk|https://github.com/logos-co/logos-nim-sdk.git|yes"
   "logos-rust-sdk|logos-rust-sdk|https://github.com/logos-co/logos-rust-sdk.git|yes"
 
+  # Testing
+  "logos-test-modules|logos-test-modules|https://github.com/logos-co/logos-test-modules.git|yes"
+
   # Other
   "logos-modules|logos-modules|https://github.com/logos-co/logos-modules.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
@@ -586,6 +589,7 @@ _test_one_repo() {
   local input_name="$1"
   local dir_name="$2"
   local system="$3"
+  local override_flags="${4:-}"
   local repo_path="$REPOS_DIR/$dir_name"
 
   log "${BOLD}Testing ${CYAN}$dir_name${NC}${BOLD}...${NC}"
@@ -624,8 +628,9 @@ _test_one_repo() {
     if echo "$checks" | grep -qx "tests"; then
       ran_something=true
       log "  ${YELLOW}check${NC} tests"
+      # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#checks.$system.tests" -L; then
+        "path:$repo_path#checks.$system.tests" $override_flags --rebuild -L; then
         echo -e "  ${GREEN}PASS${NC} tests"
       else
         echo -e "  ${RED}FAIL${NC} tests"
@@ -638,8 +643,9 @@ _test_one_repo() {
       [[ -z "$check" || "$check" == "tests" ]] && continue
       ran_something=true
       log "  ${YELLOW}check${NC} $check"
+      # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#checks.$system.$check" -L; then
+        "path:$repo_path#checks.$system.$check" $override_flags --rebuild -L; then
         echo -e "  ${GREEN}PASS${NC} $check"
       else
         echo -e "  ${RED}FAIL${NC} $check"
@@ -654,8 +660,9 @@ _test_one_repo() {
       [[ -z "$pkg" ]] && continue
       ran_something=true
       log "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
+      # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#$pkg" -L; then
+        "path:$repo_path#$pkg" $override_flags --rebuild -L; then
         echo -e "  ${GREEN}PASS${NC} $pkg"
       else
         echo -e "  ${RED}FAIL${NC} $pkg"
@@ -681,20 +688,32 @@ Run checks/tests for a repo or all repos.
 Options:
   --all                         Test all repos (default if no repo given)
   --type, -t <type>             Filter by project type: cpp, rust, nim, js, qml
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
   ws test logos-module           Test a single repo
   ws test --all                  Test all repos
   ws test --type cpp             Test only C++ repos
-  ws test logos-module --type cpp"
+  ws test logos-module --type cpp
+  ws test logos-test-modules --auto-local
+  ws test logos-test-modules --local logos-liblogos"
 
   local target=""
   local test_type=""
+  local auto_local=false
+  local local_overrides=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --type|-t) test_type="$2"; shift 2 ;;
       --all) target="--all"; shift ;;
+      --auto-local|-a) auto_local=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
       -*) shift ;;  # skip unknown flags
       *)
         # First non-flag arg is the repo name
@@ -702,6 +721,30 @@ Examples:
         shift ;;
     esac
   done
+
+  # Auto-detect dirty repos
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      if [[ -n "$name" ]]; then
+        local_overrides+=("$dir")
+      fi
+    done
+  fi
+
+  # Build override flags
+  local override_flags=""
+  if [[ ${#local_overrides[@]} -gt 0 ]]; then
+    local unique_overrides
+    unique_overrides=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+    log "${CYAN}Local overrides:${NC}"
+    for dir in "${unique_overrides[@]}"; do
+      log "  ${YELLOW}*${NC} $dir → path:$REPOS_DIR/$dir"
+    done
+    log ""
+    override_flags=$(build_override_flags "${unique_overrides[@]}")
+  fi
 
   local system
   system=$(_detect_system)
@@ -751,7 +794,7 @@ Examples:
       fi
 
       local rc=0
-      _test_one_repo "$input_name" "$dir_name" "$system" || rc=$?
+      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
       if [[ $rc -eq 0 ]]; then
         passed=$((passed + 1))
       elif [[ $rc -eq 2 ]]; then
@@ -776,7 +819,7 @@ Examples:
     fi
 
     local rc=0
-    _test_one_repo "$input_name" "$dir_name" "$system" || rc=$?
+    _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
     if [[ $rc -eq 1 ]]; then exit 1; fi
   fi
 }
