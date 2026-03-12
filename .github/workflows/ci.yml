@@ -120,7 +120,7 @@ jobs:
         if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra == 'true'
         run: |
           failed=0
-          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-app-poc; do
+          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-app; do
             echo "::group::Build $repo"
             if ! ws build "$repo" --quiet; then
               echo "::error::Build failed: $repo"

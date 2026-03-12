@@ -16,9 +16,6 @@
 [submodule "repos/logos-module-builder"]
 	path = repos/logos-module-builder
 	url = git@github.com:logos-co/logos-module-builder.git
-[submodule "repos/logos-app-poc"]
-	path = repos/logos-app-poc
-	url = git@github.com:logos-co/logos-app-poc.git
 [submodule "repos/logos-accounts-module"]
 	path = repos/logos-accounts-module
 	url = git@github.com:logos-co/logos-accounts-module.git
@@ -124,6 +121,18 @@
 [submodule "repos/nix-bundle-lgx"]
 	path = repos/nix-bundle-lgx
 	url = git@github.com:logos-co/nix-bundle-lgx.git
+[submodule "repos/logos-blockchain-ui"]
+	path = repos/logos-blockchain-ui
+	url = git@github.com:logos-blockchain/logos-blockchain-ui.git
+[submodule "repos/logos-execution-zone-wallet-ui"]
+	path = repos/logos-execution-zone-wallet-ui
+	url = git@github.com:logos-blockchain/logos-execution-zone-wallet-ui.git
+[submodule "repos/logos-execution-zone-module"]
+	path = repos/logos-execution-zone-module
+	url = git@github.com:logos-blockchain/logos-execution-zone-module.git
+[submodule "repos/logos-app"]
+	path = repos/logos-app
+	url = git@github.com:logos-co/logos-app.git
 
 [submodule "repos/logos-test-modules"]
 	path = repos/logos-test-modules

@@ -87,7 +87,7 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-liblogos | Core runtime: `logoscore`, `logos_host`, `liblogos_core` |
 | logos-module | Plugin introspection library + `lm` CLI |
 | logos-module-builder | Scaffolding + build system (module.yaml -> CMake) |
-| logos-app-poc | Desktop app shell with sidebar, tabs, plugin management |
+| logos-app | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
 | nix-bundle-lgx | Bundles Nix derivations into distributable `.lgx` packages |
@@ -97,7 +97,7 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 ```bash
 # Build
 ws build logos-liblogos
-ws build logos-app-poc --auto-local    # with local overrides
+ws build logos-app --auto-local    # with local overrides
 
 # Test
 ws test logos-module                   # single repo
@@ -138,10 +138,10 @@ nixpkgs (pinned by logos-cpp-sdk)
       -> logos-capability-module, logos-package, logos-module-builder, nix-bundle-dir
       -> nix-bundle-lgx (uses logos-package + nix-bundle-dir)
       -> logos-accounts-module, logos-chat-module, logos-waku-module, ...
-      -> logos-app-poc (aggregates many modules)
+      -> logos-app (aggregates many modules)
 ```
 
-Changing `logos-cpp-sdk` affects everything. Changing a leaf module (e.g., `logos-chat-module`) affects only `logos-app-poc`. Use `ws graph <repo>` or `ws dirty` to see impact.
+Changing `logos-cpp-sdk` affects everything. Changing a leaf module (e.g., `logos-chat-module`) affects only `logos-app`. Use `ws graph <repo>` or `ws dirty` to see impact.
 
 ## Gotchas
 
@@ -162,7 +162,7 @@ nix build .#logos-cpp-sdk
 nix develop path:./repos/logos-cpp-sdk
 
 # Manual override (ws does this for you)
-nix build .#logos-app-poc --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
+nix build .#logos-app --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
 ```
 
 ## CLI tools (auto-build, auto-rebuild)
