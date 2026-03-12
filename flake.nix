@@ -101,6 +101,13 @@
       inputs.nix-bundle-macos-app.follows = "nix-bundle-macos-app";
     };
 
+    # ── Scala — Secure Calendar App ───────────────────────────────────────────
+    scala = {
+      url = "github:jimmy-claw/scala";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
+
     # ── Modules: Accounts ─────────────────────────────────────────────────────
 
     logos-accounts-module = {
@@ -393,6 +400,8 @@
         "logos-js-sdk" "logos-nim-sdk" "logos-rust-sdk"
         # Other
         "logos-modules" "logos-module-viewer"
+        # Scala
+        "scala"
       ];
 
       # Mapping from flake input name → submodule directory name under repos/
