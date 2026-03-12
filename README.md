@@ -17,7 +17,7 @@ export PATH="$PWD/scripts:$PATH"
 # Add this to your ~/.zshrc or ~/.bashrc with the full path to persist it
 
 # 4. Enter the dev shell (optional, adds ws to PATH automatically)
-nix develop
+ws develop
 ```
 
 ### Enabling Nix flakes
