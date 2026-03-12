@@ -357,6 +357,7 @@
       url = "github:logos-co/logos-test-modules";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.logos-liblogos.follows = "logos-liblogos";
     };
 
     # Repos with no flake.nix (submodules only, not flake inputs):
