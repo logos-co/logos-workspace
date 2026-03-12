@@ -351,6 +351,14 @@
       inputs.logos-package-manager.follows = "logos-package-manager-module";
     };
 
+    # ── Testing ──────────────────────────────────────────────────────────────
+
+    logos-test-modules = {
+      url = "github:logos-co/logos-test-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
+
     # Repos with no flake.nix (submodules only, not flake inputs):
     #   logos-docs, logos-website, logos-tutorial, logos-template-module,
     #   logos-blockchain-module, node-configs
@@ -391,6 +399,8 @@
         "logos-design-system"
         # SDKs
         "logos-js-sdk" "logos-nim-sdk" "logos-rust-sdk"
+        # Testing
+        "logos-test-modules"
         # Other
         "logos-modules" "logos-module-viewer"
       ];
