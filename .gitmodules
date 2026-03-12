@@ -127,3 +127,7 @@
 [submodule "repos/nix-bundle-lgx"]
 	path = repos/nix-bundle-lgx
 	url = git@github.com:logos-co/nix-bundle-lgx.git
+
+[submodule "repos/logos-test-modules"]
+	path = repos/logos-test-modules
+	url = git@github.com:logos-co/logos-test-modules.git
