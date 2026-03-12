@@ -13,6 +13,9 @@ show_help() { echo -e "$1"; exit 0; }
 # Check if any argument is --help or -h
 wants_help() { for a in "$@"; do [[ "$a" == "--help" || "$a" == "-h" ]] && return 0; done; return 1; }
 
+# Global quiet flag — suppresses informational output
+QUIET=false
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -21,6 +24,9 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+# Logging: log() is suppressed in quiet mode; errors always print to stderr
+log() { $QUIET || echo -e "$@"; }
 
 # ── Repo registry ───────────────────────────────────────────────────────────
 # Format: "input_name|directory_name|git_url|has_flake"
@@ -208,7 +214,7 @@ Clone all submodules under repos/.
 Arguments:
   jobs    Number of parallel clone jobs (default: 4)"
 
-  echo -e "${BOLD}Initializing workspace submodules...${NC}"
+  log "${BOLD}Initializing workspace submodules...${NC}"
   local jobs="${1:-4}"
 
   # Add submodules that don't exist yet
@@ -222,21 +228,21 @@ Arguments:
     count=$((count + 1))
 
     if [[ -d "$REPOS_DIR/$dir_name/.git" ]] || [[ -f "$REPOS_DIR/$dir_name/.git" ]]; then
-      echo -e "  [${count}/${total}] ${GREEN}exists${NC}  $dir_name"
+      log "  [${count}/${total}] ${GREEN}exists${NC}  $dir_name"
       continue
     fi
 
-    echo -e "  [${count}/${total}] ${YELLOW}cloning${NC} $dir_name ..."
+    log "  [${count}/${total}] ${YELLOW}cloning${NC} $dir_name ..."
     git -C "$WORKSPACE_ROOT" submodule add --depth 1 "$git_url" "repos/$dir_name" 2>/dev/null || \
       echo -e "  ${RED}failed${NC}  $dir_name (may already be in .gitmodules)"
   done
 
-  echo ""
-  echo -e "${BOLD}Initializing and updating submodules...${NC}"
+  log ""
+  log "${BOLD}Initializing and updating submodules...${NC}"
   git -C "$WORKSPACE_ROOT" submodule update --init --depth 1 --jobs "$jobs"
 
-  echo ""
-  echo -e "${GREEN}Done.${NC} $(ls -d "$REPOS_DIR"/*/ 2>/dev/null | wc -l) repos under repos/"
+  log ""
+  log "${GREEN}Done.${NC} $(ls -d "$REPOS_DIR"/*/ 2>/dev/null | wc -l) repos under repos/"
 }
 
 cmd_build() {
@@ -296,15 +302,15 @@ Examples:
   if [[ ${#local_overrides[@]} -gt 0 ]]; then
     local unique_overrides
     unique_overrides=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
-    echo -e "${CYAN}Local overrides:${NC}"
+    log "${CYAN}Local overrides:${NC}"
     for dir in "${unique_overrides[@]}"; do
-      echo -e "  ${YELLOW}*${NC} $dir → path:$REPOS_DIR/$dir"
+      log "  ${YELLOW}*${NC} $dir → path:$REPOS_DIR/$dir"
     done
-    echo ""
+    log ""
     flags=($(build_override_flags "${unique_overrides[@]}"))
   fi
 
-  echo -e "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+  log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
   exec nix build \
     --extra-experimental-features "nix-command flakes" \
     "$WORKSPACE_ROOT#$input_name" \
@@ -362,15 +368,15 @@ Examples:
   local flags=()
   if [[ ${#local_overrides[@]} -gt 0 ]]; then
     local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
-    echo -e "${CYAN}Local overrides:${NC}"
+    log "${CYAN}Local overrides:${NC}"
     for dir in "${unique[@]}"; do
-      echo -e "  ${YELLOW}*${NC} $dir"
+      log "  ${YELLOW}*${NC} $dir"
     done
-    echo ""
+    log ""
     flags=($(build_override_flags "${unique[@]}"))
   fi
 
-  echo -e "${BOLD}Running ${CYAN}$input_name${NC}${BOLD}...${NC}"
+  log "${BOLD}Running ${CYAN}$input_name${NC}${BOLD}...${NC}"
   exec nix run \
     --extra-experimental-features "nix-command flakes" \
     "$WORKSPACE_ROOT#$input_name" \
@@ -529,7 +535,7 @@ _test_one_repo() {
   local system="$3"
   local repo_path="$REPOS_DIR/$dir_name"
 
-  echo -e "${BOLD}Testing ${CYAN}$dir_name${NC}${BOLD}...${NC}"
+  log "${BOLD}Testing ${CYAN}$dir_name${NC}${BOLD}...${NC}"
 
   if [[ ! -d "$repo_path" ]]; then
     echo -e "  ${RED}not cloned${NC}"
@@ -540,12 +546,12 @@ _test_one_repo() {
   local skip_known=false
   has_tests "$input_name" || skip_known=true
   if $skip_known; then
-    echo -e "  ${YELLOW}SKIP${NC} no tests (per nix/dep-graph.nix)"
+    log "  ${YELLOW}SKIP${NC} no tests (per nix/dep-graph.nix)"
     return 2
   fi
 
   # Discover checks + test packages in one eval
-  echo -e "  ${BLUE}Discovering test outputs...${NC}"
+  log "  ${BLUE}Discovering test outputs...${NC}"
   local outputs
   outputs=$(_discover_test_outputs "$repo_path" "$system")
 
@@ -564,7 +570,7 @@ _test_one_repo() {
     # If "tests" exists, run it first (convention)
     if echo "$checks" | grep -qx "tests"; then
       ran_something=true
-      echo -e "  ${YELLOW}check${NC} tests"
+      log "  ${YELLOW}check${NC} tests"
       if nix build --extra-experimental-features "nix-command flakes" \
         "path:$repo_path#checks.$system.tests" -L; then
         echo -e "  ${GREEN}PASS${NC} tests"
@@ -578,7 +584,7 @@ _test_one_repo() {
     while IFS= read -r check; do
       [[ -z "$check" || "$check" == "tests" ]] && continue
       ran_something=true
-      echo -e "  ${YELLOW}check${NC} $check"
+      log "  ${YELLOW}check${NC} $check"
       if nix build --extra-experimental-features "nix-command flakes" \
         "path:$repo_path#checks.$system.$check" -L; then
         echo -e "  ${GREEN}PASS${NC} $check"
@@ -594,7 +600,7 @@ _test_one_repo() {
     while IFS= read -r pkg; do
       [[ -z "$pkg" ]] && continue
       ran_something=true
-      echo -e "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
+      log "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
       if nix build --extra-experimental-features "nix-command flakes" \
         "path:$repo_path#$pkg" -L; then
         echo -e "  ${GREEN}PASS${NC} $pkg"
@@ -607,7 +613,7 @@ _test_one_repo() {
 
   # 3. Nothing found despite hasTests=true — metadata may be stale
   if ! $ran_something; then
-    echo -e "  ${YELLOW}SKIP${NC} hasTests=true in dep-graph.nix but no checks/test packages found"
+    log "  ${YELLOW}SKIP${NC} hasTests=true in dep-graph.nix but no checks/test packages found"
     return 2
   fi
 
@@ -648,8 +654,8 @@ Examples:
   system=$(_detect_system)
 
   if [[ "$target" == "--all" || -z "$target" ]]; then
-    echo -e "${BOLD}Running tests across all repos (system: $system)${NC}"
-    echo ""
+    log "${BOLD}Running tests across all repos (system: $system)${NC}"
+    log ""
 
     local passed=0 failed=0 skipped=0
 
@@ -700,7 +706,7 @@ Examples:
       else
         failed=$((failed + 1))
       fi
-      echo ""
+      log ""
     done
 
     echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
@@ -730,8 +736,8 @@ Show git status across all repos — branch, dirty/clean, ahead/behind.
 Examples:
   ws status"
 
-  echo -e "${BOLD}Workspace status${NC}"
-  echo ""
+  log "${BOLD}Workspace status${NC}"
+  log ""
 
   local dirty=0 clean=0 missing=0
 
@@ -794,8 +800,8 @@ Show repos with uncommitted changes and what downstream repos they affect.
 Examples:
   ws dirty"
 
-  echo -e "${BOLD}Repos with local changes:${NC}"
-  echo ""
+  log "${BOLD}Repos with local changes:${NC}"
+  log ""
 
   local dirty_repos
   dirty_repos=($(get_dirty_repos))
@@ -818,8 +824,8 @@ Examples:
     fi
   done
 
-  echo ""
-  echo -e "Use ${CYAN}ws build <repo> --auto-local${NC} to build with these overrides."
+  log ""
+  log "Use ${CYAN}ws build <repo> --auto-local${NC} to build with these overrides."
 }
 
 cmd_graph() {
@@ -841,7 +847,7 @@ Examples:
   fi
 
   if [[ -n "$target" ]]; then
-    echo -e "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
+    log "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
     nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
       let graph = import '"$DEP_GRAPH"';
       in builtins.concatStringsSep "\n" ((graph.${"'"$target"'"} or { deps = []; }).deps or [])
@@ -849,8 +855,8 @@ Examples:
       [[ -n "$dep" ]] && echo -e "  -> $dep"
     done
 
-    echo ""
-    echo -e "${BOLD}Dependents (repos that depend on ${CYAN}$target${NC}${BOLD}):${NC}"
+    log ""
+    log "${BOLD}Dependents (repos that depend on ${CYAN}$target${NC}${BOLD}):${NC}"
     nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
       let
         graph = import '"$DEP_GRAPH"';
@@ -874,7 +880,7 @@ Examples:
          + "\n}"
     ' 2>/dev/null
     echo ""
-    echo -e "${CYAN}Pipe to 'dot -Tsvg > graph.svg' for visualization${NC}" >&2
+    $QUIET || echo -e "${CYAN}Pipe to 'dot -Tsvg > graph.svg' for visualization${NC}" >&2
   fi
 }
 
@@ -923,8 +929,8 @@ Examples:
 
   local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
 
-  echo -e "${BOLD}Override flags for building ${CYAN}$repo${NC}${BOLD}:${NC}"
-  echo ""
+  log "${BOLD}Override flags for building ${CYAN}$repo${NC}${BOLD}:${NC}"
+  log ""
   echo -n "nix build .#$repo"
   for dir in "${unique[@]}"; do
     local input_name
@@ -1004,7 +1010,7 @@ Examples:
     done | sort -rn -k1
 
     echo ""
-    echo -e "${BOLD}Total across all repos:${NC}"
+    log "${BOLD}Total across all repos:${NC}"
     tokei "$REPOS_DIR" ${tokei_args[@]+"${tokei_args[@]}"}
 
   elif [[ -n "$target" ]]; then
@@ -1061,7 +1067,7 @@ Examples:
         echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
         exit 1
       fi
-      echo -e "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — running tests on save${NC}"
+      log "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — running tests on save${NC}"
       exec watchexec -w "$repo_path" --restart -- \
         "$WORKSPACE_ROOT/scripts/ws" test "$repo" "$@"
       ;;
@@ -1078,7 +1084,7 @@ Examples:
         echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
         exit 1
       fi
-      echo -e "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — building on save${NC}"
+      log "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — building on save${NC}"
       exec watchexec -w "$repo_path" --restart -- \
         "$WORKSPACE_ROOT/scripts/ws" build "$repo" "$@"
       ;;
@@ -1118,7 +1124,7 @@ Examples:
         watch_args=(-w "$REPOS_DIR")
       fi
 
-      echo -e "${BOLD}Watching for changes...${NC}"
+      log "${BOLD}Watching for changes...${NC}"
       exec watchexec "${watch_args[@]}" --restart -- bash -c "$cmd"
       ;;
 
@@ -1167,9 +1173,9 @@ Examples:
       continue
     fi
 
-    echo -e "${BOLD}── $dir_name ──${NC}"
+    log "${BOLD}── $dir_name ──${NC}"
     (cd "$repo_path" && if [[ ${#cmd[@]} -eq 1 && "${cmd[0]}" == *" "* ]]; then bash -c "${cmd[0]}"; else "${cmd[@]}"; fi) || true
-    echo ""
+    log ""
   done
 }
 
@@ -1218,26 +1224,26 @@ Examples:
         exit 1
       fi
 
-      echo -e "${BOLD}Creating workspace worktree...${NC}"
+      log "${BOLD}Creating workspace worktree...${NC}"
       git -C "$WORKSPACE_ROOT" worktree add "$wt_path" -b "$branch"
 
-      echo -e "${BOLD}Initializing submodules...${NC}"
+      log "${BOLD}Initializing submodules...${NC}"
       (cd "$wt_path" && git submodule update --init --depth 1 --jobs 4)
 
       local repo_branch="ws/$branch"
-      echo -e "${BOLD}Creating branch ${CYAN}$repo_branch${NC}${BOLD} in all repos...${NC}"
+      log "${BOLD}Creating branch ${CYAN}$repo_branch${NC}${BOLD} in all repos...${NC}"
       for entry in "${REPOS[@]}"; do
         local dir_name
         dir_name=$(get_field "$entry" 2)
         local repo_path="$wt_path/repos/$dir_name"
         if [[ -d "$repo_path/.git" ]] || [[ -f "$repo_path/.git" ]]; then
           (cd "$repo_path" && git checkout -b "$repo_branch" 2>/dev/null && \
-            echo -e "  ${GREEN}✓${NC} $dir_name") || \
-            echo -e "  ${YELLOW}skip${NC} $dir_name (branch may already exist)"
+            log "  ${GREEN}✓${NC} $dir_name") || \
+            log "  ${YELLOW}skip${NC} $dir_name (branch may already exist)"
         fi
       done
 
-      echo ""
+      log ""
       echo -e "${GREEN}Worktree ready:${NC} $wt_path"
       echo -e "  Workspace branch: ${CYAN}$branch${NC}"
       echo -e "  Subrepo branches: ${CYAN}$repo_branch${NC}"
@@ -1261,7 +1267,7 @@ Examples:
         exit 1
       fi
 
-      echo -e "${BOLD}Removing worktree...${NC}"
+      log "${BOLD}Removing worktree...${NC}"
       git -C "$WORKSPACE_ROOT" worktree remove "$wt_path" --force
       echo -e "${GREEN}Removed:${NC} $wt_path"
       ;;
@@ -1288,14 +1294,14 @@ Examples:
   local target="${1:-}"
 
   if [[ "$target" == "--all" || -z "$target" ]]; then
-    echo -e "${BOLD}Updating all flake inputs...${NC}"
+    log "${BOLD}Updating all flake inputs...${NC}"
     nix flake update \
       --extra-experimental-features "nix-command flakes" \
       "$WORKSPACE_ROOT"
   else
     local input_name
     input_name=$(get_input_name "$target")
-    echo -e "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    log "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
     nix flake lock \
       --extra-experimental-features "nix-command flakes" \
       --update-input "$input_name" \
@@ -1311,8 +1317,8 @@ List all repos in the workspace with their flake and clone status.
 Examples:
   ws list"
 
-  echo -e "${BOLD}Workspace repos (${#REPOS[@]} total)${NC}"
-  echo ""
+  log "${BOLD}Workspace repos (${#REPOS[@]} total)${NC}"
+  log ""
 
   local current_section=""
   for entry in "${REPOS[@]}"; do
@@ -1348,8 +1354,8 @@ workspace dependencies and test outputs.
 Examples:
   ws sync-graph"
 
-  echo -e "${BOLD}Syncing nix/dep-graph.nix from repo flake.nix files...${NC}"
-  echo ""
+  log "${BOLD}Syncing nix/dep-graph.nix from repo flake.nix files...${NC}"
+  log ""
 
   # Build list of workspace input names
   local ws_names=()
@@ -1393,7 +1399,7 @@ HEADER
 
     local flake_file="$REPOS_DIR/$dir_name/flake.nix"
     if [[ ! -f "$flake_file" ]]; then
-      echo -e "  ${YELLOW}skip${NC}  $dir_name (not cloned)"
+      log "  ${YELLOW}skip${NC}  $dir_name (not cloned)"
       continue
     fi
 
@@ -1429,11 +1435,11 @@ HEADER
     # Console status
     local marker="${GREEN}ok${NC}"
     [[ "$has_tests" == "true" ]] && marker="${GREEN}ok${NC} ${CYAN}(tests)${NC}"
-    echo -e "  $marker  $input_name (${#deps[@]} deps)"
+    log "  $marker  $input_name (${#deps[@]} deps)"
   done
 
   echo "}" >> "$tmpfile"
-  echo ""
+  log ""
 
   # Compare and update
   if [[ -f "$DEP_GRAPH" ]] && diff -q "$DEP_GRAPH" "$tmpfile" >/dev/null 2>&1; then
@@ -1455,7 +1461,10 @@ cmd_help() {
 Logos Workspace CLI
 
 USAGE:
-  ws <command> [args]
+  ws [--quiet] <command> [args]
+
+GLOBAL OPTIONS:
+  --quiet, -q                   Suppress informational output (for CI/scripting)
 
 COMMANDS:
   init [jobs]                   Clone all submodules (default: 4 parallel jobs)
@@ -1562,6 +1571,20 @@ EXAMPLES:
   ws sync-graph
 EOF
 }
+
+# ── Parse global flags ────────────────────────────────────────────────────────
+_args=()
+for _arg in "$@"; do
+  case "$_arg" in
+    --quiet|-q) QUIET=true ;;
+    *) _args+=("$_arg") ;;
+  esac
+done
+set -- "${_args[@]}"
+
+if $QUIET; then
+  RED='' GREEN='' YELLOW='' BLUE='' CYAN='' BOLD='' NC=''
+fi
 
 # ── Main dispatch ────────────────────────────────────────────────────────────
 

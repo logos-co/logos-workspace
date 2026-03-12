@@ -90,6 +90,18 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws worktree remove <name>` | Remove a worktree |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
 
+### Global Options
+
+- `--quiet`, `-q` — Suppress informational output (headers, progress, hints) and strip colors. Useful for CI pipelines and scripting. Primary output (test results, status lines, data) is still shown.
+
+```bash
+# Machine-friendly status output (no colors, no header)
+ws --quiet status
+
+# Quiet test run — only PASS/FAIL lines and summary
+ws test --all --quiet
+```
+
 ### CLI Tools
 
 These are also in `scripts/` and auto-build from the local repo on first use. They rebuild automatically when source files change.
@@ -489,6 +501,17 @@ ws build logos-app-poc --local logos-cpp-sdk
 ```
 
 If a build fails unexpectedly with overrides, check that the dirty repo is in a buildable state — `--auto-local` uses whatever is on disk, including broken or half-finished work.
+
+## CI
+
+The workspace has GitHub Actions CI (`.github/workflows/ci.yml`) that runs on pull requests to `master`:
+
+- **Change detection** — identifies which repos changed (submodule pointer diffs) and expands to include downstream dependents via `dep-graph.nix`
+- **Infrastructure changes** (flake.nix, nix/, scripts/) trigger a build of the core chain: logos-cpp-sdk, logos-module, logos-liblogos, logos-package, logos-app-poc
+- **Repo changes** trigger builds of only the affected repos and their dependents
+- **Docs-only PRs** (.md/.txt) skip builds entirely
+- **Validates** that `dep-graph.nix` is up to date (`ws sync-graph` produces no diff)
+- **Runs all tests** via `ws test --all`
 
 ## Dev Shell Quick Reference
 

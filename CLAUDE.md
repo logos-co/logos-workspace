@@ -41,6 +41,8 @@ ws list                              # Show all repos
 ws sync-graph                        # Regenerate dep-graph.nix
 ```
 
+All commands accept `--quiet` / `-q` to suppress informational output and colors (useful for CI/scripting).
+
 Use `ws <command> --help` for detailed usage.
 
 ## Searching code
