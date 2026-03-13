@@ -228,9 +228,9 @@ lgpm --modules-dir ./modules --release v2.0.0 install my_module
 
 ### Build/Run/Test Options
 
-- `--auto-local`, `-a` — Scans the workspace for repos with uncommitted changes or unpushed commits, and automatically uses them as local overrides. If you're editing `logos-cpp-sdk` and run `ws build logos-app-poc --auto-local`, it detects `logos-cpp-sdk` is dirty and overrides it — no need to specify `--local logos-cpp-sdk` manually.
-- `--local`, `-l <repo1> <repo2> ...` — Explicitly specify which repos to use as local overrides. Use this when you want precise control over what gets overridden.
-- `--workspace`, `-w` — Override **all** workspace repos as local deps, regardless of dirty status. Useful in CI where repos are clean checkouts but you want tests to use the workspace's dependency versions instead of each repo's pinned `flake.lock`. *(Currently `ws test` only.)*
+- `--workspace`, `-w` — Use all local workspace repos as dependencies (ignores `flake.lock` pins). Use this in CI where the submodule pointers define the intended dependency versions.
+- `--auto-local`, `-a` — Auto-detects repos with uncommitted changes or unpushed commits and uses those as local overrides. Useful during development — edit a dep and it gets picked up automatically.
+- `--local`, `-l <repo1> <repo2> ...` — Explicitly specify which repos to use as local overrides. For when you want precise control.
 
 These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
 
