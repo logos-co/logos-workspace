@@ -275,13 +275,15 @@ let
     # Git — use delta as pager via env vars only (no global config changes)
     export GIT_PAGER='delta --paging=always'
     export DELTA_PAGER='less -R'
-    export GIT_CONFIG_COUNT=3
+    export GIT_CONFIG_COUNT=4
     export GIT_CONFIG_KEY_0="delta.navigate"
     export GIT_CONFIG_VALUE_0="true"
     export GIT_CONFIG_KEY_1="delta.side-by-side"
     export GIT_CONFIG_VALUE_1="true"
     export GIT_CONFIG_KEY_2="delta.line-numbers"
     export GIT_CONFIG_VALUE_2="true"
+    export GIT_CONFIG_KEY_3="diff.submodule"
+    export GIT_CONFIG_VALUE_3="diff"
 
     # Starship prompt
     export STARSHIP_CONFIG="${starshipConfig}"
@@ -325,19 +327,24 @@ let
     # Suppress macOS /etc/zshrc "locale: command not found" error
     echo 'locale() { :; }' > "$ZDOTDIR/.zshenv"
 
+    # Derive a unique tmux session name from the workspace root directory
+    # so each worktree/fork gets its own session
+    _ws_root="''${LOGOS_WORKSPACE_ROOT:-$(pwd)}"
+    _session_name="logos-$(echo "$_ws_root" | md5sum | cut -c1-8)"
+
     # Launch tmux with zsh, or attach if session exists
     if command -v tmux &>/dev/null; then
-      if tmux has-session -t logos 2>/dev/null; then
-        exec tmux attach -t logos
+      if tmux has-session -t "$_session_name" 2>/dev/null; then
+        exec tmux attach -t "$_session_name"
       else
-        tmux -f ${tmuxConfig} new-session -d -s logos -n workspace
-        tmux set-environment -t logos ZDOTDIR "$ZDOTDIR"
-        tmux set-environment -t logos STARSHIP_CONFIG "${starshipConfig}"
-        tmux set-environment -t logos GIT_PAGER "delta --paging=always"
-        tmux set-environment -t logos DELTA_PAGER "less -R"
-        tmux set-environment -t logos LOGOS_WORKSPACE_ROOT "''${LOGOS_WORKSPACE_ROOT:-$(pwd)}"
-        tmux set-environment -t logos PATH "$PATH"
-        exec tmux attach -t logos
+        tmux -f ${tmuxConfig} new-session -d -s "$_session_name" -n workspace
+        tmux set-environment -t "$_session_name" ZDOTDIR "$ZDOTDIR"
+        tmux set-environment -t "$_session_name" STARSHIP_CONFIG "${starshipConfig}"
+        tmux set-environment -t "$_session_name" GIT_PAGER "delta --paging=always"
+        tmux set-environment -t "$_session_name" DELTA_PAGER "less -R"
+        tmux set-environment -t "$_session_name" LOGOS_WORKSPACE_ROOT "$_ws_root"
+        tmux set-environment -t "$_session_name" PATH "$PATH"
+        exec tmux attach -t "$_session_name"
       fi
     else
       exec ${pkgs.zsh}/bin/zsh
