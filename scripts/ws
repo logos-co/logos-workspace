@@ -271,14 +271,17 @@ Build a repo via nix.
 Options:
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
+  --workspace, -w               Override all deps with local workspace repos
 
 Examples:
   ws build logos-app-poc
   ws build logos-app-poc --auto-local
-  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
+  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+  ws build logos-app-poc --workspace"
 
   local repo="$1"; shift
   local auto_local=false
+  local use_workspace=false
   local local_overrides=()
   local extra_args=()
 
@@ -286,6 +289,8 @@ Examples:
     case "$1" in
       --auto-local|-a)
         auto_local=true; shift ;;
+      --workspace|-w)
+        use_workspace=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -302,6 +307,13 @@ Examples:
   if [[ -z "$input_name" ]]; then
     echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
     exit 1
+  fi
+
+  # Override all workspace repos
+  if $use_workspace; then
+    for dir in $(get_all_flake_repos); do
+      local_overrides+=("$dir")
+    done
   fi
 
   # Auto-detect dirty repos
