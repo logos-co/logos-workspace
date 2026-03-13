@@ -112,6 +112,17 @@ REPOS=(
   "|node-configs|https://github.com/logos-co/node-configs.git|no"
 )
 
+# ── Repo groups ──────────────────────────────────────────────────────────────
+# Format: "group_name|member1,member2,..."
+# Members can be repo names or other group names (resolved recursively).
+
+REPO_GROUPS=(
+  "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
+  "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
+  "package-manager|logos-package,logos-package-manager-module,logos-package-manager-ui,nix-bundle-lgx"
+  "app|core,logos-app-poc,logos-package-manager-ui"
+)
+
 # ── Helper functions ─────────────────────────────────────────────────────────
 
 get_field() {
@@ -141,6 +152,55 @@ get_input_name() {
     fi
   done
   echo "$dir_name"
+}
+
+# Check if a name is a defined group
+is_group() {
+  local name="$1"
+  for entry in "${REPO_GROUPS[@]}"; do
+    if [[ "$(echo "$entry" | cut -d'|' -f1)" == "$name" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Expand a group name into a newline-separated list of repo names.
+# Recursively resolves nested group references; deduplicates results.
+expand_group() {
+  local name="$1"
+  local _visited="${2:-}"
+
+  # Cycle detection
+  if echo "$_visited" | grep -qw "$name" 2>/dev/null; then
+    return
+  fi
+  _visited="$_visited $name"
+
+  local found=false
+  for entry in "${REPO_GROUPS[@]}"; do
+    local gname members
+    gname=$(echo "$entry" | cut -d'|' -f1)
+    if [[ "$gname" == "$name" ]]; then
+      members=$(echo "$entry" | cut -d'|' -f2)
+      found=true
+      IFS=',' read -ra tokens <<< "$members"
+      for token in "${tokens[@]}"; do
+        if is_group "$token"; then
+          expand_group "$token" "$_visited"
+        else
+          echo "$token"
+        fi
+      done
+      break
+    fi
+  done
+
+  if ! $found; then
+    echo -e "${RED}Error:${NC} unknown group '$name'" >&2
+    echo "Available groups: $(printf '%s\n' "${REPO_GROUPS[@]}" | cut -d'|' -f1 | tr '\n' ' ')" >&2
+    exit 1
+  fi
 }
 
 # Get repos that are dirty (have local uncommitted changes)
@@ -264,26 +324,36 @@ Arguments:
 }
 
 cmd_build() {
-  wants_help "$@" && show_help "Usage: ws build <repo> [options]
+  wants_help "$@" && show_help "Usage: ws build <repo...|--group name> [options]
 
-Build a repo via nix.
+Build one or more repos via nix.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
   ws build logos-app-poc
+  ws build logos-app-poc logos-liblogos
+  ws build --group core
   ws build logos-app-poc --auto-local
   ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
 
-  local repo="$1"; shift
+  local repos=()
   local auto_local=false
   local local_overrides=()
   local extra_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a)
         auto_local=true; shift ;;
       --local|-l)
@@ -291,16 +361,16 @@ Examples:
         while [[ $# -gt 0 && "$1" != -* ]]; do
           local_overrides+=("$1"); shift
         done ;;
-      *)
+      -*)
         extra_args+=("$1"); shift ;;
+      *)
+        repos+=("$1"); shift ;;
     esac
   done
 
-  # Resolve input name
-  local input_name
-  input_name=$(get_input_name "$repo")
-  if [[ -z "$input_name" ]]; then
-    echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo -e "${RED}Error:${NC} no repo specified" >&2
+    echo "Usage: ws build <repo...> [options]" >&2
     exit 1
   fi
 
@@ -328,20 +398,54 @@ Examples:
     flags=($(build_override_flags "${unique_overrides[@]}"))
   fi
 
-  log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
-  exec nix build \
-    --extra-experimental-features "nix-command flakes" \
-    "$WORKSPACE_ROOT#$input_name" \
-    ${flags[@]+"${flags[@]}"} \
-    ${extra_args[@]+"${extra_args[@]}"}
+  if [[ ${#repos[@]} -eq 1 ]]; then
+    local input_name
+    input_name=$(get_input_name "${repos[0]}")
+    if [[ -z "$input_name" ]]; then
+      echo -e "${RED}Error:${NC} repo '${repos[0]}' has no flake input (non-flake repo)" >&2
+      exit 1
+    fi
+    log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    exec nix build \
+      --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT#$input_name" \
+      ${flags[@]+"${flags[@]}"} \
+      ${extra_args[@]+"${extra_args[@]}"}
+  fi
+
+  local failed=0
+  for repo in "${repos[@]}"; do
+    local input_name
+    input_name=$(get_input_name "$repo")
+    if [[ -z "$input_name" ]]; then
+      echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+
+    log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    if ! nix build \
+      --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT#$input_name" \
+      ${flags[@]+"${flags[@]}"} \
+      ${extra_args[@]+"${extra_args[@]}"}; then
+      echo -e "${RED}FAIL${NC} $input_name"
+      failed=$((failed + 1))
+    else
+      echo -e "${GREEN}OK${NC}   $input_name"
+    fi
+    log ""
+  done
+  [[ $failed -eq 0 ]] || exit 1
 }
 
 cmd_run() {
-  wants_help "$@" && show_help "Usage: ws run <repo> [options]
+  wants_help "$@" && show_help "Usage: ws run <repo|--group name> [options]
 
-Build and run a repo via nix.
+Build and run a repo via nix. Only one repo at a time.
 
 Options:
+  --group, -g <name>            Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
@@ -350,30 +454,51 @@ Examples:
   ws run logos-app-poc --auto-local
   ws run logos-app-poc --local logos-cpp-sdk"
 
-  local repo="$1"; shift
-  local input_name
-  input_name=$(get_input_name "$repo")
-  if [[ -z "$input_name" ]]; then
-    echo -e "${RED}Error:${NC} repo '$repo' has no flake input" >&2
-    exit 1
-  fi
-
+  local repos=()
   local auto_local=false
   local local_overrides=()
   local extra_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
           local_overrides+=("$1"); shift
         done ;;
-      *)
+      -*)
         extra_args+=("$1"); shift ;;
+      *)
+        repos+=("$1"); shift ;;
     esac
   done
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo -e "${RED}Error:${NC} no repo specified" >&2
+    echo "Usage: ws run <repo> [options]" >&2
+    exit 1
+  fi
+
+  if [[ ${#repos[@]} -gt 1 ]]; then
+    echo -e "${RED}Error:${NC} ws run only supports a single repo (got: ${repos[*]})" >&2
+    exit 1
+  fi
+
+  local repo="${repos[0]}"
+  local input_name
+  input_name=$(get_input_name "$repo")
+  if [[ -z "$input_name" ]]; then
+    echo -e "${RED}Error:${NC} repo '$repo' has no flake input" >&2
+    exit 1
+  fi
 
   if $auto_local; then
     for dir in $(get_dirty_repos); do
@@ -455,12 +580,13 @@ Examples:
 }
 
 cmd_develop() {
-  wants_help "$@" && show_help "Usage: ws develop [repo] [options]
+  wants_help "$@" && show_help "Usage: ws develop [repo...|--group name] [options]
 
 Enter a nix devShell. Without a repo, enters the workspace shell (zsh + tmux + tools).
-With a repo, enters that repo's own devShell.
+With one or more repos, enters each repo's own devShell sequentially.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --fresh                       Force rebuild (clear cached shell environment)
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
@@ -468,14 +594,23 @@ Options:
 Examples:
   ws develop                    Enter the workspace devShell
   ws develop --fresh            Rebuild the workspace devShell from scratch
-  ws develop logos-cpp-sdk      Enter logos-cpp-sdk's own devShell"
+  ws develop logos-cpp-sdk      Enter logos-cpp-sdk's own devShell
+  ws develop --group core       Enter each core repo's devShell sequentially
+  ws develop logos-cpp-sdk logos-liblogos   Enter each devShell sequentially"
 
-  local repo=""
+  local repos=()
   local auto_local=false
   local fresh=false
   local local_overrides=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --fresh) fresh=true; shift ;;
       --local|-l)
@@ -484,7 +619,7 @@ Examples:
           local_overrides+=("$1"); shift
         done ;;
       -*) shift ;;
-      *) [[ -z "$repo" ]] && repo="$1"; shift ;;
+      *) repos+=("$1"); shift ;;
     esac
   done
 
@@ -502,7 +637,7 @@ Examples:
     flags=($(build_override_flags "${unique[@]}"))
   fi
 
-  if [[ -z "$repo" ]]; then
+  if [[ ${#repos[@]} -eq 0 ]]; then
     # Workspace devShell
     # Use cached dev environment to skip slow nix flake evaluation.
     # Cache is invalidated when devshell.nix, flake.nix, or flake.lock change.
@@ -552,17 +687,29 @@ Examples:
       --extra-experimental-features "nix-command flakes" \
       "$WORKSPACE_ROOT" \
       ${flags[@]+"${flags[@]}"}
-  else
-    # Sub-repo devShell — use the repo's own flake directly
-    local repo_path="$REPOS_DIR/$repo"
+  elif [[ ${#repos[@]} -eq 1 ]]; then
+    local repo_path="$REPOS_DIR/${repos[0]}"
     if [[ ! -d "$repo_path" ]]; then
-      echo -e "${RED}Error:${NC} repo '$repo' not found at $repo_path" >&2
+      echo -e "${RED}Error:${NC} repo '${repos[0]}' not found at $repo_path" >&2
       exit 1
     fi
     exec nix develop \
       --extra-experimental-features "nix-command flakes" \
       "path:$repo_path" \
       ${flags[@]+"${flags[@]}"}
+  else
+    for repo in "${repos[@]}"; do
+      local repo_path="$REPOS_DIR/$repo"
+      if [[ ! -d "$repo_path" ]]; then
+        echo -e "${RED}Error:${NC} repo '$repo' not found at $repo_path" >&2
+        continue
+      fi
+      log "${BOLD}Entering devShell for ${CYAN}$repo${NC}${BOLD}...${NC}"
+      nix develop \
+        --extra-experimental-features "nix-command flakes" \
+        "path:$repo_path" \
+        ${flags[@]+"${flags[@]}"}
+    done
   fi
 }
 
@@ -695,11 +842,12 @@ _test_one_repo() {
 }
 
 cmd_test() {
-  wants_help "$@" && show_help "Usage: ws test [repo] [options]
+  wants_help "$@" && show_help "Usage: ws test [repo...|--group name] [options]
 
-Run checks/tests for a repo or all repos.
+Run checks/tests for one or more repos, or all repos.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --all                         Test all repos (default if no repo given)
   --type, -t <type>             Filter by project type: cpp, rust, nim, js, qml
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
@@ -708,6 +856,8 @@ Options:
 
 Examples:
   ws test logos-module           Test a single repo
+  ws test logos-module logos-liblogos  Test multiple repos
+  ws test --group core           Test all repos in the core group
   ws test --all                  Test all repos
   ws test --type cpp             Test only C++ repos
   ws test logos-module --type cpp
@@ -715,7 +865,8 @@ Examples:
   ws test logos-test-modules --local logos-liblogos
   ws test --all --workspace      Test all repos using workspace dep versions"
 
-  local target=""
+  local targets=()
+  local test_all=false
   local test_type=""
   local auto_local=false
   local use_workspace=false
@@ -723,8 +874,15 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --type|-t) test_type="$2"; shift 2 ;;
-      --all) target="--all"; shift ;;
+      --all) test_all=true; shift ;;
       --auto-local|-a) auto_local=true; shift ;;
       --workspace|-w) use_workspace=true; shift ;;
       --local|-l)
@@ -734,9 +892,7 @@ Examples:
         done ;;
       -*) shift ;;  # skip unknown flags
       *)
-        # First non-flag arg is the repo name
-        [[ -z "$target" ]] && target="$1"
-        shift ;;
+        targets+=("$1"); shift ;;
     esac
   done
 
@@ -774,7 +930,7 @@ Examples:
   local system
   system=$(_detect_system)
 
-  if [[ "$target" == "--all" || -z "$target" ]]; then
+  if $test_all || [[ ${#targets[@]} -eq 0 ]]; then
     log "${BOLD}Running tests across all repos (system: $system)${NC}"
     log ""
 
@@ -832,20 +988,48 @@ Examples:
 
     echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
     [[ $failed -eq 0 ]] || exit 1
-  else
-    # Single repo
+  elif [[ ${#targets[@]} -eq 1 ]]; then
     local input_name dir_name
-    input_name=$(get_input_name "$target")
-    dir_name="$target"
+    input_name=$(get_input_name "${targets[0]}")
+    dir_name="${targets[0]}"
 
     if [[ -z "$input_name" ]]; then
-      echo -e "${RED}Error:${NC} '$target' has no flake input" >&2
+      echo -e "${RED}Error:${NC} '${targets[0]}' has no flake input" >&2
       exit 1
     fi
 
     local rc=0
     _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
     if [[ $rc -eq 1 ]]; then exit 1; fi
+  else
+    # Multiple repos
+    local passed=0 failed=0 skipped=0
+
+    for target in "${targets[@]}"; do
+      local input_name dir_name
+      input_name=$(get_input_name "$target")
+      dir_name="$target"
+
+      if [[ -z "$input_name" ]]; then
+        echo -e "${RED}Error:${NC} '$target' has no flake input" >&2
+        failed=$((failed + 1))
+        continue
+      fi
+
+      local rc=0
+      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
+      if [[ $rc -eq 0 ]]; then
+        passed=$((passed + 1))
+      elif [[ $rc -eq 2 ]]; then
+        skipped=$((skipped + 1))
+      else
+        failed=$((failed + 1))
+      fi
+      log ""
+    done
+
+    echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
+    [[ $failed -eq 0 ]] || exit 1
   fi
 }
 
@@ -950,42 +1134,66 @@ Examples:
 }
 
 cmd_graph() {
-  wants_help "$@" && show_help "Usage: ws graph [repo]
+  wants_help "$@" && show_help "Usage: ws graph [repo...|--group name]
 
-Show the dependency graph. With a repo, shows its deps and dependents.
+Show the dependency graph. With repos, shows deps and dependents for each.
 Without a repo, outputs the full graph in DOT format.
+
+Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
 
 Examples:
   ws graph logos-app-poc         Show deps and dependents of a repo
+  ws graph logos-app-poc logos-liblogos   Show deps for multiple repos
+  ws graph --group core          Show deps for all core repos
   ws graph                       Output full DOT graph
   ws graph | dot -Tsvg > g.svg   Render as SVG (requires graphviz)"
 
-  local target="${1:-}"
+  local targets=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
+      -*) shift ;;
+      *) targets+=("$1"); shift ;;
+    esac
+  done
 
   if [[ ! -f "$DEP_GRAPH" ]]; then
     echo -e "${RED}Error:${NC} dep-graph.nix not found" >&2
     exit 1
   fi
 
-  if [[ -n "$target" ]]; then
-    log "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
-    nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
-      let graph = import '"$DEP_GRAPH"';
-      in builtins.concatStringsSep "\n" ((graph.${"'"$target"'"} or { deps = []; }).deps or [])
-    ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
-      [[ -n "$dep" ]] && echo -e "  -> $dep"
-    done
+  if [[ ${#targets[@]} -gt 0 ]]; then
+    for target in "${targets[@]}"; do
+      log "${BOLD}Dependencies of ${CYAN}$target${NC}${BOLD}:${NC}"
+      nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
+        let graph = import '"$DEP_GRAPH"';
+        in builtins.concatStringsSep "\n" ((graph.${"'"$target"'"} or { deps = []; }).deps or [])
+      ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
+        [[ -n "$dep" ]] && echo -e "  -> $dep"
+      done
 
-    log ""
-    log "${BOLD}Dependents (repos that depend on ${CYAN}$target${NC}${BOLD}):${NC}"
-    nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
-      let
-        graph = import '"$DEP_GRAPH"';
-        names = builtins.attrNames graph;
-        dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
-      in builtins.concatStringsSep "\n" dependents
-    ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
-      [[ -n "$dep" ]] && echo -e "  <- $dep"
+      log ""
+      log "${BOLD}Dependents (repos that depend on ${CYAN}$target${NC}${BOLD}):${NC}"
+      nix eval --extra-experimental-features "nix-command flakes" --impure --raw --expr '
+        let
+          graph = import '"$DEP_GRAPH"';
+          names = builtins.attrNames graph;
+          dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
+        in builtins.concatStringsSep "\n" dependents
+      ' 2>/dev/null | while IFS= read -r dep || [[ -n "$dep" ]]; do
+        [[ -n "$dep" ]] && echo -e "  <- $dep"
+      done
+
+      if [[ ${#targets[@]} -gt 1 ]]; then
+        log ""
+      fi
     done
   else
     # Full graph in DOT format
@@ -1006,33 +1214,50 @@ Examples:
 }
 
 cmd_override_inputs() {
-  wants_help "$@" && show_help "Usage: ws override-inputs <repo> [options]
+  wants_help "$@" && show_help "Usage: ws override-inputs <repo...|--group name> [options]
 
-Print the nix --override-input flags for building a repo with local overrides.
+Print the nix --override-input flags for building repos with local overrides.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
   ws override-inputs logos-app-poc --auto-local
+  ws override-inputs --group core --auto-local
+  ws override-inputs logos-app-poc logos-liblogos --auto-local
   ws override-inputs logos-app-poc --local logos-cpp-sdk"
 
-  local repo="$1"; shift || true
+  local repos=()
   local auto_local=false
   local local_overrides=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
           local_overrides+=("$1"); shift
         done ;;
-      *) shift ;;
+      -*) shift ;;
+      *) repos+=("$1"); shift ;;
     esac
   done
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo -e "${RED}Error:${NC} no repo specified" >&2
+    echo "Usage: ws override-inputs <repo...> [options]" >&2
+    exit 1
+  fi
 
   if $auto_local; then
     for dir in $(get_dirty_repos); do
@@ -1050,53 +1275,62 @@ Examples:
 
   local unique=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
 
-  log "${BOLD}Override flags for building ${CYAN}$repo${NC}${BOLD}:${NC}"
-  log ""
-  echo -n "nix build .#$repo"
-  for dir in "${unique[@]}"; do
-    local input_name
-    input_name=$(get_input_name "$dir")
-    echo -n " \\"
+  for repo in "${repos[@]}"; do
+    log "${BOLD}Override flags for building ${CYAN}$repo${NC}${BOLD}:${NC}"
+    log ""
+    echo -n "nix build .#$repo"
+    for dir in "${unique[@]}"; do
+      local input_name
+      input_name=$(get_input_name "$dir")
+      echo -n " \\"
+      echo ""
+      echo -n "  --override-input $input_name path:./repos/$dir"
+    done
     echo ""
-    echo -n "  --override-input $input_name path:./repos/$dir"
+
+    if [[ ${#repos[@]} -gt 1 ]]; then
+      log ""
+    fi
   done
-  echo ""
 }
 
 cmd_loc() {
-  wants_help "$@" && show_help "Usage: ws loc [repo] [options]
+  wants_help "$@" && show_help "Usage: ws loc [repo...|--group name] [options]
 
 Count lines of code using tokei. Without a repo, counts the whole workspace.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --all                         Per-repo breakdown sorted by LOC
   --no-nix, --code-only         Exclude .nix, .lock, .json, .md files
 
 Examples:
   ws loc                         Count all code in workspace
   ws loc logos-cpp-sdk           Count code in a single repo
+  ws loc --group core            Count code in all core repos
+  ws loc logos-cpp-sdk logos-module   Count code in multiple repos
   ws loc --all                   Per-repo breakdown
   ws loc --all --no-nix          Per-repo breakdown, code only"
 
-  local target="${1:-}"
-  shift || true
-
+  local targets=()
   local exclude_nix=false
-  local repos_list=()
+  local show_all=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --no-nix) exclude_nix=true; shift ;;
-      --code-only) exclude_nix=true; shift ;;
-      *) repos_list+=("$1"); shift ;;
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
+      --no-nix|--code-only) exclude_nix=true; shift ;;
+      --all) show_all=true; shift ;;
+      -*) shift ;;
+      *) targets+=("$1"); shift ;;
     esac
   done
-
-  # Also check if first arg was a flag
-  case "$target" in
-    --no-nix|--code-only) exclude_nix=true; target="" ;;
-    --all) target="--all" ;;
-  esac
 
   if ! command -v tokei &>/dev/null; then
     echo -e "${YELLOW}tokei not found, installing...${NC}" >&2
@@ -1111,7 +1345,7 @@ Examples:
     tokei_args+=(-e '*.nix' -e '*.lock' -e 'flake.lock' -e '*.json' -e '*.md')
   fi
 
-  if [[ "$target" == "--all" ]]; then
+  if $show_all; then
     # Per-repo breakdown
     local total_header_shown=false
     for entry in "${REPOS[@]}"; do
@@ -1134,14 +1368,21 @@ Examples:
     log "${BOLD}Total across all repos:${NC}"
     tokei "$REPOS_DIR" ${tokei_args[@]+"${tokei_args[@]}"}
 
-  elif [[ -n "$target" ]]; then
-    # Single repo
-    local repo_path="$REPOS_DIR/$target"
-    if [[ ! -d "$repo_path" ]]; then
-      echo -e "${RED}Error:${NC} repo '$target' not found" >&2
-      exit 1
-    fi
-    tokei "$repo_path" ${tokei_args[@]+"${tokei_args[@]}"}
+  elif [[ ${#targets[@]} -gt 0 ]]; then
+    for target in "${targets[@]}"; do
+      local repo_path="$REPOS_DIR/$target"
+      if [[ ! -d "$repo_path" ]]; then
+        echo -e "${RED}Error:${NC} repo '$target' not found" >&2
+        continue
+      fi
+      if [[ ${#targets[@]} -gt 1 ]]; then
+        log "${BOLD}── $target ──${NC}"
+      fi
+      tokei "$repo_path" ${tokei_args[@]+"${tokei_args[@]}"}
+      if [[ ${#targets[@]} -gt 1 ]]; then
+        log ""
+      fi
+    done
 
   else
     # Whole workspace
@@ -1155,13 +1396,20 @@ cmd_watch() {
 Auto-run commands on file changes using watchexec.
 
 Subcommands:
-  test <repo> [opts]            Re-run tests when repo files change
-  build <repo> [opts]           Re-build when repo files change
-  run <cmd> [-w repo ...]       Run arbitrary command on file changes
+  test <repo...|--group name> [opts]   Re-run tests when repo files change
+  build <repo...|--group name> [opts]  Re-build when repo files change
+  run <cmd> [-w repo ...]              Run arbitrary command on file changes
+
+Options (test/build):
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
 
 Examples:
   ws watch test logos-module
+  ws watch test --group core --auto-local
+  ws watch test logos-module logos-liblogos --auto-local
   ws watch build logos-app-poc --auto-local
+  ws watch build --group core
+  ws watch build logos-app-poc logos-liblogos
   ws watch run 'ws test logos-module' -w logos-module -w logos-cpp-sdk"
 
   local subcmd="${1:-}"
@@ -1177,37 +1425,77 @@ Examples:
 
   case "$subcmd" in
     test)
-      local repo="${1:-}"
-      if [[ -z "$repo" ]]; then
-        echo -e "${RED}Usage:${NC} ws watch test <repo> [ws-test-opts]" >&2
+      local repos=()
+      local extra_args=()
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --group|-g)
+            shift
+            while [[ $# -gt 0 && "$1" != -* ]]; do
+              local _gexp; _gexp=$(expand_group "$1") || exit 1
+              while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+              shift
+            done ;;
+          -*) extra_args+=("$1"); shift ;;
+          *) repos+=("$1"); shift ;;
+        esac
+      done
+
+      if [[ ${#repos[@]} -eq 0 ]]; then
+        echo -e "${RED}Usage:${NC} ws watch test <repo...|--group name> [ws-test-opts]" >&2
         exit 1
       fi
-      shift
-      local repo_path="$REPOS_DIR/$repo"
-      if [[ ! -d "$repo_path" ]]; then
-        echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
-        exit 1
-      fi
-      log "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — running tests on save${NC}"
-      exec watchexec -w "$repo_path" --restart -- \
-        "$WORKSPACE_ROOT/scripts/ws" test "$repo" "$@"
+
+      local watch_dirs=()
+      for repo in "${repos[@]}"; do
+        local repo_path="$REPOS_DIR/$repo"
+        if [[ ! -d "$repo_path" ]]; then
+          echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
+          exit 1
+        fi
+        watch_dirs+=(-w "$repo_path")
+      done
+
+      log "${BOLD}Watching ${CYAN}${repos[*]}${NC}${BOLD} for changes — running tests on save${NC}"
+      exec watchexec "${watch_dirs[@]}" --restart -- \
+        "$WORKSPACE_ROOT/scripts/ws" test "${repos[@]}" "${extra_args[@]}"
       ;;
 
     build)
-      local repo="${1:-}"
-      if [[ -z "$repo" ]]; then
-        echo -e "${RED}Usage:${NC} ws watch build <repo> [ws-build-opts]" >&2
+      local repos=()
+      local extra_args=()
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --group|-g)
+            shift
+            while [[ $# -gt 0 && "$1" != -* ]]; do
+              local _gexp; _gexp=$(expand_group "$1") || exit 1
+              while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+              shift
+            done ;;
+          -*) extra_args+=("$1"); shift ;;
+          *) repos+=("$1"); shift ;;
+        esac
+      done
+
+      if [[ ${#repos[@]} -eq 0 ]]; then
+        echo -e "${RED}Usage:${NC} ws watch build <repo...|--group name> [ws-build-opts]" >&2
         exit 1
       fi
-      shift
-      local repo_path="$REPOS_DIR/$repo"
-      if [[ ! -d "$repo_path" ]]; then
-        echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
-        exit 1
-      fi
-      log "${BOLD}Watching ${CYAN}$repo${NC}${BOLD} for changes — building on save${NC}"
-      exec watchexec -w "$repo_path" --restart -- \
-        "$WORKSPACE_ROOT/scripts/ws" build "$repo" "$@"
+
+      local watch_dirs=()
+      for repo in "${repos[@]}"; do
+        local repo_path="$REPOS_DIR/$repo"
+        if [[ ! -d "$repo_path" ]]; then
+          echo -e "${RED}Error:${NC} repo '$repo' not found" >&2
+          exit 1
+        fi
+        watch_dirs+=(-w "$repo_path")
+      done
+
+      log "${BOLD}Watching ${CYAN}${repos[*]}${NC}${BOLD} for changes — building on save${NC}"
+      exec watchexec "${watch_dirs[@]}" --restart -- \
+        "$WORKSPACE_ROOT/scripts/ws" build "${repos[@]}" "${extra_args[@]}"
       ;;
 
     run)
@@ -1252,12 +1540,13 @@ Examples:
     *)
       echo -e "${RED}Usage:${NC} ws watch <test|build|run>" >&2
       echo "" >&2
-      echo "  test <repo> [opts]      Re-run tests on file changes" >&2
-      echo "  build <repo> [opts]     Re-build on file changes" >&2
+      echo "  test <repo...> [opts]   Re-run tests on file changes" >&2
+      echo "  build <repo...> [opts]  Re-build on file changes" >&2
       echo "  run <cmd> [-w repo...]  Run arbitrary command on file changes" >&2
       echo "" >&2
       echo "Examples:" >&2
       echo "  ws watch test logos-module" >&2
+      echo "  ws watch test logos-module logos-liblogos --auto-local" >&2
       echo "  ws watch build logos-app-poc --auto-local" >&2
       echo "  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk" >&2
       exit 1
@@ -1404,29 +1693,50 @@ Examples:
 }
 
 cmd_update() {
-  wants_help "$@" && show_help "Usage: ws update [repo]
+  wants_help "$@" && show_help "Usage: ws update [repo...|--group name]
 
 Update flake.lock inputs. Without a repo, updates all inputs.
 
+Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
+
 Examples:
   ws update                      Update all flake inputs
-  ws update logos-cpp-sdk        Update a single input"
+  ws update logos-cpp-sdk        Update a single input
+  ws update --group core         Update all core group inputs
+  ws update logos-cpp-sdk logos-module   Update multiple inputs"
 
-  local target="${1:-}"
+  local targets=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
+      --all) targets=(); break ;;
+      -*) shift ;;
+      *) targets+=("$1"); shift ;;
+    esac
+  done
 
-  if [[ "$target" == "--all" || -z "$target" ]]; then
+  if [[ ${#targets[@]} -eq 0 ]]; then
     log "${BOLD}Updating all flake inputs...${NC}"
     nix flake update \
       --extra-experimental-features "nix-command flakes" \
       "$WORKSPACE_ROOT"
   else
-    local input_name
-    input_name=$(get_input_name "$target")
-    log "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
-    nix flake lock \
-      --extra-experimental-features "nix-command flakes" \
-      --update-input "$input_name" \
-      "$WORKSPACE_ROOT"
+    for target in "${targets[@]}"; do
+      local input_name
+      input_name=$(get_input_name "$target")
+      log "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
+      nix flake lock \
+        --extra-experimental-features "nix-command flakes" \
+        --update-input "$input_name" \
+        "$WORKSPACE_ROOT"
+    done
   fi
 }
 
@@ -1723,6 +2033,30 @@ Examples:
   fi
 }
 
+cmd_groups() {
+  wants_help "$@" && show_help "Usage: ws groups
+
+List all defined repo groups and their members.
+
+Examples:
+  ws groups"
+
+  for entry in "${REPO_GROUPS[@]}"; do
+    local gname members
+    gname=$(echo "$entry" | cut -d'|' -f1)
+    members=$(echo "$entry" | cut -d'|' -f2)
+
+    echo -e "${BOLD}${CYAN}$gname${NC}"
+
+    local expanded
+    expanded=$(expand_group "$gname" | sort -u)
+    while IFS= read -r repo; do
+      [[ -n "$repo" ]] && echo -e "  $repo"
+    done <<< "$expanded"
+    echo ""
+  done
+}
+
 cmd_help() {
   cat <<'EOF'
 Logos Workspace CLI
@@ -1736,29 +2070,33 @@ GLOBAL OPTIONS:
 COMMANDS:
   init [jobs]                   Clone all submodules (default: 4 parallel jobs)
   list                          List all repos and their status
+  groups                        List all defined repo groups
 
-  build <repo> [opts]           Build a repo via nix
+  build <repo...|--group G> [opts]  Build one or more repos via nix
+    --group, -g <name...>         Use a named repo group (see 'ws groups')
     --auto-local, -a              Auto-detect dirty repos and use as overrides
     --local, -l <r1> <r2> ...    Use specific local repos as overrides
 
-  run <repo> [opts]             Build and run a repo (same options as build)
+  run <repo> [opts]             Build and run a repo (single repo only)
 
-  develop [repo] [opts]         Enter a nix devShell (workspace shell if no repo)
+  develop [repo...|--group G] [opts]  Enter a nix devShell
+    --group, -g <name...>         Use a named repo group
     --auto-local, -a              Include overrides for dirty repos
     --local, -l <r1> <r2> ...    Include specific local overrides
     --fresh                       Force rebuild (ignore cache)
 
-  test [repo|--all] [--type T]  Run checks/tests
+  test [repo...|--group G|--all] [--type T]  Run checks/tests
+    --group, -g <name...>         Use a named repo group
     --type, -t <type>             Filter by: cpp, rust, nim, js, qml
 
   status                        Git status across all repos
   dirty                         Show dirty repos and what they affect
-  graph [repo]                  Show dependency graph (DOT format, or repo details)
-  override-inputs <repo> [opts] Show the nix --override-input flags that would be used
-  update [repo|--all]           Update flake.lock inputs
-  loc [repo|--all] [--no-nix]   Count lines of code (uses tokei)
-  watch test <repo>             Re-run tests on file changes
-  watch build <repo>            Re-build on file changes
+  graph [repo...|--group G]     Show dependency graph (DOT format, or repo details)
+  override-inputs <repo...|--group G> [opts] Show the nix --override-input flags
+  update [repo...|--group G|--all]  Update flake.lock inputs
+  loc [repo...|--group G|--all] [--no-nix]  Count lines of code (uses tokei)
+  watch test <repo...|--group G>    Re-run tests on file changes
+  watch build <repo...|--group G>   Re-build on file changes
   watch run <cmd> [-w repo...]  Run command on file changes
   foreach <command>             Run a command in every repo directory
   worktree add <name> [-b br]  Create a worktree with submodules and ws/<branch> branches
@@ -1775,13 +2113,23 @@ COMMANDS:
 
   help                          Show this help
 
+REPO GROUPS:
+  Most commands accept --group/-g to operate on a named set of repos.
+  Groups are defined in the ws script and can reference other groups.
+  Use 'ws groups' to see all available groups and their members.
+
 EXAMPLES:
   # Set up the workspace
   ws init
 
-  # Edit logos-cpp-sdk, then build logos-app-poc using your local changes
-  cd repos/logos-cpp-sdk && vim src/something.cpp
+  # Build a single repo
   ws build logos-app-poc --auto-local
+
+  # Build all repos in a group
+  ws build --group core
+
+  # Build multiple repos
+  ws build logos-module logos-liblogos --auto-local
 
   # Explicitly override specific deps
   ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
@@ -1789,14 +2137,20 @@ EXAMPLES:
   # Run all tests
   ws test --all
 
+  # Test a group of repos
+  ws test --group core --auto-local
+
   # Run only C++ repo tests
   ws test --all --type cpp
 
-  # Test a specific repo
-  ws test logos-cpp-sdk
+  # Test specific repos
+  ws test logos-cpp-sdk logos-module
 
   # See what your dirty repos affect
   ws dirty
+
+  # List available groups
+  ws groups
 
   # Enter logos-app-poc's devShell with local logos-cpp-sdk
   ws develop logos-app-poc --local logos-cpp-sdk
@@ -1804,8 +2158,8 @@ EXAMPLES:
   # Visualize the dependency graph
   ws graph | dot -Tsvg > graph.svg
 
-  # See deps of a specific repo
-  ws graph logos-app-poc
+  # See deps of specific repos
+  ws graph logos-app-poc logos-liblogos
 
   # Run git pull in every repo
   ws foreach git pull
@@ -1823,11 +2177,20 @@ EXAMPLES:
   # Lines of code across all repos
   ws loc --all --no-nix
 
-  # Lines of code for a single repo
-  ws loc logos-cpp-sdk
+  # Lines of code for a group
+  ws loc --group core
+
+  # Lines of code for specific repos
+  ws loc logos-cpp-sdk logos-module
 
   # Auto-run tests when files change
   ws watch test logos-module
+
+  # Watch and test a group
+  ws watch test --group core --auto-local
+
+  # Watch and test multiple repos
+  ws watch test logos-module logos-liblogos --auto-local
 
   # Auto-build on changes with local overrides
   ws watch build logos-app-poc --auto-local
@@ -1874,6 +2237,7 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
+  groups)         shift; cmd_groups "$@" ;;
   help|--help|-h) cmd_help ;;
   # CLI tool wrappers — delegate to scripts/
   lm|logoscore|lgx|lgpm|logos-cpp-generator)

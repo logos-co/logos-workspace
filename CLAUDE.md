@@ -15,29 +15,35 @@ The workspace has a custom CLI (`scripts/ws`) that manages all repos. Use it ins
 
 ```bash
 # Building, running, and testing (all support --auto-local / --local)
-ws build <repo> [--auto-local]       # Build (auto-override dirty deps)
+# Most commands accept multiple repos: ws build repo1 repo2 ...
+ws build <repo...> [--auto-local]    # Build one or more repos (auto-override dirty deps)
 ws build <repo> --local dep1 dep2    # Build with explicit local overrides
-ws run <repo> [--auto-local]         # Build and run
-ws test <repo> [--auto-local]        # Run repo's nix checks
+ws run <repo> [--auto-local]         # Build and run (single repo only)
+ws test <repo...> [--auto-local]     # Run repo's nix checks
 ws test <repo> --local dep1 dep2     # Test with explicit local overrides
 ws test --all [--type cpp|rust|nim]  # Test all repos
 ws test --all --workspace            # Test using all local workspace deps
-ws develop [repo] [--auto-local]     # Enter dev shell (zsh+tmux+tools)
+ws develop [repo...] [--auto-local]  # Enter dev shell (zsh+tmux+tools)
+
+# Repo groups (operate on named sets of repos)
+ws groups                            # List all groups and members
+ws build --group core                # Build all repos in the "core" group
+ws test --group chat --auto-local    # Test all repos in the "chat" group
 
 # Watching (auto-rebuild/test on save, flags pass through)
-ws watch test <repo> [--auto-local]  # Re-test on file change
-ws watch build <repo> --auto-local   # Re-build on file change
+ws watch test <repo...> [--auto-local]  # Re-test on file change
+ws watch build <repo...> --auto-local   # Re-build on file change
 
 # Cross-repo operations
 ws status                            # Git status across all repos
 ws dirty                             # Dirty repos + downstream impact
-ws graph <repo>                      # Show deps/dependents
+ws graph <repo...>                   # Show deps/dependents
 ws foreach <cmd>                     # Run command in every repo
 ws foreach 'git add . && git commit -m "msg" || true'
 
 # Other
-ws update [repo]                     # Update flake inputs
-ws loc [repo] [--all] [--no-nix]    # Lines of code
+ws update [repo...]                  # Update flake inputs
+ws loc [repo...] [--all] [--no-nix] # Lines of code
 ws worktree add <name> [-b branch]  # Isolated multi-repo feature branch
 ws list                              # Show all repos
 ws sync-graph                        # Regenerate dep-graph.nix
@@ -60,6 +66,31 @@ fd "pattern" repos/                  # Find files by name
 ## How overrides work
 
 `--auto-local` detects repos with uncommitted changes and passes `--override-input` flags to nix. Because the workspace flake uses `follows` declarations, overriding one input propagates to all downstream consumers automatically. This is the key feature — edit a library, build a downstream app, and your changes flow through the entire dependency chain.
+
+## Repo groups
+
+Named sets of repos for batch operations. Groups can reference other groups (resolved recursively). Defined in the `REPO_GROUPS` array in `scripts/ws`.
+
+```bash
+# Built-in groups:
+#   core            — logos-cpp-sdk, logos-module, logos-liblogos, logos-module-builder,
+#                     logos-capability-module, logos-package-manager-module, logos-test-modules
+#   chat            — core + logos-chat-module, logos-chatsdk-module, logos-waku-module, logos-irc-module
+#   package-manager — logos-package, logos-package-manager-module, logos-package-manager-ui, nix-bundle-lgx
+#   app             — core + logos-app-poc, logos-package-manager-ui
+
+# List groups and their members
+ws groups
+
+# Use --group/-g with most commands that accept repos
+ws build --group core
+ws test --group chat --auto-local
+ws graph --group core
+ws loc --group app
+ws watch test --group core --auto-local
+```
+
+The `--group` flag accepts multiple group names: `ws build --group core chat`.
 
 ## Architecture
 
@@ -98,9 +129,11 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 # Build
 ws build logos-liblogos
 ws build logos-app-poc --auto-local    # with local overrides
+ws build logos-module logos-liblogos   # multiple repos in one command
 
 # Test
 ws test logos-module                   # single repo
+ws test logos-module logos-liblogos --auto-local  # multiple repos
 ws test --all --type cpp               # all C++ repos
 
 # Enter a repo's own dev shell (has that repo's build tools)
