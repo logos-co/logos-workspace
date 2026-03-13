@@ -72,18 +72,18 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws init [jobs]` | Clone all submodules (default: 4 parallel jobs) |
 | `ws list` | List all repos and their clone/flake status |
 | `ws groups` | List all defined repo groups and their members |
-| `ws build <repo\|--group G> [opts]` | Build one or more repos via nix |
-| `ws run <repo> [opts]` | Build and run a repo |
-| `ws develop [repo\|--group G] [opts]` | Enter a nix devShell |
-| `ws test [repo\|--group G\|--all] [--type T] [--auto-local\|--local ...]` | Run checks/tests |
+| `ws build <repo...\|--group G> [opts]` | Build one or more repos via nix |
+| `ws run <repo> [opts]` | Build and run a repo (single repo only) |
+| `ws develop [repo...\|--group G] [opts]` | Enter a nix devShell |
+| `ws test [repo...\|--group G\|--all] [--type T] [--auto-local\|--local ...]` | Run checks/tests |
 | `ws status` | Git status across all repos |
 | `ws dirty` | Show dirty repos and what they affect |
-| `ws graph [repo\|--group G]` | Show dependency graph |
-| `ws override-inputs <repo\|--group G> [opts]` | Preview override flags |
-| `ws update [repo\|--group G\|--all]` | Update flake.lock inputs |
-| `ws loc [repo\|--group G\|--all] [--no-nix]` | Count lines of code (uses tokei) |
-| `ws watch test <repo\|--group G>` | Re-run tests on file changes |
-| `ws watch build <repo\|--group G>` | Re-build on file changes |
+| `ws graph [repo...\|--group G]` | Show dependency graph |
+| `ws override-inputs <repo...\|--group G> [opts]` | Preview override flags |
+| `ws update [repo...\|--group G\|--all]` | Update flake.lock inputs |
+| `ws loc [repo...\|--group G\|--all] [--no-nix]` | Count lines of code (uses tokei) |
+| `ws watch test <repo...\|--group G>` | Re-run tests on file changes |
+| `ws watch build <repo...\|--group G>` | Re-build on file changes |
 | `ws watch run <cmd> [-w repo]` | Run command on file changes |
 | `ws foreach <cmd>` | Run a command in every repo |
 | `ws worktree add <name> [-b br]` | Create a worktree with submodules and `ws/<branch>` branches |
@@ -389,6 +389,9 @@ ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
 ```bash
 # Test a single repo
 ws test logos-module
+
+# Test multiple repos at once
+ws test logos-module logos-liblogos --auto-local
 
 # Test with local dependency overrides
 ws test logos-test-modules --local logos-liblogos
