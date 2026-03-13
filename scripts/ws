@@ -50,7 +50,7 @@ REPOS=(
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
 
   # App
-  "logos-app-poc|logos-app-poc|https://github.com/logos-co/logos-app-poc.git|yes"
+  "logos-app|logos-app|https://github.com/logos-co/logos-app.git|yes"
 
   # Accounts
   "logos-accounts-module|logos-accounts-module|https://github.com/logos-co/logos-accounts-module.git|yes"
@@ -81,6 +81,12 @@ REPOS=(
   "logos-wallet-module|logos-wallet-module|https://github.com/logos-co/logos-wallet-module.git|yes"
   "logos-wallet-ui|logos-wallet-ui|https://github.com/logos-co/logos-wallet-ui.git|yes"
 
+  # Blockchain / Execution zone (LEX)
+  "logos-blockchain-module|logos-blockchain-module|https://github.com/logos-blockchain/logos-blockchain-module.git|yes"
+  "logos-blockchain-ui|logos-blockchain-ui|https://github.com/logos-blockchain/logos-blockchain-ui.git|yes"
+  "logos-execution-zone-wallet-ui|logos-execution-zone-wallet-ui|https://github.com/logos-blockchain/logos-execution-zone-wallet-ui.git|yes"
+  "logos-execution-zone-module|logos-execution-zone-module|https://github.com/logos-blockchain/logos-execution-zone-module.git|yes"
+
   # Other modules
   "logos-libp2p-module|logos-libp2p-module|https://github.com/logos-co/logos-libp2p-module.git|yes"
 
@@ -104,7 +110,6 @@ REPOS=(
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
   # Non-flake repos (submodules only)
-  "|logos-blockchain-module|https://github.com/logos-blockchain/logos-blockchain-module.git|no"
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
   "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
   "|logos-website|https://github.com/logos-co/logos-website.git|no"
@@ -273,9 +278,9 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws build logos-app-poc
-  ws build logos-app-poc --auto-local
-  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
+  ws build logos-app
+  ws build logos-app --auto-local
+  ws build logos-app --local logos-cpp-sdk logos-liblogos"
 
   local repo="$1"; shift
   local auto_local=false
@@ -346,9 +351,9 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws run logos-app-poc
-  ws run logos-app-poc --auto-local
-  ws run logos-app-poc --local logos-cpp-sdk"
+  ws run logos-app
+  ws run logos-app --auto-local
+  ws run logos-app --local logos-cpp-sdk"
 
   local repo="$1"; shift
   local input_name
@@ -466,7 +471,7 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws develop                    Enter the workspace devShell
+                       Enter the workspace devShell
   ws develop --fresh            Rebuild the workspace devShell from scratch
   ws develop logos-cpp-sdk      Enter logos-cpp-sdk's own devShell"
 
@@ -956,7 +961,7 @@ Show the dependency graph. With a repo, shows its deps and dependents.
 Without a repo, outputs the full graph in DOT format.
 
 Examples:
-  ws graph logos-app-poc         Show deps and dependents of a repo
+  ws graph logos-app         Show deps and dependents of a repo
   ws graph                       Output full DOT graph
   ws graph | dot -Tsvg > g.svg   Render as SVG (requires graphviz)"
 
@@ -1015,8 +1020,8 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws override-inputs logos-app-poc --auto-local
-  ws override-inputs logos-app-poc --local logos-cpp-sdk"
+  ws override-inputs logos-app --auto-local
+  ws override-inputs logos-app --local logos-cpp-sdk"
 
   local repo="$1"; shift || true
   local auto_local=false
@@ -1161,7 +1166,7 @@ Subcommands:
 
 Examples:
   ws watch test logos-module
-  ws watch build logos-app-poc --auto-local
+  ws watch build logos-app --auto-local
   ws watch run 'ws test logos-module' -w logos-module -w logos-cpp-sdk"
 
   local subcmd="${1:-}"
@@ -1258,7 +1263,7 @@ Examples:
       echo "" >&2
       echo "Examples:" >&2
       echo "  ws watch test logos-module" >&2
-      echo "  ws watch build logos-app-poc --auto-local" >&2
+      echo "  ws watch build logos-app --auto-local" >&2
       echo "  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk" >&2
       exit 1
       ;;
@@ -1590,7 +1595,7 @@ Checks two things:
      different Qt than the current build (stale cache — clear the data dir).
 
 Examples:
-  ws check-qt logos-app-poc
+  ws check-qt logos-app
   ws check-qt logos-liblogos"
 
   local repo="${1:?Usage: ws check-qt <repo>}"
@@ -1779,12 +1784,12 @@ EXAMPLES:
   # Set up the workspace
   ws init
 
-  # Edit logos-cpp-sdk, then build logos-app-poc using your local changes
+  # Edit logos-cpp-sdk, then build logos-app using your local changes
   cd repos/logos-cpp-sdk && vim src/something.cpp
-  ws build logos-app-poc --auto-local
+  ws build logos-app --auto-local
 
   # Explicitly override specific deps
-  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+  ws build logos-app --local logos-cpp-sdk logos-liblogos
 
   # Run all tests
   ws test --all
@@ -1798,20 +1803,20 @@ EXAMPLES:
   # See what your dirty repos affect
   ws dirty
 
-  # Enter logos-app-poc's devShell with local logos-cpp-sdk
-  ws develop logos-app-poc --local logos-cpp-sdk
+  # Enter logos-app's devShell with local logos-cpp-sdk
+  ws develop logos-app --local logos-cpp-sdk
 
   # Visualize the dependency graph
   ws graph | dot -Tsvg > graph.svg
 
   # See deps of a specific repo
-  ws graph logos-app-poc
+  ws graph logos-app
 
   # Run git pull in every repo
   ws foreach git pull
 
   # Show override flags without executing
-  ws override-inputs logos-app-poc --auto-local
+  ws override-inputs logos-app --auto-local
 
   # Create an isolated worktree for a feature branch
   ws worktree add my-feature -b my-feature-branch
@@ -1830,7 +1835,7 @@ EXAMPLES:
   ws watch test logos-module
 
   # Auto-build on changes with local overrides
-  ws watch build logos-app-poc --auto-local
+  ws watch build logos-app --auto-local
 
   # Watch specific repos and run a custom command
   ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk

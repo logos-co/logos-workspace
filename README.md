@@ -38,28 +38,28 @@ experimental-features = nix-command flakes
 
 The workspace flake uses `follows` declarations to create a single dependency graph. When you override one input, the change propagates to every downstream consumer automatically.
 
-**Example**: Edit `logos-cpp-sdk`, then build `logos-app-poc` using your local version:
+**Example**: Edit `logos-cpp-sdk`, then build `logos-app` using your local version:
 
 ```bash
 # Edit something in logos-cpp-sdk
 vim repos/logos-cpp-sdk/src/something.cpp
 
-# Build logos-app-poc — it will use YOUR local logos-cpp-sdk,
+# Build logos-app — it will use YOUR local logos-cpp-sdk,
 # and so will every intermediate dep (logos-liblogos, logos-module, etc.)
-ws build logos-app-poc --auto-local
+ws build logos-app --auto-local
 
 # Or be explicit about which repos to override
-ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+ws build logos-app --local logos-cpp-sdk logos-liblogos
 ```
 
 The `--auto-local` flag scans the workspace for repos that have uncommitted changes or unpushed commits, and automatically overrides those deps. So if you're editing `logos-cpp-sdk`, you don't need to specify `--local logos-cpp-sdk` — `--auto-local` detects it for you.
 
 ### How it works
 
-Under the hood, `ws build logos-app-poc --local logos-cpp-sdk` runs:
+Under the hood, `ws build logos-app --local logos-cpp-sdk` runs:
 
 ```bash
-nix build .#logos-app-poc \
+nix build .#logos-app \
   --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
 ```
 
@@ -265,7 +265,7 @@ The workspace flake re-exports everything from the sub-repo flakes:
 ```bash
 # Build any repo
 nix build .#logos-cpp-sdk
-nix build .#logos-app-poc
+nix build .#logos-app
 
 # Enter a repo's own devShell
 nix develop path:./repos/logos-cpp-sdk
@@ -275,7 +275,7 @@ nix develop path:./repos/logos-cpp-sdk
 nix flake check
 
 # Manual override
-nix build .#logos-app-poc \
+nix build .#logos-app \
   --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk \
   --override-input logos-liblogos path:./repos/logos-liblogos
 ```
@@ -303,7 +303,7 @@ nixpkgs
               ├── logos-chatsdk-module → logos-chatsdk-ui
               ├── logos-module-viewer
               ├── logos-nim-sdk, logos-js-sdk
-              └── logos-app-poc (aggregates many of the above)
+              └── logos-app (aggregates many of the above)
 
   Standalone: logos-rust-sdk, logos-design-system
 ```
@@ -314,8 +314,8 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 
 - **Foundation**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-module](https://github.com/logos-co/logos-module), [logos-liblogos](https://github.com/logos-co/logos-liblogos), [logos-capability-module](https://github.com/logos-co/logos-capability-module), [logos-package](https://github.com/logos-co/logos-package), [logos-module-builder](https://github.com/logos-co/logos-module-builder)
 - **Packaging**: [nix-bundle-dir](https://github.com/logos-co/nix-bundle-dir), [nix-bundle-lgx](https://github.com/logos-co/nix-bundle-lgx)
-- **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-template-module](https://github.com/logos-co/logos-template-module)
-- **Apps**: [logos-app-poc](https://github.com/logos-co/logos-app-poc), [logos-accounts-ui](https://github.com/logos-co/logos-accounts-ui), [logos-chat-tui](https://github.com/logos-co/logos-chat-tui), [logos-chat-ui](https://github.com/logos-co/logos-chat-ui), [logos-chatsdk-ui](https://github.com/logos-co/logos-chatsdk-ui), [logos-waku-ui](https://github.com/logos-co/logos-waku-ui), [logos-package-manager-ui](https://github.com/logos-co/logos-package-manager-ui), [logos-storage-ui](https://github.com/logos-co/logos-storage-ui), [logos-wallet-ui](https://github.com/logos-co/logos-wallet-ui), [logos-webview-app](https://github.com/logos-co/logos-webview-app)
+- **Modules**: [logos-accounts-module](https://github.com/logos-co/logos-accounts-module), [logos-blockchain-module](https://github.com/logos-blockchain/logos-blockchain-module), [logos-chat-module](https://github.com/logos-co/logos-chat-module), [logos-chat-legacy-module](https://github.com/logos-co/logos-chat-legacy-module), [logos-chatsdk-module](https://github.com/logos-co/logos-chatsdk-module), [logos-execution-zone-module](https://github.com/logos-blockchain/logos-execution-zone-module), [logos-irc-module](https://github.com/logos-co/logos-irc-module), [logos-waku-module](https://github.com/logos-co/logos-waku-module), [logos-package-manager-module](https://github.com/logos-co/logos-package-manager-module), [logos-storage-module](https://github.com/logos-co/logos-storage-module), [logos-wallet-module](https://github.com/logos-co/logos-wallet-module), [logos-libp2p-module](https://github.com/logos-co/logos-libp2p-module), [logos-template-module](https://github.com/logos-co/logos-template-module)
+- **Apps**: [logos-app](https://github.com/logos-co/logos-app), [logos-accounts-ui](https://github.com/logos-co/logos-accounts-ui), [logos-blockchain-ui](https://github.com/logos-blockchain/logos-blockchain-ui), [logos-chat-tui](https://github.com/logos-co/logos-chat-tui), [logos-chat-ui](https://github.com/logos-co/logos-chat-ui), [logos-chatsdk-ui](https://github.com/logos-co/logos-chatsdk-ui), [logos-execution-zone-wallet-ui](https://github.com/logos-blockchain/logos-execution-zone-wallet-ui), [logos-waku-ui](https://github.com/logos-co/logos-waku-ui), [logos-package-manager-ui](https://github.com/logos-co/logos-package-manager-ui), [logos-storage-ui](https://github.com/logos-co/logos-storage-ui), [logos-wallet-ui](https://github.com/logos-co/logos-wallet-ui), [logos-webview-app](https://github.com/logos-co/logos-webview-app)
 - **UI**: [logos-design-system](https://github.com/logos-co/logos-design-system)
 - **SDKs**: [logos-cpp-sdk](https://github.com/logos-co/logos-cpp-sdk), [logos-js-sdk](https://github.com/logos-co/logos-js-sdk), [logos-nim-sdk](https://github.com/logos-co/logos-nim-sdk), [logos-rust-sdk](https://github.com/logos-co/logos-rust-sdk)
 - **Docs**: [logos-docs](https://github.com/logos-co/logos-docs), [logos-website](https://github.com/logos-co/logos-website), [logos-tutorial](https://github.com/logos-co/logos-tutorial)
@@ -325,7 +325,7 @@ Generate a visual graph: `ws graph | dot -Tsvg > graph.svg`
 
 ## Developing a library and testing it in a downstream app
 
-The most common workflow: you're changing a library (e.g. `logos-cpp-sdk`) and want to see the effect in something that uses it (e.g. `logos-liblogos` or `logos-app-poc`).
+The most common workflow: you're changing a library (e.g. `logos-cpp-sdk`) and want to see the effect in something that uses it (e.g. `logos-liblogos` or `logos-app`).
 
 ```bash
 # 1. Make your changes
@@ -345,7 +345,7 @@ ws dirty
 `--auto-local` detects every dirty repo and overrides it in the build. If you only want to override specific repos:
 
 ```bash
-ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+ws build logos-app --local logos-cpp-sdk logos-liblogos
 ```
 
 ## Running tests
@@ -389,7 +389,7 @@ ws watch test logos-module
 ws watch test logos-test-modules --local logos-liblogos
 
 # Auto-build with local overrides on save
-ws watch build logos-app-poc --auto-local
+ws watch build logos-app --auto-local
 
 # Watch specific repos and run a custom command
 ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk
@@ -402,11 +402,11 @@ Combine with `--auto-local` to get a live feedback loop: edit a library, save, a
 ## Running an app with local changes
 
 ```bash
-# Build and run logos-app-poc using your local logos-cpp-sdk
-ws run logos-app-poc --auto-local
+# Build and run logos-app using your local logos-cpp-sdk
+ws run logos-app --auto-local
 
 # Or with explicit overrides
-ws run logos-app-poc --local logos-cpp-sdk logos-liblogos
+ws run logos-app --local logos-cpp-sdk logos-liblogos
 ```
 
 ## Checking what your changes affect
@@ -421,7 +421,7 @@ ws dirty
 ws graph logos-cpp-sdk
 
 # Preview the exact nix --override-input flags that would be used
-ws override-inputs logos-app-poc --auto-local
+ws override-inputs logos-app --auto-local
 ```
 
 ## Keeping repos up to date
@@ -468,7 +468,7 @@ ws worktree add my-feature -b my-feature-branch
 # Work in the worktree
 cd ../logos-workspace--my-feature
 # Make changes in repos/logos-cpp-sdk, repos/logos-liblogos, etc.
-ws build logos-app-poc --auto-local
+ws build logos-app --auto-local
 
 # Commit and push changes in modified repos
 ws foreach 'git add . && git commit -m "my changes" && git push origin ws/my-feature-branch || true'
@@ -493,7 +493,7 @@ ws develop
 ws develop logos-module
 
 # Dev shell with local overrides for dirty repos
-ws develop logos-app-poc --auto-local
+ws develop logos-app --auto-local
 ```
 
 ## Lines of code
@@ -625,10 +625,10 @@ If `--auto-local` overrides something you didn't intend (e.g. you have a stale c
 ws status
 
 # Preview the override flags without building
-ws override-inputs logos-app-poc --auto-local
+ws override-inputs logos-app --auto-local
 
 # Use --local instead to control exactly what gets overridden
-ws build logos-app-poc --local logos-cpp-sdk
+ws build logos-app --local logos-cpp-sdk
 ```
 
 If a build fails unexpectedly with overrides, check that the dirty repo is in a buildable state — `--auto-local` uses whatever is on disk, including broken or half-finished work.
@@ -638,7 +638,7 @@ If a build fails unexpectedly with overrides, check that the dirty repo is in a 
 The workspace has GitHub Actions CI (`.github/workflows/ci.yml`) that runs on pull requests to `master`:
 
 - **Change detection** — identifies which repos changed (submodule pointer diffs) and expands to include downstream dependents via `dep-graph.nix`
-- **Infrastructure changes** (flake.nix, nix/, scripts/) trigger a build of the core chain: logos-cpp-sdk, logos-module, logos-liblogos, logos-package, logos-app-poc
+- **Infrastructure changes** (flake.nix, nix/, scripts/) trigger a build of the core chain: logos-cpp-sdk, logos-module, logos-liblogos, logos-package, logos-app
 - **Repo changes** trigger builds of only the affected repos and their dependents
 - **Docs-only PRs** (.md/.txt) skip builds entirely
 - **Validates** that `dep-graph.nix` is up to date (`ws sync-graph` produces no diff)
