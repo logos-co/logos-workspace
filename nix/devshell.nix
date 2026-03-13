@@ -275,13 +275,15 @@ let
     # Git — use delta as pager via env vars only (no global config changes)
     export GIT_PAGER='delta --paging=always'
     export DELTA_PAGER='less -R'
-    export GIT_CONFIG_COUNT=3
+    export GIT_CONFIG_COUNT=4
     export GIT_CONFIG_KEY_0="delta.navigate"
     export GIT_CONFIG_VALUE_0="true"
     export GIT_CONFIG_KEY_1="delta.side-by-side"
     export GIT_CONFIG_VALUE_1="true"
     export GIT_CONFIG_KEY_2="delta.line-numbers"
     export GIT_CONFIG_VALUE_2="true"
+    export GIT_CONFIG_KEY_3="diff.submodule"
+    export GIT_CONFIG_VALUE_3="diff"
 
     # Starship prompt
     export STARSHIP_CONFIG="${starshipConfig}"
