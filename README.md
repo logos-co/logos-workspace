@@ -71,18 +71,19 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 |---------|-------------|
 | `ws init [jobs]` | Clone all submodules (default: 4 parallel jobs) |
 | `ws list` | List all repos and their clone/flake status |
-| `ws build <repo> [opts]` | Build a repo via nix |
+| `ws groups` | List all defined repo groups and their members |
+| `ws build <repo\|--group G> [opts]` | Build one or more repos via nix |
 | `ws run <repo> [opts]` | Build and run a repo |
-| `ws develop [repo] [opts]` | Enter a nix devShell |
-| `ws test [repo\|--all] [--type T] [--auto-local\|--local ...]` | Run checks/tests |
+| `ws develop [repo\|--group G] [opts]` | Enter a nix devShell |
+| `ws test [repo\|--group G\|--all] [--type T] [--auto-local\|--local ...]` | Run checks/tests |
 | `ws status` | Git status across all repos |
 | `ws dirty` | Show dirty repos and what they affect |
-| `ws graph [repo]` | Show dependency graph |
-| `ws override-inputs <repo> [opts]` | Preview override flags |
-| `ws update [repo\|--all]` | Update flake.lock inputs |
-| `ws loc [repo\|--all] [--no-nix]` | Count lines of code (uses tokei) |
-| `ws watch test <repo>` | Re-run tests on file changes |
-| `ws watch build <repo>` | Re-build on file changes |
+| `ws graph [repo\|--group G]` | Show dependency graph |
+| `ws override-inputs <repo\|--group G> [opts]` | Preview override flags |
+| `ws update [repo\|--group G\|--all]` | Update flake.lock inputs |
+| `ws loc [repo\|--group G\|--all] [--no-nix]` | Count lines of code (uses tokei) |
+| `ws watch test <repo\|--group G>` | Re-run tests on file changes |
+| `ws watch build <repo\|--group G>` | Re-build on file changes |
 | `ws watch run <cmd> [-w repo]` | Run command on file changes |
 | `ws foreach <cmd>` | Run a command in every repo |
 | `ws worktree add <name> [-b br]` | Create a worktree with submodules and `ws/<branch>` branches |
@@ -233,6 +234,41 @@ lgpm --modules-dir ./modules --release v2.0.0 install my_module
 - `--workspace`, `-w` — Override **all** workspace repos as local deps, regardless of dirty status. Useful in CI where repos are clean checkouts but you want tests to use the workspace's dependency versions instead of each repo's pinned `flake.lock`. *(Currently `ws test` only.)*
 
 These flags work with `ws build`, `ws run`, `ws develop`, and `ws test`.
+
+### Repo Groups
+
+Named sets of repos for batch operations. Groups can include other groups (resolved recursively). Use `--group`/`-g` with most commands that accept repos.
+
+Built-in groups:
+
+| Group | Members |
+|-------|---------|
+| `core` | logos-cpp-sdk, logos-module, logos-liblogos, logos-module-builder, logos-capability-module, logos-package-manager-module, logos-test-modules |
+| `chat` | core + logos-chat-module, logos-chatsdk-module, logos-waku-module, logos-irc-module |
+| `package-manager` | logos-package, logos-package-manager-module, logos-package-manager-ui, nix-bundle-lgx |
+| `app` | core + logos-app-poc, logos-package-manager-ui |
+
+```bash
+# List all groups and their expanded members
+ws groups
+
+# Build all core repos
+ws build --group core
+
+# Test chat repos with auto-local overrides
+ws test --group chat --auto-local
+
+# Watch and rebuild core repos on change
+ws watch build --group core --auto-local
+
+# Multiple groups in one command
+ws build --group core chat
+
+# Show dependency graph for a group
+ws graph --group core
+```
+
+Groups are defined in the `REPO_GROUPS` array at the top of `scripts/ws`.
 
 ### Test Options
 

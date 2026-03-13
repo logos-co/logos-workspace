@@ -24,6 +24,11 @@ ws test --all [--type cpp|rust|nim]  # Test all repos
 ws test --all --workspace            # Test using all local workspace deps
 ws develop [repo] [--auto-local]     # Enter dev shell (zsh+tmux+tools)
 
+# Repo groups (operate on named sets of repos)
+ws groups                            # List all groups and members
+ws build --group core                # Build all repos in the "core" group
+ws test --group chat --auto-local    # Test all repos in the "chat" group
+
 # Watching (auto-rebuild/test on save, flags pass through)
 ws watch test <repo> [--auto-local]  # Re-test on file change
 ws watch build <repo> --auto-local   # Re-build on file change
@@ -60,6 +65,31 @@ fd "pattern" repos/                  # Find files by name
 ## How overrides work
 
 `--auto-local` detects repos with uncommitted changes and passes `--override-input` flags to nix. Because the workspace flake uses `follows` declarations, overriding one input propagates to all downstream consumers automatically. This is the key feature — edit a library, build a downstream app, and your changes flow through the entire dependency chain.
+
+## Repo groups
+
+Named sets of repos for batch operations. Groups can reference other groups (resolved recursively). Defined in the `REPO_GROUPS` array in `scripts/ws`.
+
+```bash
+# Built-in groups:
+#   core            — logos-cpp-sdk, logos-module, logos-liblogos, logos-module-builder,
+#                     logos-capability-module, logos-package-manager-module, logos-test-modules
+#   chat            — core + logos-chat-module, logos-chatsdk-module, logos-waku-module, logos-irc-module
+#   package-manager — logos-package, logos-package-manager-module, logos-package-manager-ui, nix-bundle-lgx
+#   app             — core + logos-app-poc, logos-package-manager-ui
+
+# List groups and their members
+ws groups
+
+# Use --group/-g with most commands that accept repos
+ws build --group core
+ws test --group chat --auto-local
+ws graph --group core
+ws loc --group app
+ws watch test --group core --auto-local
+```
+
+The `--group` flag accepts multiple group names: `ws build --group core chat`.
 
 ## Architecture
 

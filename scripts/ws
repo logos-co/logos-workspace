@@ -112,6 +112,17 @@ REPOS=(
   "|node-configs|https://github.com/logos-co/node-configs.git|no"
 )
 
+# ── Repo groups ──────────────────────────────────────────────────────────────
+# Format: "group_name|member1,member2,..."
+# Members can be repo names or other group names (resolved recursively).
+
+REPO_GROUPS=(
+  "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
+  "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
+  "package-manager|logos-package,logos-package-manager-module,logos-package-manager-ui,nix-bundle-lgx"
+  "app|core,logos-app-poc,logos-package-manager-ui"
+)
+
 # ── Helper functions ─────────────────────────────────────────────────────────
 
 get_field() {
@@ -141,6 +152,55 @@ get_input_name() {
     fi
   done
   echo "$dir_name"
+}
+
+# Check if a name is a defined group
+is_group() {
+  local name="$1"
+  for entry in "${REPO_GROUPS[@]}"; do
+    if [[ "$(echo "$entry" | cut -d'|' -f1)" == "$name" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Expand a group name into a newline-separated list of repo names.
+# Recursively resolves nested group references; deduplicates results.
+expand_group() {
+  local name="$1"
+  local _visited="${2:-}"
+
+  # Cycle detection
+  if echo "$_visited" | grep -qw "$name" 2>/dev/null; then
+    return
+  fi
+  _visited="$_visited $name"
+
+  local found=false
+  for entry in "${REPO_GROUPS[@]}"; do
+    local gname members
+    gname=$(echo "$entry" | cut -d'|' -f1)
+    if [[ "$gname" == "$name" ]]; then
+      members=$(echo "$entry" | cut -d'|' -f2)
+      found=true
+      IFS=',' read -ra tokens <<< "$members"
+      for token in "${tokens[@]}"; do
+        if is_group "$token"; then
+          expand_group "$token" "$_visited"
+        else
+          echo "$token"
+        fi
+      done
+      break
+    fi
+  done
+
+  if ! $found; then
+    echo -e "${RED}Error:${NC} unknown group '$name'" >&2
+    echo "Available groups: $(printf '%s\n' "${REPO_GROUPS[@]}" | cut -d'|' -f1 | tr '\n' ' ')" >&2
+    exit 1
+  fi
 }
 
 # Get repos that are dirty (have local uncommitted changes)
@@ -264,17 +324,19 @@ Arguments:
 }
 
 cmd_build() {
-  wants_help "$@" && show_help "Usage: ws build <repo...> [options]
+  wants_help "$@" && show_help "Usage: ws build <repo...|--group name> [options]
 
 Build one or more repos via nix.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
   ws build logos-app-poc
   ws build logos-app-poc logos-liblogos
+  ws build --group core
   ws build logos-app-poc --auto-local
   ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
 
@@ -285,6 +347,13 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a)
         auto_local=true; shift ;;
       --local|-l)
@@ -371,11 +440,12 @@ Examples:
 }
 
 cmd_run() {
-  wants_help "$@" && show_help "Usage: ws run <repo> [options]
+  wants_help "$@" && show_help "Usage: ws run <repo|--group name> [options]
 
 Build and run a repo via nix. Only one repo at a time.
 
 Options:
+  --group, -g <name>            Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
@@ -391,6 +461,13 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --local|-l)
         shift
@@ -503,12 +580,13 @@ Examples:
 }
 
 cmd_develop() {
-  wants_help "$@" && show_help "Usage: ws develop [repo...] [options]
+  wants_help "$@" && show_help "Usage: ws develop [repo...|--group name] [options]
 
 Enter a nix devShell. Without a repo, enters the workspace shell (zsh + tmux + tools).
 With one or more repos, enters each repo's own devShell sequentially.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --fresh                       Force rebuild (clear cached shell environment)
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
@@ -517,6 +595,7 @@ Examples:
   ws develop                    Enter the workspace devShell
   ws develop --fresh            Rebuild the workspace devShell from scratch
   ws develop logos-cpp-sdk      Enter logos-cpp-sdk's own devShell
+  ws develop --group core       Enter each core repo's devShell sequentially
   ws develop logos-cpp-sdk logos-liblogos   Enter each devShell sequentially"
 
   local repos=()
@@ -525,6 +604,13 @@ Examples:
   local local_overrides=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --fresh) fresh=true; shift ;;
       --local|-l)
@@ -756,11 +842,12 @@ _test_one_repo() {
 }
 
 cmd_test() {
-  wants_help "$@" && show_help "Usage: ws test [repo...] [options]
+  wants_help "$@" && show_help "Usage: ws test [repo...|--group name] [options]
 
 Run checks/tests for one or more repos, or all repos.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --all                         Test all repos (default if no repo given)
   --type, -t <type>             Filter by project type: cpp, rust, nim, js, qml
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
@@ -770,6 +857,7 @@ Options:
 Examples:
   ws test logos-module           Test a single repo
   ws test logos-module logos-liblogos  Test multiple repos
+  ws test --group core           Test all repos in the core group
   ws test --all                  Test all repos
   ws test --type cpp             Test only C++ repos
   ws test logos-module --type cpp
@@ -786,6 +874,13 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --type|-t) test_type="$2"; shift 2 ;;
       --all) test_all=true; shift ;;
       --auto-local|-a) auto_local=true; shift ;;
@@ -1039,20 +1134,31 @@ Examples:
 }
 
 cmd_graph() {
-  wants_help "$@" && show_help "Usage: ws graph [repo...]
+  wants_help "$@" && show_help "Usage: ws graph [repo...|--group name]
 
 Show the dependency graph. With repos, shows deps and dependents for each.
 Without a repo, outputs the full graph in DOT format.
 
+Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
+
 Examples:
   ws graph logos-app-poc         Show deps and dependents of a repo
   ws graph logos-app-poc logos-liblogos   Show deps for multiple repos
+  ws graph --group core          Show deps for all core repos
   ws graph                       Output full DOT graph
   ws graph | dot -Tsvg > g.svg   Render as SVG (requires graphviz)"
 
   local targets=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       -*) shift ;;
       *) targets+=("$1"); shift ;;
     esac
@@ -1108,16 +1214,18 @@ Examples:
 }
 
 cmd_override_inputs() {
-  wants_help "$@" && show_help "Usage: ws override-inputs <repo...> [options]
+  wants_help "$@" && show_help "Usage: ws override-inputs <repo...|--group name> [options]
 
 Print the nix --override-input flags for building repos with local overrides.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
   ws override-inputs logos-app-poc --auto-local
+  ws override-inputs --group core --auto-local
   ws override-inputs logos-app-poc logos-liblogos --auto-local
   ws override-inputs logos-app-poc --local logos-cpp-sdk"
 
@@ -1127,6 +1235,13 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --auto-local|-a) auto_local=true; shift ;;
       --local|-l)
         shift
@@ -1180,17 +1295,19 @@ Examples:
 }
 
 cmd_loc() {
-  wants_help "$@" && show_help "Usage: ws loc [repo...] [options]
+  wants_help "$@" && show_help "Usage: ws loc [repo...|--group name] [options]
 
 Count lines of code using tokei. Without a repo, counts the whole workspace.
 
 Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
   --all                         Per-repo breakdown sorted by LOC
   --no-nix, --code-only         Exclude .nix, .lock, .json, .md files
 
 Examples:
   ws loc                         Count all code in workspace
   ws loc logos-cpp-sdk           Count code in a single repo
+  ws loc --group core            Count code in all core repos
   ws loc logos-cpp-sdk logos-module   Count code in multiple repos
   ws loc --all                   Per-repo breakdown
   ws loc --all --no-nix          Per-repo breakdown, code only"
@@ -1201,6 +1318,13 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --no-nix|--code-only) exclude_nix=true; shift ;;
       --all) show_all=true; shift ;;
       -*) shift ;;
@@ -1272,14 +1396,19 @@ cmd_watch() {
 Auto-run commands on file changes using watchexec.
 
 Subcommands:
-  test <repo...> [opts]         Re-run tests when repo files change
-  build <repo...> [opts]        Re-build when repo files change
-  run <cmd> [-w repo ...]       Run arbitrary command on file changes
+  test <repo...|--group name> [opts]   Re-run tests when repo files change
+  build <repo...|--group name> [opts]  Re-build when repo files change
+  run <cmd> [-w repo ...]              Run arbitrary command on file changes
+
+Options (test/build):
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
 
 Examples:
   ws watch test logos-module
+  ws watch test --group core --auto-local
   ws watch test logos-module logos-liblogos --auto-local
   ws watch build logos-app-poc --auto-local
+  ws watch build --group core
   ws watch build logos-app-poc logos-liblogos
   ws watch run 'ws test logos-module' -w logos-module -w logos-cpp-sdk"
 
@@ -1300,13 +1429,20 @@ Examples:
       local extra_args=()
       while [[ $# -gt 0 ]]; do
         case "$1" in
+          --group|-g)
+            shift
+            while [[ $# -gt 0 && "$1" != -* ]]; do
+              local _gexp; _gexp=$(expand_group "$1") || exit 1
+              while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+              shift
+            done ;;
           -*) extra_args+=("$1"); shift ;;
           *) repos+=("$1"); shift ;;
         esac
       done
 
       if [[ ${#repos[@]} -eq 0 ]]; then
-        echo -e "${RED}Usage:${NC} ws watch test <repo...> [ws-test-opts]" >&2
+        echo -e "${RED}Usage:${NC} ws watch test <repo...|--group name> [ws-test-opts]" >&2
         exit 1
       fi
 
@@ -1330,13 +1466,20 @@ Examples:
       local extra_args=()
       while [[ $# -gt 0 ]]; do
         case "$1" in
+          --group|-g)
+            shift
+            while [[ $# -gt 0 && "$1" != -* ]]; do
+              local _gexp; _gexp=$(expand_group "$1") || exit 1
+              while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+              shift
+            done ;;
           -*) extra_args+=("$1"); shift ;;
           *) repos+=("$1"); shift ;;
         esac
       done
 
       if [[ ${#repos[@]} -eq 0 ]]; then
-        echo -e "${RED}Usage:${NC} ws watch build <repo...> [ws-build-opts]" >&2
+        echo -e "${RED}Usage:${NC} ws watch build <repo...|--group name> [ws-build-opts]" >&2
         exit 1
       fi
 
@@ -1550,18 +1693,29 @@ Examples:
 }
 
 cmd_update() {
-  wants_help "$@" && show_help "Usage: ws update [repo...]
+  wants_help "$@" && show_help "Usage: ws update [repo...|--group name]
 
 Update flake.lock inputs. Without a repo, updates all inputs.
+
+Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
 
 Examples:
   ws update                      Update all flake inputs
   ws update logos-cpp-sdk        Update a single input
+  ws update --group core         Update all core group inputs
   ws update logos-cpp-sdk logos-module   Update multiple inputs"
 
   local targets=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
       --all) targets=(); break ;;
       -*) shift ;;
       *) targets+=("$1"); shift ;;
@@ -1879,6 +2033,30 @@ Examples:
   fi
 }
 
+cmd_groups() {
+  wants_help "$@" && show_help "Usage: ws groups
+
+List all defined repo groups and their members.
+
+Examples:
+  ws groups"
+
+  for entry in "${REPO_GROUPS[@]}"; do
+    local gname members
+    gname=$(echo "$entry" | cut -d'|' -f1)
+    members=$(echo "$entry" | cut -d'|' -f2)
+
+    echo -e "${BOLD}${CYAN}$gname${NC}"
+
+    local expanded
+    expanded=$(expand_group "$gname" | sort -u)
+    while IFS= read -r repo; do
+      [[ -n "$repo" ]] && echo -e "  $repo"
+    done <<< "$expanded"
+    echo ""
+  done
+}
+
 cmd_help() {
   cat <<'EOF'
 Logos Workspace CLI
@@ -1892,29 +2070,33 @@ GLOBAL OPTIONS:
 COMMANDS:
   init [jobs]                   Clone all submodules (default: 4 parallel jobs)
   list                          List all repos and their status
+  groups                        List all defined repo groups
 
-  build <repo...> [opts]        Build one or more repos via nix
+  build <repo...|--group G> [opts]  Build one or more repos via nix
+    --group, -g <name...>         Use a named repo group (see 'ws groups')
     --auto-local, -a              Auto-detect dirty repos and use as overrides
     --local, -l <r1> <r2> ...    Use specific local repos as overrides
 
   run <repo> [opts]             Build and run a repo (single repo only)
 
-  develop [repo...] [opts]      Enter a nix devShell (workspace shell if no repo)
+  develop [repo...|--group G] [opts]  Enter a nix devShell
+    --group, -g <name...>         Use a named repo group
     --auto-local, -a              Include overrides for dirty repos
     --local, -l <r1> <r2> ...    Include specific local overrides
     --fresh                       Force rebuild (ignore cache)
 
-  test [repo...|--all] [--type T]  Run checks/tests
+  test [repo...|--group G|--all] [--type T]  Run checks/tests
+    --group, -g <name...>         Use a named repo group
     --type, -t <type>             Filter by: cpp, rust, nim, js, qml
 
   status                        Git status across all repos
   dirty                         Show dirty repos and what they affect
-  graph [repo...]               Show dependency graph (DOT format, or repo details)
-  override-inputs <repo...> [opts] Show the nix --override-input flags
-  update [repo...|--all]        Update flake.lock inputs
-  loc [repo...|--all] [--no-nix]  Count lines of code (uses tokei)
-  watch test <repo...>          Re-run tests on file changes
-  watch build <repo...>         Re-build on file changes
+  graph [repo...|--group G]     Show dependency graph (DOT format, or repo details)
+  override-inputs <repo...|--group G> [opts] Show the nix --override-input flags
+  update [repo...|--group G|--all]  Update flake.lock inputs
+  loc [repo...|--group G|--all] [--no-nix]  Count lines of code (uses tokei)
+  watch test <repo...|--group G>    Re-run tests on file changes
+  watch build <repo...|--group G>   Re-build on file changes
   watch run <cmd> [-w repo...]  Run command on file changes
   foreach <command>             Run a command in every repo directory
   worktree add <name> [-b br]  Create a worktree with submodules and ws/<branch> branches
@@ -1931,12 +2113,20 @@ COMMANDS:
 
   help                          Show this help
 
+REPO GROUPS:
+  Most commands accept --group/-g to operate on a named set of repos.
+  Groups are defined in the ws script and can reference other groups.
+  Use 'ws groups' to see all available groups and their members.
+
 EXAMPLES:
   # Set up the workspace
   ws init
 
   # Build a single repo
   ws build logos-app-poc --auto-local
+
+  # Build all repos in a group
+  ws build --group core
 
   # Build multiple repos
   ws build logos-module logos-liblogos --auto-local
@@ -1947,6 +2137,9 @@ EXAMPLES:
   # Run all tests
   ws test --all
 
+  # Test a group of repos
+  ws test --group core --auto-local
+
   # Run only C++ repo tests
   ws test --all --type cpp
 
@@ -1955,6 +2148,9 @@ EXAMPLES:
 
   # See what your dirty repos affect
   ws dirty
+
+  # List available groups
+  ws groups
 
   # Enter logos-app-poc's devShell with local logos-cpp-sdk
   ws develop logos-app-poc --local logos-cpp-sdk
@@ -1981,11 +2177,17 @@ EXAMPLES:
   # Lines of code across all repos
   ws loc --all --no-nix
 
+  # Lines of code for a group
+  ws loc --group core
+
   # Lines of code for specific repos
   ws loc logos-cpp-sdk logos-module
 
   # Auto-run tests when files change
   ws watch test logos-module
+
+  # Watch and test a group
+  ws watch test --group core --auto-local
 
   # Watch and test multiple repos
   ws watch test logos-module logos-liblogos --auto-local
@@ -2035,6 +2237,7 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
+  groups)         shift; cmd_groups "$@" ;;
   help|--help|-h) cmd_help ;;
   # CLI tool wrappers — delegate to scripts/
   lm|logoscore|lgx|lgpm|logos-cpp-generator)
