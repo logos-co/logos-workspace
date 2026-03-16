@@ -108,7 +108,7 @@ jobs:
           for repo in ${{ steps.changes.outputs.affected }}; do
             [[ ! -f "repos/$repo/flake.nix" ]] && continue
             echo "::group::Build $repo"
-            if ! ws build "$repo" --quiet; then
+            if ! ws build "$repo" --quiet --workspace; then
               echo "::error::Build failed: $repo"
               failed=1
             fi
@@ -122,7 +122,7 @@ jobs:
           failed=0
           for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-app-poc; do
             echo "::group::Build $repo"
-            if ! ws build "$repo" --quiet; then
+            if ! ws build "$repo" --quiet --workspace; then
               echo "::error::Build failed: $repo"
               failed=1
             fi

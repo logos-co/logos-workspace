@@ -332,16 +332,19 @@ Options:
   --group, -g <name...>         Use a named repo group (see 'ws groups')
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
+  --workspace, -w               Override all deps with local workspace repos
 
 Examples:
   ws build logos-app-poc
   ws build logos-app-poc logos-liblogos
   ws build --group core
   ws build logos-app-poc --auto-local
-  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos"
+  ws build logos-app-poc --local logos-cpp-sdk logos-liblogos
+  ws build logos-app-poc --workspace"
 
   local repos=()
   local auto_local=false
+  local use_workspace=false
   local local_overrides=()
   local extra_args=()
 
@@ -356,6 +359,8 @@ Examples:
         done ;;
       --auto-local|-a)
         auto_local=true; shift ;;
+      --workspace|-w)
+        use_workspace=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -372,6 +377,13 @@ Examples:
     echo -e "${RED}Error:${NC} no repo specified" >&2
     echo "Usage: ws build <repo...> [options]" >&2
     exit 1
+  fi
+
+  # Override all workspace repos
+  if $use_workspace; then
+    for dir in $(get_all_flake_repos); do
+      local_overrides+=("$dir")
+    done
   fi
 
   # Auto-detect dirty repos
