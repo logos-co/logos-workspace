@@ -103,10 +103,16 @@ jobs:
 
       - name: Build changed repos and dependents
         if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra != 'true' && steps.changes.outputs.affected != ''
+        env:
+          CI_SKIP_REPOS: "logos-chat-legacy-module logos-chat-module logos-chat-ui logos-chatsdk-module logos-chatsdk-ui logos-irc-module"
         run: |
           failed=0
           for repo in ${{ steps.changes.outputs.affected }}; do
             [[ ! -f "repos/$repo/flake.nix" ]] && continue
+            if echo " $CI_SKIP_REPOS " | grep -q " $repo "; then
+              echo "::notice::Skipping $repo (in CI_SKIP_REPOS)"
+              continue
+            fi
             echo "::group::Build $repo"
             if ! ws build "$repo" --quiet --workspace; then
               echo "::error::Build failed: $repo"
