@@ -43,6 +43,7 @@ ws foreach 'git add . && git commit -m "msg" || true'
 
 # Other
 ws update [repo...]                  # Update flake inputs
+ws update --deep <repo...>           # Update in workspace + all sub-repo flake.locks
 ws loc [repo...] [--all] [--no-nix] # Lines of code
 ws worktree add <name> [-b branch]  # Isolated multi-repo feature branch
 ws list                              # Show all repos
@@ -135,6 +136,9 @@ ws build logos-module logos-liblogos   # multiple repos in one command
 ws test logos-module                   # single repo
 ws test logos-module logos-liblogos --auto-local  # multiple repos
 ws test --all --type cpp               # all C++ repos
+
+# Run specific test groups (logos-test-modules supports: basic, extlib, ipc, multi, errors)
+TEST_GROUPS=ipc ws test logos-test-modules --local logos-liblogos logos-cpp-sdk logos-capability-module
 
 # Enter a repo's own dev shell (has that repo's build tools)
 ws develop logos-cpp-sdk

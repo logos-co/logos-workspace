@@ -80,7 +80,7 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws dirty` | Show dirty repos and what they affect |
 | `ws graph [repo...\|--group G]` | Show dependency graph |
 | `ws override-inputs <repo...\|--group G> [opts]` | Preview override flags |
-| `ws update [repo...\|--group G\|--all]` | Update flake.lock inputs |
+| `ws update [repo...\|--group G\|--all] [--deep]` | Update flake.lock inputs (--deep: also sub-repos) |
 | `ws loc [repo...\|--group G\|--all] [--no-nix]` | Count lines of code (uses tokei) |
 | `ws watch test <repo...\|--group G>` | Re-run tests on file changes |
 | `ws watch build <repo...\|--group G>` | Re-build on file changes |
@@ -399,6 +399,9 @@ ws test logos-test-modules --local logos-liblogos
 # Test with auto-detected dirty repos as overrides
 ws test logos-test-modules --auto-local
 
+# Run specific test groups (logos-test-modules supports: basic, extlib, ipc, multi, errors)
+TEST_GROUPS=ipc ws test logos-test-modules --local logos-liblogos logos-cpp-sdk logos-capability-module
+
 # Test all repos that have tests
 ws test --all
 
@@ -471,6 +474,9 @@ ws foreach git pull
 
 # Update a single flake input to its latest upstream
 ws update logos-cpp-sdk
+
+# Update everywhere — workspace + all sub-repo flake.locks
+ws update --deep logos-cpp-sdk
 
 # Update all flake inputs
 ws update --all
