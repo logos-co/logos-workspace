@@ -357,7 +357,7 @@ Examples:
           while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
           shift
         done ;;
-      --auto-local|-a)
+      --auto-local|--autolocal|-a)
         auto_local=true; shift ;;
       --workspace|-w)
         use_workspace=true; shift ;;
@@ -480,7 +480,7 @@ Examples:
           while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
           shift
         done ;;
-      --auto-local|-a) auto_local=true; shift ;;
+      --auto-local|--autolocal|-a) auto_local=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -623,7 +623,7 @@ Examples:
           while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
           shift
         done ;;
-      --auto-local|-a) auto_local=true; shift ;;
+      --auto-local|--autolocal|-a) auto_local=true; shift ;;
       --fresh) fresh=true; shift ;;
       --local|-l)
         shift
@@ -763,6 +763,7 @@ _test_one_repo() {
   local dir_name="$2"
   local system="$3"
   local override_flags="${4:-}"
+  local use_workspace_flake="${5:-false}"
   local repo_path="$REPOS_DIR/$dir_name"
 
   log "${BOLD}Testing ${CYAN}$dir_name${NC}${BOLD}...${NC}"
@@ -780,7 +781,7 @@ _test_one_repo() {
     return 2
   fi
 
-  # Discover checks + test packages in one eval
+  # Discover checks + test packages in one eval (always from repo flake for discovery)
   log "  ${BLUE}Discovering test outputs...${NC}"
   local outputs
   outputs=$(_discover_test_outputs "$repo_path" "$system")
@@ -788,6 +789,20 @@ _test_one_repo() {
   local checks_json test_pkgs_json
   checks_json=$(echo "$outputs" | sed 's/.*"checks":\([^,}]*\).*/\1/')
   test_pkgs_json=$(echo "$outputs" | sed 's/.*"testPkgs":\([^}]*\).*/\1/')
+
+  # Build the flake ref for checks and packages.
+  # When overrides are active (--local, --auto-local, --workspace), build from the
+  # workspace flake so that follows declarations propagate overrides to transitive deps.
+  # Without overrides, build from the individual repo flake (matches standalone nix flake check).
+  local check_ref pkg_ref
+  if [[ "$use_workspace_flake" == "true" ]]; then
+    # Workspace flake prefixes check names: checks.<system>.<input_name>--<check>
+    check_ref="$WORKSPACE_ROOT#checks.$system.${input_name}--"
+    pkg_ref="$WORKSPACE_ROOT#${input_name}--"
+  else
+    check_ref="path:$repo_path#checks.$system."
+    pkg_ref="path:$repo_path#"
+  fi
 
   local ran_something=false
   local all_pass=true
@@ -803,7 +818,7 @@ _test_one_repo() {
       log "  ${YELLOW}check${NC} tests"
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#checks.$system.tests" $override_flags -L; then
+        "${check_ref}tests" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} tests"
       else
         echo -e "  ${RED}FAIL${NC} tests"
@@ -818,7 +833,7 @@ _test_one_repo() {
       log "  ${YELLOW}check${NC} $check"
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#checks.$system.$check" $override_flags -L; then
+        "${check_ref}${check}" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} $check"
       else
         echo -e "  ${RED}FAIL${NC} $check"
@@ -835,7 +850,7 @@ _test_one_repo() {
       log "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
-        "path:$repo_path#$pkg" $override_flags -L; then
+        "${pkg_ref}${pkg}" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} $pkg"
       else
         echo -e "  ${RED}FAIL${NC} $pkg"
@@ -895,14 +910,14 @@ Examples:
         done ;;
       --type|-t) test_type="$2"; shift 2 ;;
       --all) test_all=true; shift ;;
-      --auto-local|-a) auto_local=true; shift ;;
+      --auto-local|--autolocal|-a) auto_local=true; shift ;;
       --workspace|-w) use_workspace=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
           local_overrides+=("$1"); shift
         done ;;
-      -*) shift ;;  # skip unknown flags
+      -*) echo -e "${YELLOW}WARN${NC} Unknown flag: $1" >&2; shift ;;
       *)
         targets+=("$1"); shift ;;
     esac
@@ -937,6 +952,12 @@ Examples:
     done
     log ""
     override_flags=$(build_override_flags "${unique_overrides[@]}")
+  fi
+
+  # Use workspace flake when overrides are active so follows propagate to transitive deps
+  local use_workspace_flake=false
+  if [[ -n "$override_flags" ]]; then
+    use_workspace_flake=true
   fi
 
   local system
@@ -987,7 +1008,7 @@ Examples:
       fi
 
       local rc=0
-      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
+      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" "$use_workspace_flake" || rc=$?
       if [[ $rc -eq 0 ]]; then
         passed=$((passed + 1))
       elif [[ $rc -eq 2 ]]; then
@@ -1011,7 +1032,7 @@ Examples:
     fi
 
     local rc=0
-    _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
+    _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" "$use_workspace_flake" || rc=$?
     if [[ $rc -eq 1 ]]; then exit 1; fi
   else
     # Multiple repos
@@ -1029,7 +1050,7 @@ Examples:
       fi
 
       local rc=0
-      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" || rc=$?
+      _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" "$use_workspace_flake" || rc=$?
       if [[ $rc -eq 0 ]]; then
         passed=$((passed + 1))
       elif [[ $rc -eq 2 ]]; then
@@ -1254,7 +1275,7 @@ Examples:
           while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
           shift
         done ;;
-      --auto-local|-a) auto_local=true; shift ;;
+      --auto-local|--autolocal|-a) auto_local=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -1705,20 +1726,28 @@ Examples:
 }
 
 cmd_update() {
-  wants_help "$@" && show_help "Usage: ws update [repo...|--group name]
+  wants_help "$@" && show_help "Usage: ws update [repo...|--group name] [--deep]
 
 Update flake.lock inputs. Without a repo, updates all inputs.
 
 Options:
   --group, -g <name...>         Use a named repo group (see 'ws groups')
+  --deep                        Also update in every sub-repo that depends on the target
+
+Without --deep, only the workspace flake.lock is updated.
+With --deep, every repo that lists the target as a direct flake input
+gets its own flake.lock updated too. This ensures consistent versions
+across the entire dependency tree.
 
 Examples:
   ws update                      Update all flake inputs
-  ws update logos-cpp-sdk        Update a single input
+  ws update logos-cpp-sdk        Update a single input in workspace flake.lock
+  ws update --deep logos-cpp-sdk Update logos-cpp-sdk everywhere (workspace + all sub-repos)
   ws update --group core         Update all core group inputs
   ws update logos-cpp-sdk logos-module   Update multiple inputs"
 
   local targets=()
+  local deep=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --group|-g)
@@ -1729,6 +1758,7 @@ Examples:
           shift
         done ;;
       --all) targets=(); break ;;
+      --deep) deep=true; shift ;;
       -*) shift ;;
       *) targets+=("$1"); shift ;;
     esac
@@ -1743,11 +1773,41 @@ Examples:
     for target in "${targets[@]}"; do
       local input_name
       input_name=$(get_input_name "$target")
-      log "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD}...${NC}"
+      log "${BOLD}Updating ${CYAN}$input_name${NC}${BOLD} in workspace...${NC}"
       nix flake lock \
         --extra-experimental-features "nix-command flakes" \
         --update-input "$input_name" \
         "$WORKSPACE_ROOT"
+
+      if $deep; then
+        # Find all repos that have this target as a direct dependency
+        local dependents
+        dependents=$(get_dependents "$input_name")
+        if [[ -n "$dependents" ]]; then
+          while IFS= read -r dep_input; do
+            [[ -z "$dep_input" ]] && continue
+            # Map input name back to directory name
+            local dep_entry dep_dir
+            dep_entry=$(find_repo_entry "$dep_input") || continue
+            dep_dir=$(get_field "$dep_entry" 2)
+            local dep_path="$REPOS_DIR/$dep_dir"
+
+            if [[ ! -d "$dep_path" ]] || [[ ! -f "$dep_path/flake.nix" ]]; then
+              continue
+            fi
+
+            log "  ${YELLOW}*${NC} Updating ${CYAN}$input_name${NC} in ${BOLD}$dep_dir${NC}/flake.lock"
+            nix flake lock \
+              --extra-experimental-features "nix-command flakes" \
+              --update-input "$input_name" \
+              "path:$dep_path" || {
+                echo -e "  ${RED}WARN${NC} Failed to update $input_name in $dep_dir"
+              }
+          done <<< "$dependents"
+        else
+          log "  No sub-repos depend on ${CYAN}$input_name${NC}"
+        fi
+      fi
     done
   fi
 }
