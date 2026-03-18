@@ -82,8 +82,8 @@
 
     # ── App ───────────────────────────────────────────────────────────────────
 
-    logos-app = {
-      url = "github:logos-co/logos-app";
+    logos-basecamp = {
+      url = "github:logos-co/logos-basecamp";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -415,7 +415,7 @@
         # Packaging / Bundling
         "nix-bundle-dir" "nix-bundle-lgx"
         # App
-        "logos-app"
+        "logos-basecamp"
         # Accounts
         "logos-accounts-module" "logos-accounts-ui"
         # Chat & Messaging
@@ -459,7 +459,7 @@
 
       # ── Packages ──────────────────────────────────────────────────────────
       # nix build .#logos-cpp-sdk
-      # nix build .#logos-app
+      # nix build .#logos-basecamp
       packages = forAllSystems (system:
         builtins.listToAttrs (builtins.concatMap (name:
           let

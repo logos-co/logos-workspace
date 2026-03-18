@@ -78,7 +78,7 @@ Named sets of repos for batch operations. Groups can reference other groups (res
 #                     logos-capability-module, logos-package-manager-module, logos-test-modules
 #   chat            — core + logos-chat-module, logos-chatsdk-module, logos-waku-module, logos-irc-module
 #   package-manager — logos-package, logos-package-manager-module, logos-package-manager-ui, nix-bundle-lgx
-#   app             — core + logos-app, logos-package-manager-ui
+#   app             — core + logos-basecamp, logos-package-manager-ui
 
 # List groups and their members
 ws groups
@@ -96,7 +96,7 @@ The `--group` flag accepts multiple group names: `ws build --group core chat`.
 ## Architecture
 
 ```
-logos-app / logoscore (runtime)
+logos-basecamp / logoscore (runtime)
     |
     v
 modules (Qt plugins, process-isolated, communicate via Qt Remote Objects)
@@ -119,7 +119,7 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-liblogos | Core runtime: `logoscore`, `logos_host`, `liblogos_core` |
 | logos-module | Plugin introspection library + `lm` CLI |
 | logos-module-builder | Scaffolding + build system (module.yaml -> CMake) |
-| logos-app | Desktop app shell with sidebar, tabs, plugin management |
+| logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
 | nix-bundle-lgx | Bundles Nix derivations into distributable `.lgx` packages |
@@ -129,7 +129,7 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 ```bash
 # Build
 ws build logos-liblogos
-ws build logos-app --auto-local    # with local overrides
+ws build logos-basecamp --auto-local    # with local overrides
 ws build logos-module logos-liblogos   # multiple repos in one command
 
 # Test
@@ -175,10 +175,10 @@ nixpkgs (pinned by logos-cpp-sdk)
       -> logos-capability-module, logos-package, logos-module-builder, nix-bundle-dir
       -> nix-bundle-lgx (uses logos-package + nix-bundle-dir)
       -> logos-accounts-module, logos-chat-module, logos-waku-module, ...
-      -> logos-app (aggregates many modules)
+      -> logos-basecamp (aggregates many modules)
 ```
 
-Changing `logos-cpp-sdk` affects everything. Changing a leaf module (e.g., `logos-chat-module`) affects only `logos-app`. Use `ws graph <repo>` or `ws dirty` to see impact.
+Changing `logos-cpp-sdk` affects everything. Changing a leaf module (e.g., `logos-chat-module`) affects only `logos-basecamp`. Use `ws graph <repo>` or `ws dirty` to see impact.
 
 ## Gotchas
 
@@ -199,7 +199,7 @@ nix build .#logos-cpp-sdk
 nix develop path:./repos/logos-cpp-sdk
 
 # Manual override (ws does this for you)
-nix build .#logos-app --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
+nix build .#logos-basecamp --override-input logos-cpp-sdk path:./repos/logos-cpp-sdk
 ```
 
 ## CLI tools (auto-build, auto-rebuild)

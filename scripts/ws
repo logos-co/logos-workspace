@@ -50,7 +50,7 @@ REPOS=(
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
 
   # App
-  "logos-app|logos-app|https://github.com/logos-co/logos-app.git|yes"
+  "logos-basecamp|logos-basecamp|https://github.com/logos-co/logos-basecamp.git|yes"
 
   # Accounts
   "logos-accounts-module|logos-accounts-module|https://github.com/logos-co/logos-accounts-module.git|yes"
@@ -125,7 +125,7 @@ REPO_GROUPS=(
   "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
   "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
   "package-manager|logos-package,logos-package-manager-module,logos-package-manager-ui,nix-bundle-lgx"
-  "app|core,logos-app,logos-package-manager-ui"
+  "app|core,logos-basecamp,logos-package-manager-ui"
 )
 
 # ── Helper functions ─────────────────────────────────────────────────────────
@@ -340,12 +340,12 @@ Options:
   --workspace, -w               Override all deps with local workspace repos
 
 Examples:
-  ws build logos-app
-  ws build logos-app logos-liblogos
+  ws build logos-basecamp
+  ws build logos-basecamp logos-liblogos
   ws build --group core
-  ws build logos-app --auto-local
-  ws build logos-app --local logos-cpp-sdk logos-liblogos
-  ws build logos-app --workspace"
+  ws build logos-basecamp --auto-local
+  ws build logos-basecamp --local logos-cpp-sdk logos-liblogos
+  ws build logos-basecamp --workspace"
 
   local repos=()
   local auto_local=false
@@ -467,9 +467,9 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws run logos-app
-  ws run logos-app --auto-local
-  ws run logos-app --local logos-cpp-sdk"
+  ws run logos-basecamp
+  ws run logos-basecamp --auto-local
+  ws run logos-basecamp --local logos-cpp-sdk"
 
   local repos=()
   local auto_local=false
@@ -540,7 +540,7 @@ Examples:
 
   # For app repos, build first and check for Qt conflicts before launching.
   case "$input_name" in
-    logos-app|logos-basecamp)
+    logos-basecamp)
       local store_path
       store_path=$(nix build --extra-experimental-features "nix-command flakes" \
         --no-link --print-out-paths "$WORKSPACE_ROOT#$input_name" \
@@ -563,9 +563,9 @@ Examples:
       if [[ -n "$app_qt" ]]; then
         local cache_dir
         if [[ "$(uname)" == "Darwin" ]]; then
-          cache_dir="$HOME/Library/Application Support/LogosAppNix"
+          cache_dir="$HOME/Library/Application Support/LogosBasecampNix"
         else
-          cache_dir="${XDG_DATA_HOME:-$HOME/.local/share}/LogosAppNix"
+          cache_dir="${XDG_DATA_HOME:-$HOME/.local/share}/LogosBasecampNix"
         fi
         if [[ -d "$cache_dir" ]]; then
           local cached_qt
@@ -1181,8 +1181,8 @@ Options:
   --group, -g <name...>         Use a named repo group (see 'ws groups')
 
 Examples:
-  ws graph logos-app         Show deps and dependents of a repo
-  ws graph logos-app logos-liblogos   Show deps for multiple repos
+  ws graph logos-basecamp         Show deps and dependents of a repo
+  ws graph logos-basecamp logos-liblogos   Show deps for multiple repos
   ws graph --group core          Show deps for all core repos
   ws graph                       Output full DOT graph
   ws graph | dot -Tsvg > g.svg   Render as SVG (requires graphviz)"
@@ -1262,10 +1262,10 @@ Options:
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
 Examples:
-  ws override-inputs logos-app --auto-local
+  ws override-inputs logos-basecamp --auto-local
   ws override-inputs --group core --auto-local
-  ws override-inputs logos-app logos-liblogos --auto-local
-  ws override-inputs logos-app --local logos-cpp-sdk"
+  ws override-inputs logos-basecamp logos-liblogos --auto-local
+  ws override-inputs logos-basecamp --local logos-cpp-sdk"
 
   local repos=()
   local auto_local=false
@@ -1445,9 +1445,9 @@ Examples:
   ws watch test logos-module
   ws watch test --group core --auto-local
   ws watch test logos-module logos-liblogos --auto-local
-  ws watch build logos-app --auto-local
+  ws watch build logos-basecamp --auto-local
   ws watch build --group core
-  ws watch build logos-app logos-liblogos
+  ws watch build logos-basecamp logos-liblogos
   ws watch run 'ws test logos-module' -w logos-module -w logos-cpp-sdk"
 
   local subcmd="${1:-}"
@@ -1585,7 +1585,7 @@ Examples:
       echo "Examples:" >&2
       echo "  ws watch test logos-module" >&2
       echo "  ws watch test logos-module logos-liblogos --auto-local" >&2
-      echo "  ws watch build logos-app --auto-local" >&2
+      echo "  ws watch build logos-basecamp --auto-local" >&2
       echo "  ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk" >&2
       exit 1
       ;;
@@ -1977,7 +1977,7 @@ Checks two things:
      different Qt than the current build (stale cache — clear the data dir).
 
 Examples:
-  ws check-qt logos-app
+  ws check-qt logos-basecamp
   ws check-qt logos-liblogos"
 
   local repo="${1:?Usage: ws check-qt <repo>}"
@@ -2067,14 +2067,14 @@ Examples:
   if [[ -n "$app_qt" ]]; then
     local cache_dirs=()
     if [[ "$(uname)" == "Darwin" ]]; then
-      cache_dirs+=("$HOME/Library/Application Support/LogosAppNix/modules")
-      cache_dirs+=("$HOME/Library/Application Support/LogosAppNix/plugins")
-      cache_dirs+=("$HOME/Library/Application Support/LogosApp/modules")
-      cache_dirs+=("$HOME/Library/Application Support/LogosApp/plugins")
+      cache_dirs+=("$HOME/Library/Application Support/LogosBasecampNix/modules")
+      cache_dirs+=("$HOME/Library/Application Support/LogosBasecampNix/plugins")
+      cache_dirs+=("$HOME/Library/Application Support/LogosBasecamp/modules")
+      cache_dirs+=("$HOME/Library/Application Support/LogosBasecamp/plugins")
     else
       local xdg="${XDG_DATA_HOME:-$HOME/.local/share}"
-      cache_dirs+=("$xdg/LogosAppNix/modules" "$xdg/LogosAppNix/plugins")
-      cache_dirs+=("$xdg/LogosApp/modules" "$xdg/LogosApp/plugins")
+      cache_dirs+=("$xdg/LogosBasecampNix/modules" "$xdg/LogosBasecampNix/plugins")
+      cache_dirs+=("$xdg/LogosBasecamp/modules" "$xdg/LogosBasecamp/plugins")
     fi
 
     local stale_found=false
@@ -2097,9 +2097,9 @@ Examples:
       echo ""
       echo -e "${YELLOW}Fix:${NC} Clear the stale cache:"
       if [[ "$(uname)" == "Darwin" ]]; then
-        echo -e "  ${BOLD}rm -rf ~/Library/Application\\ Support/LogosAppNix${NC}"
+        echo -e "  ${BOLD}rm -rf ~/Library/Application\\ Support/LogosBasecampNix${NC}"
       else
-        echo -e "  ${BOLD}rm -rf \${XDG_DATA_HOME:-~/.local/share}/LogosAppNix${NC}"
+        echo -e "  ${BOLD}rm -rf \${XDG_DATA_HOME:-~/.local/share}/LogosBasecampNix${NC}"
       fi
       exit 1
     fi
@@ -2200,7 +2200,7 @@ EXAMPLES:
   ws init
 
   # Build a single repo
-  ws build logos-app --auto-local
+  ws build logos-basecamp --auto-local
 
   # Build all repos in a group
   ws build --group core
@@ -2209,7 +2209,7 @@ EXAMPLES:
   ws build logos-module logos-liblogos --auto-local
 
   # Explicitly override specific deps
-  ws build logos-app --local logos-cpp-sdk logos-liblogos
+  ws build logos-basecamp --local logos-cpp-sdk logos-liblogos
 
   # Run all tests
   ws test --all
@@ -2229,20 +2229,20 @@ EXAMPLES:
   # List available groups
   ws groups
 
-  # Enter logos-app's devShell with local logos-cpp-sdk
-  ws develop logos-app --local logos-cpp-sdk
+  # Enter logos-basecamp's devShell with local logos-cpp-sdk
+  ws develop logos-basecamp --local logos-cpp-sdk
 
   # Visualize the dependency graph
   ws graph | dot -Tsvg > graph.svg
 
   # See deps of specific repos
-  ws graph logos-app logos-liblogos
+  ws graph logos-basecamp logos-liblogos
 
   # Run git pull in every repo
   ws foreach git pull
 
   # Show override flags without executing
-  ws override-inputs logos-app --auto-local
+  ws override-inputs logos-basecamp --auto-local
 
   # Create an isolated worktree for a feature branch
   ws worktree add my-feature -b my-feature-branch
@@ -2270,7 +2270,7 @@ EXAMPLES:
   ws watch test logos-module logos-liblogos --auto-local
 
   # Auto-build on changes with local overrides
-  ws watch build logos-app --auto-local
+  ws watch build logos-basecamp --auto-local
 
   # Watch specific repos and run a custom command
   ws watch run 'ws test logos-module --auto-local' -w logos-module -w logos-cpp-sdk

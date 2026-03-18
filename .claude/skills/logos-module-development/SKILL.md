@@ -15,10 +15,10 @@ This 1100-line guide covers the complete lifecycle. Key sections below.
 
 ## Architecture
 
-Modules are Qt 6 plugins (C++17) loaded by `logoscore` (headless) or `logos-app` (GUI). Each module runs in its own host process (`logos_host`), communicating via Qt Remote Objects IPC.
+Modules are Qt 6 plugins (C++17) loaded by `logoscore` (headless) or `logos-basecamp` (GUI). Each module runs in its own host process (`logos_host`), communicating via Qt Remote Objects IPC.
 
 ```
-logos-app / logoscore  ->  logos_host (per module)  ->  module plugin (.so/.dylib)
+logos-basecamp / logoscore  ->  logos_host (per module)  ->  module plugin (.so/.dylib)
                                 |
                           Qt Remote Objects (IPC)
                                 |
@@ -146,8 +146,8 @@ logos-cpp-generator --metadata <metadata.json> --module-dir <dir>
 
 ## Module types
 
-- **core** — background services, no UI (loaded by logoscore or logos-app)
-- **ui** — Qt Widgets or QML-based UI (loaded only by logos-app, displayed in tabbed workspace)
+- **core** — background services, no UI (loaded by logoscore or logos-basecamp)
+- **ui** — Qt Widgets or QML-based UI (loaded only by logos-basecamp, displayed in tabbed workspace)
 
 UI modules need `type: ui` in module.yaml and must implement `QWidget* createWidget()` or provide QML.
 
@@ -174,7 +174,7 @@ Automated Nix-based packaging uses `nix-bundle-lgx` (which uses `nix-bundle-dir`
 
 ## Common pitfalls
 
-- LogosAPI is only available when loaded by logoscore/logos-app, NOT in module-viewer or standalone
+- LogosAPI is only available when loaded by logoscore/logos-basecamp, NOT in module-viewer or standalone
 - Module binary name must match `name` in module.yaml (e.g., `my_module` -> `my_module_plugin.so`)
 - `metadata.json` must be alongside the binary for discovery
 - Always build inside nix (raw cmake won't find Qt/deps)

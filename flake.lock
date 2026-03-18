@@ -229,7 +229,7 @@
         "type": "github"
       }
     },
-    "logos-app": {
+    "logos-basecamp": {
       "inputs": {
         "logos-capability-module": [
           "logos-capability-module"
@@ -278,16 +278,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1773836108,
-        "narHash": "sha256-IhqevKMRwfkJJq/9lFmZ/YPsJzemSFvbL3iMK7ZvkLs=",
+        "lastModified": 1773842101,
+        "narHash": "sha256-mG9nFwCqzo+uzYXimBkcbFngtKRgkN7oEbGATsxqfG4=",
         "owner": "logos-co",
-        "repo": "logos-app",
-        "rev": "9015f2613a997e56132ff3e6e177d9517204de65",
+        "repo": "logos-basecamp",
+        "rev": "dbc1ddf5b6c0bbe3aa30d0ce29483e535a314f7c",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
-        "repo": "logos-app",
+        "repo": "logos-basecamp",
         "type": "github"
       }
     },
@@ -1311,11 +1311,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773833908,
-        "narHash": "sha256-6LuF5SrvZv98Zmhom1hzDZ14Gv945wzxVjwSR/e+kzQ=",
+        "lastModified": 1773841037,
+        "narHash": "sha256-nAU5lfaWoHMC/HkHPbipVbNnjdXM00CdftKumOw77kA=",
         "owner": "logos-co",
         "repo": "logos-storage-module",
-        "rev": "3687477bb54d126dd0c60e0ba79a0386e0bd3d2b",
+        "rev": "a80a47c3f25604a0e782f242b9fb480c2d9107df",
         "type": "github"
       },
       "original": {
@@ -1400,7 +1400,7 @@
       },
       "locked": {
         "lastModified": 1771682919,
-        "narHash": "sha256-wgN/kDO8T5KVaXMD82DXrExQH3ulfzcrpP6DqUcbcxo=",
+        "narHash": "sha256-WNI+UFVSFRMa8Pcz4t/8Cpj1SH20KEBzmX4PwbDEe4Q=",
         "owner": "logos-co",
         "repo": "logos-waku-module",
         "rev": "cf30aa7e24f0782b5fffca1772da15862593063b",
@@ -1852,7 +1852,7 @@
         "counter_qml": "counter_qml",
         "logos-accounts-module": "logos-accounts-module",
         "logos-accounts-ui": "logos-accounts-ui",
-        "logos-app": "logos-app",
+        "logos-basecamp": "logos-basecamp",
         "logos-blockchain-module": "logos-blockchain-module",
         "logos-blockchain-ui": "logos-blockchain-ui",
         "logos-capability-module": "logos-capability-module",

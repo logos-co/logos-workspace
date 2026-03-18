@@ -130,9 +130,9 @@
 [submodule "repos/logos-execution-zone-module"]
 	path = repos/logos-execution-zone-module
 	url = git@github.com:logos-blockchain/logos-execution-zone-module.git
-[submodule "repos/logos-app"]
-	path = repos/logos-app
-	url = git@github.com:logos-co/logos-app.git
+[submodule "repos/logos-basecamp"]
+	path = repos/logos-basecamp
+	url = git@github.com:logos-co/logos-basecamp.git
 
 [submodule "repos/logos-test-modules"]
 	path = repos/logos-test-modules
