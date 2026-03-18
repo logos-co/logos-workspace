@@ -458,18 +458,31 @@
     in {
 
       # ── Packages ──────────────────────────────────────────────────────────
-      # nix build .#logos-cpp-sdk
-      # nix build .#logos-basecamp
+      # nix build .#logos-cpp-sdk          → default package
+      # nix build .#logos-basecamp          → default package
+      # nix build .#logos-basecamp--portable → non-default output
+      # nix build .#logos-liblogos--portable
+      # All repo package outputs are exposed: default as the repo name,
+      # non-default as <repo>--<output>.
       packages = forAllSystems (system:
-        builtins.listToAttrs (builtins.concatMap (name:
-          let
-            result = builtins.tryEval (
-              (inputs.${name}.packages.${system} or {}).default or null
-            );
-            pkg = if result.success then result.value else null;
-          in
-          if pkg != null then [{ inherit name; value = pkg; }] else []
-        ) repoInputNames)
+        let
+          # Collect all package outputs from all repos.
+          # Each repo's packages are forwarded lazily — the value is not
+          # evaluated until someone actually builds it, so broken store
+          # paths or missing files won't cause errors at evaluation time.
+          allPkgs = builtins.foldl' (acc: name:
+            let
+              repoPkgs = (inputs.${name}.packages.${system} or {});
+              outNames = builtins.attrNames repoPkgs;
+            in
+            acc // builtins.listToAttrs (map (outName:
+              let
+                attrName = if outName == "default" then name else "${name}--${outName}";
+              in
+              { name = attrName; value = repoPkgs.${outName}; }
+            ) outNames)
+          ) {} repoInputNames;
+        in allPkgs
       );
 
       # ── Dev Shells ────────────────────────────────────────────────────────

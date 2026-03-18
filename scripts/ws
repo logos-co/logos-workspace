@@ -329,9 +329,12 @@ Arguments:
 }
 
 cmd_build() {
-  wants_help "$@" && show_help "Usage: ws build <repo...|--group name> [options]
+  wants_help "$@" && show_help "Usage: ws build <repo[#output]...|--group name> [options]
 
 Build one or more repos via nix.
+
+Use repo#output to build a specific flake output instead of the default.
+For example: ws build logos-basecamp#portable
 
 Options:
   --group, -g <name...>         Use a named repo group (see 'ws groups')
@@ -341,10 +344,12 @@ Options:
 
 Examples:
   ws build logos-basecamp
+  ws build logos-basecamp#portable
   ws build logos-basecamp logos-liblogos
   ws build --group core
   ws build logos-basecamp --auto-local
   ws build logos-basecamp --local logos-cpp-sdk logos-liblogos
+  ws build logos-basecamp#bin-bundle-dir --local nix-bundle-lgx logos-liblogos
   ws build logos-basecamp --workspace"
 
   local repos=()
@@ -416,40 +421,65 @@ Examples:
   fi
 
   if [[ ${#repos[@]} -eq 1 ]]; then
+    local repo_spec="${repos[0]}"
+    local repo_name="${repo_spec%%#*}"
+    local output_suffix=""
+    [[ "$repo_spec" == *"#"* ]] && output_suffix="${repo_spec#*#}"
     local input_name
-    input_name=$(get_input_name "${repos[0]}")
+    input_name=$(get_input_name "$repo_name")
     if [[ -z "$input_name" ]]; then
-      echo -e "${RED}Error:${NC} repo '${repos[0]}' has no flake input (non-flake repo)" >&2
+      echo -e "${RED}Error:${NC} repo '$repo_name' has no flake input (non-flake repo)" >&2
       exit 1
     fi
-    log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    # All repo outputs are exposed through the workspace flake:
+    # default → .#<input_name>, non-default → .#<input_name>--<output>
+    local nix_ref
+    if [[ -n "$output_suffix" ]]; then
+      nix_ref="$WORKSPACE_ROOT#$input_name--$output_suffix"
+    else
+      nix_ref="$WORKSPACE_ROOT#$input_name"
+    fi
+    local display_name="$input_name"
+    [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
+    log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
     exec nix build \
       --extra-experimental-features "nix-command flakes" \
-      "$WORKSPACE_ROOT#$input_name" \
+      "$nix_ref" \
       ${flags[@]+"${flags[@]}"} \
       ${extra_args[@]+"${extra_args[@]}"}
   fi
 
   local failed=0
-  for repo in "${repos[@]}"; do
+  for repo_spec in "${repos[@]}"; do
+    local repo_name="${repo_spec%%#*}"
+    local output_suffix=""
+    [[ "$repo_spec" == *"#"* ]] && output_suffix="${repo_spec#*#}"
     local input_name
-    input_name=$(get_input_name "$repo")
+    input_name=$(get_input_name "$repo_name")
     if [[ -z "$input_name" ]]; then
-      echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
+      echo -e "${RED}Error:${NC} repo '$repo_name' has no flake input (non-flake repo)" >&2
       failed=$((failed + 1))
       continue
     fi
+    local nix_ref
+    if [[ -n "$output_suffix" ]]; then
+      nix_ref="$WORKSPACE_ROOT#$input_name--$output_suffix"
+    else
+      nix_ref="$WORKSPACE_ROOT#$input_name"
+    fi
+    local display_name="$input_name"
+    [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
 
-    log "${BOLD}Building ${CYAN}$input_name${NC}${BOLD}...${NC}"
+    log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
     if ! nix build \
       --extra-experimental-features "nix-command flakes" \
-      "$WORKSPACE_ROOT#$input_name" \
+      "$nix_ref" \
       ${flags[@]+"${flags[@]}"} \
       ${extra_args[@]+"${extra_args[@]}"}; then
-      echo -e "${RED}FAIL${NC} $input_name"
+      echo -e "${RED}FAIL${NC} $display_name"
       failed=$((failed + 1))
     else
-      echo -e "${GREEN}OK${NC}   $input_name"
+      echo -e "${GREEN}OK${NC}   $display_name"
     fi
     log ""
   done
