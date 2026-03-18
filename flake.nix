@@ -82,8 +82,8 @@
 
     # ── App ───────────────────────────────────────────────────────────────────
 
-    logos-app-poc = {
-      url = "github:logos-co/logos-app-poc";
+    logos-app = {
+      url = "github:logos-co/logos-app";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -269,6 +269,48 @@
       inputs.logos-capability-module.follows = "logos-capability-module";
     };
 
+    # ── Modules: Blockchain / Execution zone (LEX) ─────────────────────────────
+
+    logos-blockchain-module = {
+      url = "github:logos-blockchain/logos-blockchain-module";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-core.follows = "logos-cpp-sdk";
+      inputs.logos-module-viewer.follows = "logos-module-viewer";
+      # logos-blockchain (Rust): external, left as-is
+    };
+
+    logos-blockchain-ui = {
+      url = "github:logos-blockchain/logos-blockchain-ui";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-blockchain-module.follows = "logos-blockchain-module";
+      inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.logos-design-system.follows = "logos-design-system";
+    };
+
+    logos-execution-zone-module = {
+      url = "github:logos-blockchain/logos-execution-zone-module";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-core.follows = "logos-cpp-sdk";
+      inputs.logos-module-viewer.follows = "logos-module-viewer";
+      # logos-execution-zone (lssa): external, left as-is
+    };
+
+    logos-execution-zone-wallet-ui = {
+      url = "github:logos-blockchain/logos-execution-zone-wallet-ui";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-execution-zone-module.follows = "logos-execution-zone-module";
+      inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.logos-design-system.follows = "logos-design-system";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.logos-package-manager.follows = "logos-package-manager-module";
+    };
+
     # ── Modules: Other ────────────────────────────────────────────────────────
 
     logos-libp2p-module = {
@@ -356,7 +398,7 @@
 
     # Repos with no flake.nix (submodules only, not flake inputs):
     #   logos-docs, logos-website, logos-tutorial, logos-template-module,
-    #   logos-blockchain-module, node-configs
+    #   node-configs
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -373,7 +415,7 @@
         # Packaging / Bundling
         "nix-bundle-dir" "nix-bundle-lgx"
         # App
-        "logos-app-poc"
+        "logos-app"
         # Accounts
         "logos-accounts-module" "logos-accounts-ui"
         # Chat & Messaging
@@ -387,6 +429,8 @@
         "logos-storage-module" "logos-storage-ui"
         # Wallet
         "logos-wallet-module" "logos-wallet-ui"
+        # Blockchain / Execution zone (LEX)
+        "logos-blockchain-module" "logos-blockchain-ui" "logos-execution-zone-module" "logos-execution-zone-wallet-ui"
         # Other modules
         "logos-libp2p-module" "logos-webview-app"
         "counter_qml" "counter"
@@ -415,7 +459,7 @@
 
       # ── Packages ──────────────────────────────────────────────────────────
       # nix build .#logos-cpp-sdk
-      # nix build .#logos-app-poc
+      # nix build .#logos-app
       packages = forAllSystems (system:
         builtins.listToAttrs (builtins.concatMap (name:
           let

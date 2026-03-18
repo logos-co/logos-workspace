@@ -4,7 +4,7 @@ paths:
   - "repos/logos-liblogos/**"
   - "repos/logos-module/**"
   - "repos/logos-module-builder/**"
-  - "repos/logos-app-poc/**"
+  - "repos/logos-app/**"
   - "repos/**/module.yaml"
   - "repos/**/*_plugin.cpp"
   - "repos/**/*_plugin.h"
