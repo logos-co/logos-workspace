@@ -140,3 +140,6 @@
 [submodule "repos/logos-nix"]
 	path = repos/logos-nix
 	url = git@github.com:logos-co/logos-nix.git
+[submodule "repos/logos-standalone-app"]
+	path = repos/logos-standalone-app
+	url = git@github.com:logos-co/logos-standalone-app.git
