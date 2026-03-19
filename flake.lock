@@ -1400,7 +1400,7 @@
       },
       "locked": {
         "lastModified": 1771682919,
-        "narHash": "sha256-WNI+UFVSFRMa8Pcz4t/8Cpj1SH20KEBzmX4PwbDEe4Q=",
+        "narHash": "sha256-wgN/kDO8T5KVaXMD82DXrExQH3ulfzcrpP6DqUcbcxo=",
         "owner": "logos-co",
         "repo": "logos-waku-module",
         "rev": "cf30aa7e24f0782b5fffca1772da15862593063b",
