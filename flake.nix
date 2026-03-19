@@ -93,6 +93,14 @@
 
     # ── App ───────────────────────────────────────────────────────────────────
 
+    logos-standalone-app = {
+      url = "github:logos-co/logos-standalone-app";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-design-system.follows = "logos-design-system";
+    };
+
     logos-basecamp = {
       url = "github:logos-co/logos-basecamp";
       inputs.logos-nix.follows = "logos-nix";
@@ -460,7 +468,7 @@
         # Packaging / Bundling
         "nix-bundle-dir" "nix-bundle-lgx"
         # App
-        "logos-basecamp"
+        "logos-basecamp" "logos-standalone-app"
         # Accounts
         "logos-accounts-module" "logos-accounts-ui"
         # Chat & Messaging
@@ -531,6 +539,25 @@
         in allPkgs
       );
 
+      # ── Apps ──────────────────────────────────────────────────────────────
+      # nix run .#logos-standalone-app -- --plugin ./result/lib/
+      # Forwards apps outputs from all repos. Default app exposed as repo name,
+      # non-default as <repo>--<output>.
+      apps = forAllSystems (system:
+        builtins.foldl' (acc: name:
+          let
+            repoApps = (inputs.${name}.apps.${system} or {});
+            outNames = builtins.attrNames repoApps;
+          in
+          acc // builtins.listToAttrs (map (outName:
+            let
+              attrName = if outName == "default" then name else "${name}--${outName}";
+            in
+            { name = attrName; value = repoApps.${outName}; }
+          ) outNames)
+        ) {} repoInputNames
+      );
+
       # ── Dev Shells ────────────────────────────────────────────────────────
       # nix develop          → workspace shell (ws CLI + common tools)
       # nix develop .#logos-cpp-sdk → that repo's own devShell
@@ -540,7 +567,11 @@
       devShells = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          wsScript = pkgs.writeShellScriptBin "ws" (builtins.readFile ./scripts/ws);
+          # Always delegates to the live scripts/ws in the workspace,
+          # without needing to rebuild the devshell.
+          wsScript = pkgs.writeShellScriptBin "ws" ''
+            exec "''${LOGOS_WORKSPACE_ROOT}/scripts/ws" "$@"
+          '';
         in {
           default = import ./nix/devshell.nix { inherit pkgs wsScript; };
         }
@@ -560,6 +591,13 @@
           in
           acc // prefixed
         ) {} repoInputNames
+      );
+
+      # ── Bundlers ──────────────────────────────────────────────────────────
+      # Forwards nix-bundle-lgx bundlers so scripts can use "$WORKSPACE_ROOT"
+      # as the --bundler reference. 
+      bundlers = forAllSystems (system:
+        inputs.nix-bundle-lgx.bundlers.${system}
       );
 
       # ── Lib (for programmatic use) ────────────────────────────────────────
