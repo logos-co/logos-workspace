@@ -2,16 +2,20 @@
   description = "Logos Workspace — unified multi-repo development environment";
 
   inputs = {
+    # ── Shared Nix infrastructure ─────────────────────────────────────────────
+    logos-nix.url = "github:logos-co/logos-nix";
+
     # ── nixpkgs ────────────────────────────────────────────────────────────────
-    # Follows logos-cpp-sdk's pinned nixpkgs so that ALL repos use the same
+    # Follows logos-nix's pinned nixpkgs so that ALL repos use the same
     # Qt version and system libraries.  Do NOT pin a separate nixpkgs here.
-    nixpkgs.follows = "logos-cpp-sdk/nixpkgs";
+    nixpkgs.follows = "logos-nix/nixpkgs";
 
     # ── Shared build tooling (not developed locally, but needed for follows) ──
 
     nix-bundle-appimage.url = "github:logos-co/nix-bundle-appimage";
     nix-bundle-macos-app = {
       url = "github:logos-co/nix-bundle-macos-app";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
     };
@@ -20,11 +24,13 @@
 
     nix-bundle-dir = {
       url = "github:logos-co/nix-bundle-dir";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nix-bundle-lgx = {
       url = "github:logos-co/nix-bundle-lgx";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -37,22 +43,25 @@
     # Overriding logos-cpp-sdk here propagates to ALL downstream consumers
     # thanks to the follows declarations below.
 
-    logos-cpp-sdk.url = "github:logos-co/logos-cpp-sdk";
+    logos-cpp-sdk = {
+      url = "github:logos-co/logos-cpp-sdk";
+      inputs.logos-nix.follows = "logos-nix";
+    };
 
     logos-module = {
       url = "github:logos-co/logos-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
     };
 
     logos-liblogos = {
       url = "github:logos-co/logos-liblogos";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      # NOT following logos-capability-module here to break circular dep:
-      #   logos-liblogos → logos-capability-module → logos-liblogos
-      # logos-capability-module.inputs.logos-liblogos DOES follow, so edits
-      # to logos-liblogos still propagate into logos-capability-module.
+      # logos-capability-module no longer depends on logos-liblogos (uses logos-module
+      # for interface.h instead), so there is no circular dep to break.
       # To override logos-capability-module in logos-liblogos, pass it explicitly:
       #   --override-input logos-liblogos/logos-capability-module path:./repos/logos-capability-module
       inputs.logos-module.follows = "logos-module";
@@ -62,28 +71,31 @@
 
     logos-capability-module = {
       url = "github:logos-co/logos-capability-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module.follows = "logos-module";
     };
 
     logos-package = {
       url = "github:logos-co/logos-package";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.logos-liblogos.follows = "logos-liblogos";
     };
 
     logos-module-builder = {
       url = "github:logos-co/logos-module-builder";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module.follows = "logos-module";
     };
 
     # ── App ───────────────────────────────────────────────────────────────────
 
     logos-basecamp = {
       url = "github:logos-co/logos-basecamp";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -105,6 +117,7 @@
 
     logos-accounts-module = {
       url = "github:logos-co/logos-accounts-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -113,6 +126,7 @@
 
     logos-accounts-ui = {
       url = "github:logos-co/logos-accounts-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -126,6 +140,7 @@
 
     logos-chat-module = {
       url = "github:logos-co/logos-chat-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -135,6 +150,7 @@
     # logos-chat-ui and logos-irc-module depend on the legacy chat module
     logos-chat-legacy-module = {
       url = "github:logos-co/logos-chat-legacy-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -143,6 +159,7 @@
 
     logos-chat-tui = {
       url = "github:logos-co/logos-chat-tui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-chat-module.follows = "logos-chat-module";
@@ -153,6 +170,7 @@
 
     logos-chat-ui = {
       url = "github:logos-co/logos-chat-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -164,6 +182,7 @@
 
     logos-chatsdk-module = {
       url = "github:logos-co/logos-chatsdk-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -172,6 +191,7 @@
 
     logos-chatsdk-ui = {
       url = "github:logos-co/logos-chatsdk-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -181,6 +201,7 @@
 
     logos-irc-module = {
       url = "github:logos-co/logos-irc-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -194,6 +215,7 @@
 
     logos-waku-module = {
       url = "github:logos-co/logos-waku-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -202,6 +224,7 @@
 
     logos-waku-ui = {
       url = "github:logos-co/logos-waku-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -213,9 +236,10 @@
 
     logos-package-manager-module = {
       url = "github:logos-co/logos-package-manager-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module.follows = "logos-module";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -223,6 +247,7 @@
 
     logos-package-manager-ui = {
       url = "github:logos-co/logos-package-manager-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -234,6 +259,7 @@
 
     logos-storage-module = {
       url = "github:logos-co/logos-storage-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -242,6 +268,7 @@
 
     logos-storage-ui = {
       url = "github:logos-co/logos-storage-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -254,6 +281,7 @@
 
     logos-wallet-module = {
       url = "github:logos-co/logos-wallet-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -262,6 +290,7 @@
 
     logos-wallet-ui = {
       url = "github:logos-co/logos-wallet-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -273,6 +302,7 @@
 
     logos-blockchain-module = {
       url = "github:logos-blockchain/logos-blockchain-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-core.follows = "logos-cpp-sdk";
@@ -282,6 +312,7 @@
 
     logos-blockchain-ui = {
       url = "github:logos-blockchain/logos-blockchain-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -292,6 +323,7 @@
 
     logos-execution-zone-module = {
       url = "github:logos-blockchain/logos-execution-zone-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-core.follows = "logos-cpp-sdk";
@@ -301,6 +333,7 @@
 
     logos-execution-zone-wallet-ui = {
       url = "github:logos-blockchain/logos-execution-zone-wallet-ui";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -315,6 +348,7 @@
 
     logos-libp2p-module = {
       url = "github:logos-co/logos-libp2p-module";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-module-builder.follows = "logos-module-builder";
       # libp2p: external dep (vacp2p org), left as-is
@@ -322,19 +356,21 @@
 
     logos-webview-app = {
       url = "github:logos-co/logos-webview-app";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
     };
 
     counter_qml = {
       url = "github:logos-co/counter_qml";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
     };
 
     counter = {
       url = "github:logos-co/counter";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
     };
@@ -343,6 +379,7 @@
 
     logos-design-system = {
       url = "github:logos-co/logos-design-system";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
     };
@@ -351,6 +388,7 @@
 
     logos-js-sdk = {
       url = "github:logos-co/logos-js-sdk";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -359,6 +397,7 @@
 
     logos-nim-sdk = {
       url = "github:logos-co/logos-nim-sdk";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -366,6 +405,7 @@
 
     logos-rust-sdk = {
       url = "github:logos-co/logos-rust-sdk";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -373,6 +413,7 @@
 
     logos-modules = {
       url = "github:logos-co/logos-modules";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-package.follows = "logos-package";
@@ -380,6 +421,7 @@
 
     logos-module-viewer = {
       url = "github:logos-co/logos-module-viewer";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
@@ -391,9 +433,12 @@
 
     logos-test-modules = {
       url = "github:logos-co/logos-test-modules";
+      inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
 
     # Repos with no flake.nix (submodules only, not flake inputs):

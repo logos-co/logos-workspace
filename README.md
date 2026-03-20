@@ -89,6 +89,7 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws worktree add <name> [-b br]` | Create a worktree with submodules and `ws/<branch>` branches |
 | `ws worktree list` | List all worktrees |
 | `ws worktree remove <name>` | Remove a worktree |
+| `ws repo-upgrade [repo...\|--group G]` | Pull latest master/main for submodules |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
 | `ws nix-diagnose <repo>` | Detect circular deps and version conflicts in flake.lock |
 | `ws check-qt <repo>` | Detect Qt version conflicts in nix closure or module cache |
