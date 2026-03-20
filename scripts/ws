@@ -37,6 +37,9 @@ log() { $QUIET || echo -e "$@"; }
 # has_flake: "yes" or "no"
 
 REPOS=(
+  # Shared Nix infrastructure
+  "logos-nix|logos-nix|https://github.com/logos-co/logos-nix.git|yes"
+
   # Foundation
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
   "logos-module|logos-module|https://github.com/logos-co/logos-module.git|yes"
@@ -1994,6 +1997,268 @@ HEADER
   fi
 }
 
+cmd_nix_diagnose() {
+  wants_help "$@" && show_help "Usage: ws nix-diagnose <repo>
+
+Diagnose dependency issues in a repo's flake.
+
+Checks:
+  1. Circular dependencies in the workspace dependency graph
+  2. Duplicate dependencies — same repo appearing at different versions
+     in the flake.lock (e.g. two copies of logos-nix at different revs)
+
+Examples:
+  ws nix-diagnose logos-basecamp
+  ws nix-diagnose logos-liblogos"
+
+  local repo=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -*) shift ;;
+      *) repo="$1"; shift ;;
+    esac
+  done
+
+  if [[ -z "$repo" ]]; then
+    echo -e "${RED}Error:${NC} repo name required" >&2
+    exit 1
+  fi
+
+  local entry
+  entry=$(find_repo_entry "$repo") || { echo -e "${RED}Unknown repo:${NC} $repo" >&2; exit 1; }
+  local input_name dir_name
+  input_name=$(get_field "$entry" 1)
+  dir_name=$(get_field "$entry" 2)
+
+  # ── 1. Circular dependency detection (from flake.lock) ─────────────────────
+  log "${BOLD}Circular Dependencies${NC}"
+
+  local lock_file="$REPOS_DIR/$dir_name/flake.lock"
+  if [[ ! -f "$lock_file" ]]; then
+    echo -e "  ${YELLOW}No flake.lock found, skipping${NC}"
+  elif ! command -v jq &>/dev/null; then
+    echo -e "  ${RED}jq is required but not found${NC}" >&2
+  else
+    # Build a repo-level dependency graph from the flake.lock.
+    # Each lock node maps to a repo identity (original.repo or the node key
+    # with _N suffixes stripped).  Edges are the direct (non-follows) inputs.
+    # Output: "source_repo target_repo" lines (unique).
+    local repo_edges
+    repo_edges=$(jq -r '
+      .nodes as $nodes |
+      [ $nodes | to_entries[] |
+        select(.value.inputs != null) |
+        .key as $parent |
+        ( $nodes[$parent].original.repo // ($parent | sub("_[0-9]+$"; "")) ) as $src |
+        .value.inputs | to_entries[] |
+        select(.value | type == "string") |
+        .value as $child |
+        ( $nodes[$child].original.repo // ($child | sub("_[0-9]+$"; "")) ) as $dst |
+        select($src != $dst) |
+        $src + " " + $dst
+      ] | unique[]
+    ' "$lock_file" 2>/dev/null || true)
+
+    if [[ -z "$repo_edges" ]]; then
+      echo -e "  ${GREEN}No circular dependencies found${NC}"
+    else
+      # Build adjacency list as "repo|dep1,dep2,..." lines
+      local graph_data
+      graph_data=$(echo "$repo_edges" | awk '{
+        deps[$1] = deps[$1] ? deps[$1] "," $2 : $2
+      } END {
+        for (n in deps) print n "|" deps[n]
+      }')
+
+      # DFS cycle detection using temp files (bash 3.2 compatible)
+      local _dfs_state_file _dfs_path_file
+      _dfs_state_file=$(mktemp)
+      _dfs_path_file=$(mktemp)
+      local found_cycle=false
+
+      _dfs_cycle() {
+        local node="$1"
+        echo "$node visiting" >> "$_dfs_state_file"
+        echo "$node" >> "$_dfs_path_file"
+
+        local deps_str
+        deps_str=$(echo "$graph_data" | grep "^${node}|" | head -1 | cut -d'|' -f2 || true)
+        local dep
+        for dep in ${deps_str//,/ }; do
+          [[ -z "$dep" ]] && continue
+          local state
+          state=$(grep "^${dep} " "$_dfs_state_file" 2>/dev/null | tail -1 | cut -d' ' -f2 || true)
+          if [[ "$state" == "visiting" ]]; then
+            found_cycle=true
+            local cycle="" in_cycle=false
+            while IFS= read -r p; do
+              [[ "$p" == "$dep" ]] && in_cycle=true
+              if $in_cycle; then
+                [[ -n "$cycle" ]] && cycle+=" -> "
+                cycle+="$p"
+              fi
+            done < "$_dfs_path_file"
+            echo -e "  ${RED}Cycle:${NC} $cycle -> $dep"
+          elif [[ -z "$state" ]]; then
+            _dfs_cycle "$dep"
+          fi
+        done
+
+        # Pop path (GNU sed uses -i, BSD sed requires -i '')
+        if sed -i '$ d' "$_dfs_path_file" 2>/dev/null; then :; else sed -i '' '$ d' "$_dfs_path_file"; fi
+        echo "$node done" >> "$_dfs_state_file"
+      }
+
+      # Start DFS from the repo's own identity
+      local start_repo
+      start_repo=$(jq -r '
+        .nodes.root.inputs | to_entries[] |
+        select(.value | type == "string") | .key
+      ' "$lock_file" 2>/dev/null | head -1 || true)
+      # Visit all repos reachable from root inputs
+      local root_inputs
+      root_inputs=$(jq -r '
+        .nodes.root.inputs | to_entries[] |
+        select(.value | type == "string") | .value
+      ' "$lock_file" 2>/dev/null || true)
+      local repo_name
+      for repo_name in $root_inputs; do
+        local identity
+        identity=$(jq -r --arg n "$repo_name" '
+          .nodes[$n].original.repo // ($n | sub("_[0-9]+$"; ""))
+        ' "$lock_file" 2>/dev/null || true)
+        [[ -z "$identity" ]] && continue
+        local state
+        state=$(grep "^${identity} " "$_dfs_state_file" 2>/dev/null | tail -1 | cut -d' ' -f2 || true)
+        [[ -z "$state" ]] && _dfs_cycle "$identity"
+      done
+
+      rm -f "$_dfs_state_file" "$_dfs_path_file"
+
+      if ! $found_cycle; then
+        echo -e "  ${GREEN}No circular dependencies found${NC}"
+      fi
+    fi
+  fi
+
+  # ── 2. Dependency version conflicts ─────────────────────────────────────────
+  log ""
+  log "${BOLD}Dependency Version Conflicts${NC}"
+
+  local lock_file="$REPOS_DIR/$dir_name/flake.lock"
+  if [[ ! -f "$lock_file" ]]; then
+    echo -e "  ${YELLOW}No flake.lock found${NC}"
+    return
+  fi
+
+  if ! command -v jq &>/dev/null; then
+    echo -e "  ${RED}jq is required but not found${NC}" >&2
+    return 1
+  fi
+
+  # Find groups of nodes that map to the same repo but different revs
+  local conflicts_json
+  conflicts_json=$(jq '
+    .nodes as $nodes |
+    [
+      $nodes | to_entries[] |
+      select(.key != "root") |
+      select(.value.locked != null) |
+      select(.value.original.type == "github") |
+      {
+        key: .key,
+        repo_id: (.value.original.owner + "/" + .value.original.repo),
+        rev: .value.locked.rev
+      }
+    ] | group_by(.repo_id) |
+    map(select([.[].rev] | unique | length > 1))
+  ' "$lock_file" 2>/dev/null)
+
+  local conflict_count
+  conflict_count=$(echo "$conflicts_json" | jq 'length')
+
+  if [[ "$conflict_count" == "0" ]]; then
+    echo -e "  ${GREEN}No version conflicts found${NC}"
+    return
+  fi
+
+  # Build adjacency list (one jq call): "parent child input_name" per line
+  local adj_lines
+  adj_lines=$(jq -r '
+    .nodes | to_entries[] |
+    .key as $parent |
+    select(.value.inputs != null) |
+    .value.inputs | to_entries[] |
+    select(.value | type == "string") |
+    $parent + " " + .value + " " + .key
+  ' "$lock_file" 2>/dev/null)
+
+  # BFS to find shortest path from root to a target node (bash 3.2 compatible)
+  _find_path() {
+    local target="$1"
+    [[ "$target" == "root" ]] && { echo "root"; return; }
+
+    local _bfs_queue_file _bfs_seen_file
+    _bfs_queue_file=$(mktemp)
+    _bfs_seen_file=$(mktemp)
+    echo "root|root" > "$_bfs_queue_file"
+
+    local result="(unreachable)"
+    while [[ -s "$_bfs_queue_file" ]]; do
+      local item
+      item=$(head -1 "$_bfs_queue_file")
+      if sed -i '1d' "$_bfs_queue_file" 2>/dev/null; then :; else sed -i '' '1d' "$_bfs_queue_file"; fi
+
+      local node="${item%%|*}"
+      local path="${item#*|}"
+
+      grep -qx "$node" "$_bfs_seen_file" 2>/dev/null && continue
+      echo "$node" >> "$_bfs_seen_file"
+
+      if [[ "$node" == "$target" ]]; then
+        result="$path"
+        break
+      fi
+
+      while IFS=' ' read -r p c i; do
+        if [[ "$p" == "$node" ]] && ! grep -qx "$c" "$_bfs_seen_file" 2>/dev/null; then
+          echo "$c|$path -> $i" >> "$_bfs_queue_file"
+        fi
+      done <<< "$adj_lines"
+    done
+
+    rm -f "$_bfs_queue_file" "$_bfs_seen_file"
+    echo "$result"
+  }
+
+  echo -e "  ${YELLOW}Found $conflict_count conflict(s):${NC}"
+  echo ""
+
+  local i=0
+  while [[ $i -lt $conflict_count ]]; do
+    local repo_id
+    repo_id=$(echo "$conflicts_json" | jq -r ".[$i][0].repo_id")
+    echo -e "  ${BOLD}$repo_id${NC}:"
+
+    # Group by rev within this conflict, output "short_rev|full_rev|key1,key2,..."
+    echo "$conflicts_json" | jq -r --argjson idx "$i" '
+      .[$idx] | group_by(.rev) | .[] |
+      .[0].rev[0:7] + "|" + .[0].rev + "|" + ([.[].key] | join(","))
+    ' | while IFS='|' read -r short_rev _full_rev node_keys; do
+      echo -e "    rev ${CYAN}$short_rev${NC}:"
+      IFS=',' read -ra keys <<< "$node_keys"
+      for key in "${keys[@]}"; do
+        local path
+        path=$(_find_path "$key")
+        echo "      $path"
+      done
+    done
+
+    echo ""
+    ((i++))
+  done
+}
+
 cmd_check_qt() {
   wants_help "$@" && show_help "Usage: ws check-qt <repo>
 
@@ -2210,6 +2475,7 @@ COMMANDS:
   worktree list                List all worktrees
   worktree remove <name>       Remove a worktree
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
+  nix-diagnose <repo>            Detect circular deps and version conflicts in flake.lock
   check-qt <repo>               Check for Qt version conflicts in a repo's nix closure
 
   lm <args>                     Module inspector (auto-builds logos-module)
@@ -2343,6 +2609,7 @@ case "${1:-help}" in
   worktree|wt)    shift; cmd_worktree "$@" ;;
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
+  nix-diagnose)   shift; cmd_nix_diagnose "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   groups)         shift; cmd_groups "$@" ;;
   help|--help|-h) cmd_help ;;

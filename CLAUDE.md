@@ -41,6 +41,10 @@ ws graph <repo...>                   # Show deps/dependents
 ws foreach <cmd>                     # Run command in every repo
 ws foreach 'git add . && git commit -m "msg" || true'
 
+# Diagnostics
+ws nix-diagnose <repo>               # Detect circular deps and version conflicts in flake.lock
+ws check-qt <repo>                   # Detect Qt version conflicts in nix closure or module cache
+
 # Other
 ws update [repo...]                  # Update flake inputs
 ws update --deep <repo...>           # Update in workspace + all sub-repo flake.locks
