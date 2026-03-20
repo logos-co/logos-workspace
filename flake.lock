@@ -1628,11 +1628,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774020071,
-        "narHash": "sha256-l/YNR1QWvL6wcLMVRsRcsACcMcu+4ytyMklxl7DUVgY=",
+        "lastModified": 1774029827,
+        "narHash": "sha256-P27gdrcKUQ+CfBjPv3dSfah/NaJo0hVD+O06c5ORQzY=",
         "owner": "logos-co",
         "repo": "logos-test-modules",
-        "rev": "c2180c820065cfbf2a878e3ca335276c42f2ae11",
+        "rev": "58e4819f2618857a594ef71614b3b08189c2ecd7",
         "type": "github"
       },
       "original": {
