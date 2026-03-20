@@ -35,14 +35,17 @@ jobs:
 
       - name: Install Nix
         if: steps.filter.outputs.skip_build != 'true'
-        uses: DeterminateSystems/nix-installer-action@main
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Setup Nix cache
+      - name: Setup Cachix
         if: steps.filter.outputs.skip_build != 'true'
-        uses: DeterminateSystems/magic-nix-cache-action@main
-        # For faster CI, consider adding a dedicated binary cache:
-        #   cachix-name: logos-workspace
-        #   cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        uses: cachix/cachix-action@v15
+        with:
+          name: logos-co
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Add workspace tools to PATH
         if: steps.filter.outputs.skip_build != 'true'
