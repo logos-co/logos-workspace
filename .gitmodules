@@ -137,3 +137,6 @@
 [submodule "repos/logos-test-modules"]
 	path = repos/logos-test-modules
 	url = git@github.com:logos-co/logos-test-modules.git
+[submodule "repos/logos-nix"]
+	path = repos/logos-nix
+	url = git@github.com:logos-co/logos-nix.git
