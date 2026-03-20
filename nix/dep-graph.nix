@@ -10,6 +10,7 @@
 # If you add a `checks` output to a repo's flake.nix, re-run this command
 # so that `ws test --all` picks it up.
 {
+  logos-nix                      = { deps = []; hasTests = false; };
   logos-cpp-sdk                  = { deps = [ "logos-nix" ]; hasTests = false; };
   logos-module                   = { deps = [ "logos-nix" ]; hasTests = true; };
   logos-liblogos                 = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "logos-capability-module" "nix-bundle-dir" ]; hasTests = true; };
