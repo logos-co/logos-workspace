@@ -90,6 +90,8 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws worktree list` | List all worktrees |
 | `ws worktree remove <name>` | Remove a worktree |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
+| `ws nix-diagnose <repo>` | Detect circular deps and version conflicts in flake.lock |
+| `ws check-qt <repo>` | Detect Qt version conflicts in nix closure or module cache |
 
 ### Global Options
 
@@ -677,6 +679,29 @@ ws build logos-basecamp --local logos-cpp-sdk
 ```
 
 If a build fails unexpectedly with overrides, check that the dirty repo is in a buildable state — `--auto-local` uses whatever is on disk, including broken or half-finished work.
+
+## Diagnosing dependency issues
+
+When a repo fails to build or evaluate, `ws nix-diagnose` inspects its `flake.lock` for two common problems:
+
+1. **Circular dependencies** — repo A depends on B which depends on A (directly or transitively). Nix evaluation will hang or fail with infinite recursion. Common after refactors that move code between repos (e.g. logos-liblogos ↔ logos-capability-module).
+
+2. **Duplicate dependencies at different versions** — the same repo (e.g. `logos-nix`) appears multiple times in `flake.lock` at different git revisions. This happens when a repo's `flake.lock` is stale and its transitive deps have moved ahead. Causes subtle build failures, hash mismatches, or multiple Qt versions in the closure.
+
+```bash
+ws nix-diagnose <repo>
+
+# Examples
+ws nix-diagnose logos-basecamp       # check the app shell
+ws nix-diagnose logos-chat-ui        # check a module with many deps
+ws nix-diagnose logos-liblogos       # check core runtime
+```
+
+Output shows:
+- Cycles as `A -> B -> C -> A` chains
+- Version conflicts grouped by repo, with the input path from root to each conflicting copy (e.g. `root -> logos-liblogos -> logos-capability-module -> logos-nix`)
+
+**Fixing conflicts**: run `ws update --deep <repo>` to update the repo's `flake.lock` and all its sub-repo locks, then rebuild. For cycles, the dependency must be broken at the source (usually by removing a `follows` or restructuring inputs).
 
 ## CI
 
