@@ -857,9 +857,9 @@ _test_one_repo() {
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
         "${check_ref}tests" $override_flags -L; then
-        echo -e "  ${GREEN}PASS${NC} tests"
+        echo -e "  ${GREEN}PASS${NC} ${dir_name} tests"
       else
-        echo -e "  ${RED}FAIL${NC} tests"
+        echo -e "  ${RED}FAIL${NC} ${dir_name} tests"
         all_pass=false
       fi
     fi
@@ -872,9 +872,9 @@ _test_one_repo() {
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
         "${check_ref}${check}" $override_flags -L; then
-        echo -e "  ${GREEN}PASS${NC} $check"
+        echo -e "  ${GREEN}PASS${NC} ${dir_name} $check"
       else
-        echo -e "  ${RED}FAIL${NC} $check"
+        echo -e "  ${RED}FAIL${NC} ${dir_name} $check"
         all_pass=false
       fi
     done <<< "$checks"
@@ -889,9 +889,9 @@ _test_one_repo() {
       # shellcheck disable=SC2086
       if nix build --extra-experimental-features "nix-command flakes" \
         "${pkg_ref}${pkg}" $override_flags -L; then
-        echo -e "  ${GREEN}PASS${NC} $pkg"
+        echo -e "  ${GREEN}PASS${NC} ${dir_name} $pkg"
       else
-        echo -e "  ${RED}FAIL${NC} $pkg"
+        echo -e "  ${RED}FAIL${NC} ${dir_name} $pkg"
         all_pass=false
       fi
     done <<< "$(_json_array_to_lines "$test_pkgs_json")"
