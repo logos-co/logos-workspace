@@ -2259,6 +2259,107 @@ Examples:
   done
 }
 
+cmd_repo_upgrade() {
+  wants_help "$@" && show_help "Usage: ws repo-upgrade [repo...|--group name|--all]
+
+Pull the latest master/main for repo submodules.
+
+Without arguments, upgrades ALL repos. With repo names, upgrades only those.
+Fetches from origin and checks out the latest commit on the default branch
+(master or main). Retries on failure (20s, then 40s).
+
+Options:
+  --group, -g <name...>   Use a named repo group (see 'ws groups')
+  --all                   Upgrade all repos (default when no args given)
+
+Examples:
+  ws repo-upgrade                          Upgrade all repos
+  ws repo-upgrade logos-cpp-sdk            Upgrade a single repo
+  ws repo-upgrade logos-cpp-sdk logos-module  Upgrade multiple repos
+  ws repo-upgrade --group core             Upgrade all core repos"
+
+  local targets=()
+  local all=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && targets+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
+      --all) all=true; shift ;;
+      -*) shift ;;
+      *) targets+=("$1"); shift ;;
+    esac
+  done
+
+  # Default to all repos when no targets specified
+  if [[ ${#targets[@]} -eq 0 ]]; then
+    all=true
+  fi
+
+  local entries=()
+  if $all; then
+    entries=("${REPOS[@]}")
+  else
+    for t in "${targets[@]}"; do
+      local entry
+      entry=$(find_repo_entry "$t") || { echo -e "${RED}Unknown repo:${NC} $t" >&2; continue; }
+      entries+=("$entry")
+    done
+  fi
+
+  local failed=()
+  local total=${#entries[@]}
+  local i=0
+
+  for entry in "${entries[@]}"; do
+    local dir_name
+    dir_name=$(get_field "$entry" 2)
+    local repo_dir="$REPOS_DIR/$dir_name"
+    ((i++))
+
+    if [[ ! -e "$repo_dir/.git" ]]; then
+      log "  ${YELLOW}[$i/$total] $dir_name — not cloned, skipping${NC}"
+      continue
+    fi
+
+    local default_branch
+    default_branch=$(git -C "$repo_dir" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@refs/remotes/origin/@@' || echo "master")
+
+    local fetched=false
+    for wait in 0 20 40; do
+      [[ "$wait" -gt 0 ]] && log "  ${YELLOW}retrying in ${wait}s...${NC}" && sleep "$wait"
+      if git -C "$repo_dir" fetch origin "$default_branch" 2>/dev/null; then
+        fetched=true
+        break
+      fi
+    done
+
+    if $fetched; then
+      git -C "$repo_dir" checkout "origin/$default_branch" --detach 2>/dev/null
+      local short_rev
+      short_rev=$(git -C "$repo_dir" rev-parse --short HEAD 2>/dev/null)
+      log "  ${GREEN}[$i/$total] $dir_name${NC} -> ${CYAN}$default_branch${NC} ($short_rev)"
+    else
+      log "  ${RED}[$i/$total] $dir_name — fetch failed${NC}"
+      failed+=("$dir_name")
+    fi
+
+    sleep $((RANDOM % 2 + 2))
+  done
+
+  echo ""
+  if [[ ${#failed[@]} -gt 0 ]]; then
+    echo -e "${RED}Failed repos:${NC}"
+    printf "  %s\n" "${failed[@]}"
+  else
+    log "${GREEN}All ${total} repos upgraded.${NC}"
+  fi
+}
+
 cmd_check_qt() {
   wants_help "$@" && show_help "Usage: ws check-qt <repo>
 
@@ -2474,6 +2575,7 @@ COMMANDS:
   worktree add <name> [-b br]  Create a worktree with submodules and ws/<branch> branches
   worktree list                List all worktrees
   worktree remove <name>       Remove a worktree
+  repo-upgrade [repo...|--group G|--all]  Pull latest master/main for submodules
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
   nix-diagnose <repo>            Detect circular deps and version conflicts in flake.lock
   check-qt <repo>               Check for Qt version conflicts in a repo's nix closure
@@ -2610,6 +2712,7 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
   nix-diagnose)   shift; cmd_nix_diagnose "$@" ;;
+  repo-upgrade)   shift; cmd_repo_upgrade "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   groups)         shift; cmd_groups "$@" ;;
   help|--help|-h) cmd_help ;;
