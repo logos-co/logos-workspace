@@ -1006,6 +1006,7 @@ Examples:
     log ""
 
     local passed=0 failed=0 skipped=0
+    local passed_repos="" failed_repos=""
 
     for entry in "${REPOS[@]}"; do
       local input_name dir_name has_flake
@@ -1049,15 +1050,24 @@ Examples:
       _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" "$use_workspace_flake" || rc=$?
       if [[ $rc -eq 0 ]]; then
         passed=$((passed + 1))
+        passed_repos="$passed_repos $dir_name"
       elif [[ $rc -eq 2 ]]; then
         skipped=$((skipped + 1))
       else
         failed=$((failed + 1))
+        failed_repos="$failed_repos $dir_name"
       fi
       log ""
     done
 
+    echo ""
     echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
+    if [[ -n "$passed_repos" ]]; then
+      echo -e "  ${GREEN}Passed:${NC}$passed_repos"
+    fi
+    if [[ -n "$failed_repos" ]]; then
+      echo -e "  ${RED}Failed:${NC}$failed_repos"
+    fi
     [[ $failed -eq 0 ]] || exit 1
   elif [[ ${#targets[@]} -eq 1 ]]; then
     local input_name dir_name
@@ -1075,6 +1085,7 @@ Examples:
   else
     # Multiple repos
     local passed=0 failed=0 skipped=0
+    local passed_repos="" failed_repos=""
 
     for target in "${targets[@]}"; do
       local input_name dir_name
@@ -1084,6 +1095,7 @@ Examples:
       if [[ -z "$input_name" ]]; then
         echo -e "${RED}Error:${NC} '$target' has no flake input" >&2
         failed=$((failed + 1))
+        failed_repos="$failed_repos $target"
         continue
       fi
 
@@ -1091,15 +1103,24 @@ Examples:
       _test_one_repo "$input_name" "$dir_name" "$system" "$override_flags" "$use_workspace_flake" || rc=$?
       if [[ $rc -eq 0 ]]; then
         passed=$((passed + 1))
+        passed_repos="$passed_repos $dir_name"
       elif [[ $rc -eq 2 ]]; then
         skipped=$((skipped + 1))
       else
         failed=$((failed + 1))
+        failed_repos="$failed_repos $dir_name"
       fi
       log ""
     done
 
+    echo ""
     echo -e "${BOLD}Results:${NC} ${GREEN}$passed passed${NC}  ${RED}$failed failed${NC}  ${YELLOW}$skipped skipped${NC}"
+    if [[ -n "$passed_repos" ]]; then
+      echo -e "  ${GREEN}Passed:${NC}$passed_repos"
+    fi
+    if [[ -n "$failed_repos" ]]; then
+      echo -e "  ${RED}Failed:${NC}$failed_repos"
+    fi
     [[ $failed -eq 0 ]] || exit 1
   fi
 }
