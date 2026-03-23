@@ -225,7 +225,7 @@ get_dirty_repos() {
       fi
     fi
   done
-  echo "${dirty[@]}"
+  echo ${dirty[@]+"${dirty[@]}"}
 }
 
 # Get all cloned repos that have flakes (for --workspace override)
@@ -486,6 +486,190 @@ Examples:
     fi
     log ""
   done
+  [[ $failed -eq 0 ]] || exit 1
+}
+
+cmd_bundle() {
+  wants_help "$@" && show_help "Usage: ws bundle <repo...|--group name> [options]
+
+Bundle one or more repos into .lgx packages using nix-bundle-lgx.
+
+Options:
+  --group, -g <name...>         Use a named repo group (see 'ws groups')
+  --auto-local, -a              Auto-detect dirty repos and use as local overrides
+  --local, -l <repo1> <repo2>   Use specific repos as local overrides
+  --workspace, -w               Override all deps with local workspace repos
+  --mode, -m <dev|portable|dual>  Bundle mode (default: dev)
+  -o, --out-dir <path>          Output directory for multi-repo bundles (default: result-bundle)
+
+Examples:
+  ws bundle logos-chat-module
+  ws bundle logos-chat-module --mode portable
+  ws bundle logos-chat-module logos-waku-module --auto-local
+  ws bundle --group core --mode dual"
+
+  local repos=()
+  local auto_local=false
+  local use_workspace=false
+  local local_overrides=()
+  local extra_args=()
+  local bundle_mode="dev"
+  local out_dir="result-bundle"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --group|-g)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local _gexp; _gexp=$(expand_group "$1") || exit 1
+          while IFS= read -r r; do [[ -n "$r" ]] && repos+=("$r"); done <<< "$_gexp"
+          shift
+        done ;;
+      --auto-local|--autolocal|-a)
+        auto_local=true; shift ;;
+      --workspace|-w)
+        use_workspace=true; shift ;;
+      --local|-l)
+        shift
+        while [[ $# -gt 0 && "$1" != -* ]]; do
+          local_overrides+=("$1"); shift
+        done ;;
+      --mode|-m)
+        shift
+        if [[ $# -eq 0 ]]; then
+          echo -e "${RED}Error:${NC} --mode requires an argument (dev, portable, dual)" >&2
+          exit 1
+        fi
+        bundle_mode="$1"
+        if [[ "$bundle_mode" != "dev" && "$bundle_mode" != "portable" && "$bundle_mode" != "dual" ]]; then
+          echo -e "${RED}Error:${NC} invalid mode '$bundle_mode' (must be dev, portable, or dual)" >&2
+          exit 1
+        fi
+        shift ;;
+      -o|--out-dir)
+        shift
+        if [[ $# -eq 0 ]]; then
+          echo -e "${RED}Error:${NC} --out-dir requires an argument" >&2
+          exit 1
+        fi
+        out_dir="$1"; shift ;;
+      -*)
+        extra_args+=("$1"); shift ;;
+      *)
+        repos+=("$1"); shift ;;
+    esac
+  done
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo -e "${RED}Error:${NC} no repo specified" >&2
+    echo "Usage: ws bundle <repo...> [options]" >&2
+    exit 1
+  fi
+
+  # Resolve bundler variant
+  local bundler_ref="path:$REPOS_DIR/nix-bundle-lgx"
+  case "$bundle_mode" in
+    dev)      ;; # default bundler
+    portable) bundler_ref="$bundler_ref#portable" ;;
+    dual)     bundler_ref="$bundler_ref#dual" ;;
+  esac
+
+  # Override all workspace repos
+  if $use_workspace; then
+    for dir in $(get_all_flake_repos); do
+      local_overrides+=("$dir")
+    done
+  fi
+
+  # Auto-detect dirty repos
+  if $auto_local; then
+    for dir in $(get_dirty_repos); do
+      local name
+      name=$(get_input_name "$dir")
+      [[ -n "$name" ]] && local_overrides+=("$dir")
+    done
+  fi
+
+  # Build override flags
+  local flags=()
+  if [[ ${#local_overrides[@]} -gt 0 ]]; then
+    local unique_overrides
+    unique_overrides=($(printf '%s\n' "${local_overrides[@]}" | sort -u))
+    log "${CYAN}Local overrides:${NC}"
+    for dir in "${unique_overrides[@]}"; do
+      log "  ${YELLOW}*${NC} $dir → path:$REPOS_DIR/$dir"
+    done
+    log ""
+    flags=($(build_override_flags "${unique_overrides[@]}"))
+  fi
+
+  # Deduplicate repos
+  repos=($(printf '%s\n' "${repos[@]}" | awk '!seen[$0]++'))
+
+  # Resolve bundle target: prefer the --lib output (has drv.src with metadata.json
+  # needed by nix-bundle-lgx), fall back to the default package.
+  _bundle_target() {
+    local name="$1"
+    # Check if the --lib package exists in the workspace flake
+    if nix eval --extra-experimental-features "nix-command flakes" \
+      "$WORKSPACE_ROOT#${name}--lib" --apply 'x: true' &>/dev/null; then
+      echo "${name}--lib"
+    else
+      echo "$name"
+    fi
+  }
+
+  if [[ ${#repos[@]} -eq 1 ]]; then
+    local input_name
+    input_name=$(get_input_name "${repos[0]}")
+    if [[ -z "$input_name" ]]; then
+      echo -e "${RED}Error:${NC} repo '${repos[0]}' has no flake input (non-flake repo)" >&2
+      exit 1
+    fi
+    local target
+    target=$(_bundle_target "$input_name")
+    log "${BOLD}Bundling ${CYAN}$input_name${NC}${BOLD} (mode: $bundle_mode)...${NC}"
+    exec nix bundle \
+      --extra-experimental-features "nix-command flakes" \
+      --bundler "$bundler_ref" \
+      -o result \
+      "$WORKSPACE_ROOT#$target" \
+      ${flags[@]+"${flags[@]}"} \
+      ${extra_args[@]+"${extra_args[@]}"}
+  fi
+
+  local failed=0
+  for repo in "${repos[@]}"; do
+    local input_name
+    input_name=$(get_input_name "$repo")
+    if [[ -z "$input_name" ]]; then
+      echo -e "${RED}Error:${NC} repo '$repo' has no flake input (non-flake repo)" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+
+    local target
+    target=$(_bundle_target "$input_name")
+    log "${BOLD}Bundling ${CYAN}$input_name${NC}${BOLD} (mode: $bundle_mode)...${NC}"
+    if ! nix bundle \
+      --extra-experimental-features "nix-command flakes" \
+      --bundler "$bundler_ref" \
+      -o "$out_dir/$input_name" \
+      "$WORKSPACE_ROOT#$target" \
+      ${flags[@]+"${flags[@]}"} \
+      ${extra_args[@]+"${extra_args[@]}"}; then
+      echo -e "${RED}FAIL${NC} $input_name"
+      failed=$((failed + 1))
+    else
+      echo -e "${GREEN}OK${NC}   $input_name → $out_dir/$input_name/"
+    fi
+    log ""
+  done
+
+  if [[ $failed -eq 0 ]]; then
+    log "${GREEN}All ${#repos[@]} repos bundled successfully.${NC}"
+    log "Output: $out_dir/"
+  fi
   [[ $failed -eq 0 ]] || exit 1
 }
 
@@ -2571,6 +2755,13 @@ COMMANDS:
     --auto-local, -a              Auto-detect dirty repos and use as overrides
     --local, -l <r1> <r2> ...    Use specific local repos as overrides
 
+  bundle <repo...|--group G> [opts]  Bundle repos into .lgx packages
+    --group, -g <name...>         Use a named repo group (see 'ws groups')
+    --auto-local, -a              Auto-detect dirty repos and use as overrides
+    --local, -l <r1> <r2> ...    Use specific local repos as overrides
+    --mode, -m <dev|portable|dual>  Bundle mode (default: dev)
+    -o, --out-dir <path>          Output dir for multi-repo (default: result-bundle)
+
   run <repo> [opts]             Build and run a repo (single repo only)
 
   develop [repo...|--group G] [opts]  Enter a nix devShell
@@ -2629,6 +2820,15 @@ EXAMPLES:
 
   # Explicitly override specific deps
   ws build logos-basecamp --local logos-cpp-sdk logos-liblogos
+
+  # Bundle a module into an .lgx package
+  ws bundle logos-chat-module
+
+  # Bundle with portable mode (self-contained, no nix store deps)
+  ws bundle logos-chat-module --mode portable
+
+  # Bundle multiple repos (results in result-bundle/<repo>/)
+  ws bundle logos-chat-module logos-waku-module --auto-local
 
   # Run all tests
   ws test --all
@@ -2718,6 +2918,7 @@ fi
 case "${1:-help}" in
   init)           shift; cmd_init "$@" ;;
   build)          shift; cmd_build "$@" ;;
+  bundle)         shift; cmd_bundle "$@" ;;
   run)            shift; cmd_run "$@" ;;
   develop|dev)    shift; cmd_develop "$@" ;;
   test)           shift; cmd_test "$@" ;;
