@@ -567,9 +567,10 @@
         let
           pkgs = import nixpkgs { inherit system; };
           # Always delegates to the live scripts/ws in the workspace,
-          # without needing to rebuild the devshell.
+          # without needing to rebuild the devshell. Falls back to the
+          # flake directory if LOGOS_WORKSPACE_ROOT is not set.
           wsScript = pkgs.writeShellScriptBin "ws" ''
-            exec "''${LOGOS_WORKSPACE_ROOT}/scripts/ws" "$@"
+            exec "''${LOGOS_WORKSPACE_ROOT:-${builtins.toString ./.}}/scripts/ws" "$@"
           '';
         in {
           default = import ./nix/devshell.nix { inherit pkgs wsScript; };

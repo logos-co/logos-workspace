@@ -15,7 +15,8 @@
 #
 #   --modules / -M    — comma-separated (or repeated) list of backend module
 #                       repos to bundle and install into ./modules.
-#                       logos-capability-module is always auto-included.
+#                       logos-capability-module is auto-included when other
+#                       modules are requested.
 #
 # Examples:
 #   ws run logos-standalone-app -- logos-accounts-ui --modules logos-accounts-module
@@ -150,7 +151,8 @@ cmd_run_standalone_app() {
     esac
   done
 
-  # capability_module is always required; auto-include unless already listed
+  # capability_module is required whenever modules are used; auto-include when
+  # other modules are requested, unless already listed
   if [[ ${#_module_names[@]} -gt 0 ]] && [[ -d "$REPOS_DIR/logos-capability-module" ]]; then
     local _has_cap=false
     local _n; for _n in "${_module_names[@]}"; do
