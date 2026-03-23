@@ -507,6 +507,7 @@
       # nix build .#logos-basecamp          → default package
       # nix build .#logos-basecamp--portable → non-default output
       # nix build .#logos-liblogos--portable
+      # nix bundle --bundler .#nix-bundle-lgx .#logos-chat-module--lib
       # All repo package outputs are exposed: default as the repo name,
       # non-default as <repo>--<output>.
       packages = forAllSystems (system:
