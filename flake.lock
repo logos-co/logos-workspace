@@ -300,11 +300,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774216838,
-        "narHash": "sha256-67JprE/J6URsw/LfzIG8rNAhZX1KiaP7Z1KPoVeLZsk=",
+        "lastModified": 1774296339,
+        "narHash": "sha256-w4y6Wiq1OQo67WnRMLTkCMx0e3H6onV4qEboy4l1Etw=",
         "owner": "logos-co",
         "repo": "logos-basecamp",
-        "rev": "517a35ef4a00958f3e05d6b12d2b50b47aa652bd",
+        "rev": "16d7b7c27f76ca019fbcbd02147b64a03443d062",
         "type": "github"
       },
       "original": {
@@ -815,11 +815,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774280725,
-        "narHash": "sha256-RJ0QgIXg7XZp9DbcZruTHKifxqYItT+ek9XMiJNt/R0=",
+        "lastModified": 1774361657,
+        "narHash": "sha256-ojC5oLlzb7rrhArUaZzfChLxPwrPm1iAF+6lkH2kDCY=",
         "owner": "logos-co",
         "repo": "logos-cpp-sdk",
-        "rev": "4197ee183041c33e90d8f90e80d810e5b7ed04bf",
+        "rev": "39b0a9acce3dac6d8c4c2f30bd35571a17c42c37",
         "type": "github"
       },
       "original": {
@@ -1180,19 +1180,11 @@
         ]
       },
       "locked": {
-<<<<<<< HEAD
-        "lastModified": 1774288906,
-        "narHash": "sha256-8BlCpTMFGlRUxyAzlE54O2XAOVb5XKd5uMe78uCfGSk=",
+        "lastModified": 1774364001,
+        "narHash": "sha256-OqZI1bSGLIMntUCrlaG66zKFp8rdLe4LE2I10Qe+lhU=",
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "71631418f8e7df7e3eac395597415ad2eaf14747",
-=======
-        "lastModified": 1774040407,
-        "narHash": "sha256-eKcossj5rSehs30tj87hib4c6T7MDPMil/cTtq1wa/4=",
-        "owner": "logos-co",
-        "repo": "logos-module-builder",
-        "rev": "628a1da15724bcc93c8cf3bbb508751bdd8fbde1",
->>>>>>> 2d286be (feat: add standalone app as submodule)
+        "rev": "b5d0485753037249c08f3fe00dfa016a1796ec9f",
         "type": "github"
       },
       "original": {
