@@ -1,0 +1,145 @@
+# logos-standalone-app helper — sourced by ws. Uses flags, extra_args, CYAN/RED/… from ws.
+# Usage: ws run logos-standalone-app -- <repo-or-path> [--modules mod1,mod2]
+# App flags (-p,-m,-l,-t,…) pass through; --modules/-M is handled here only.
+
+# Bundle workspace flake attr #1 to out-link $2; $3=--quiet hides bundle errors (probes).
+_sa_bundle() {
+  local _attr="$1" _out="$2" _quiet="${3:-}"
+  nix bundle \
+    --extra-experimental-features "nix-command flakes" \
+    --bundler "$WORKSPACE_ROOT" \
+    --out-link "$_out" \
+    "$WORKSPACE_ROOT#$_attr" \
+    ${flags[@]+"${flags[@]}"} || {
+    [[ "$_quiet" != "--quiet" ]] && \
+      echo -e "${RED}Error:${NC} nix bundle failed for ${CYAN}$_attr${NC}" >&2
+    return 1
+  }
+}
+
+_sa_metadata() {
+  python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get(sys.argv[2],''))" \
+    "$1/metadata.json" "$2" 2>/dev/null
+}
+
+cmd_run_standalone_app() {
+  local _sa_input=$1
+  local _new_extra_args=()
+  local _skip_next=false
+  local _modules_next=false
+  local _module_names=()
+  local _modules_dir="$WORKSPACE_ROOT/modules"
+  local _plugins_dir="$WORKSPACE_ROOT/plugins"
+  local _lgpm="$WORKSPACE_ROOT/scripts/lgpm"
+
+  for _arg in "${extra_args[@]}"; do
+    if $_skip_next; then _new_extra_args+=("$_arg"); _skip_next=false; continue; fi
+
+    if $_modules_next; then
+      _modules_next=false
+      IFS=',' read -ra _entries <<< "$_arg"
+      local _entry
+      for _entry in "${_entries[@]}"; do
+        local _mod_repo_dir
+        if   [[ -d "$_entry" ]];             then _mod_repo_dir="$_entry"
+        elif [[ -d "$REPOS_DIR/$_entry" ]];  then _mod_repo_dir="$REPOS_DIR/$_entry"
+        else
+          echo -e "${RED}Error:${NC} --modules: repo not found: $_entry" >&2; exit 1
+        fi
+
+        local _mod_name; _mod_name=$(_sa_metadata "$_mod_repo_dir" name)
+        [[ -z "$_mod_name" ]] && {
+          echo -e "${RED}Error:${NC} could not read 'name' from $_mod_repo_dir/metadata.json" >&2; exit 1
+        }
+
+        local _mod_input; _mod_input=$(get_input_name "$(basename "$_mod_repo_dir")")
+
+        log "Bundling module ${CYAN}$_entry${NC} → LGX..."
+        local _lgx; _lgx=$(mktemp -u -t "sa-mod-XXXXXX")
+        _sa_bundle "${_mod_input}--lib" "$_lgx" --quiet \
+          || _sa_bundle "$_mod_input" "$_lgx" \
+          || exit 1
+
+        mkdir -p "$_modules_dir"
+        log "Installing ${CYAN}$_mod_name${NC} → ${YELLOW}$_modules_dir${NC}..."
+        "$_lgpm" --modules-dir "$_modules_dir" install --file "$_lgx"/*.lgx || {
+          echo -e "${RED}Error:${NC} lgpm install failed for $_entry" >&2
+          rm -f "$_lgx"; exit 1
+        }
+        rm -f "$_lgx"
+        log "  ✓ ${CYAN}$_mod_name${NC}"
+        _module_names+=("$_mod_name")
+      done
+      continue
+    fi
+
+    case "$_arg" in
+      --modules|-M)
+        _modules_next=true ;;
+      --plugin|-p|--modules-dir|-m|--load|-l|--title|-t|--width|--height)
+        _new_extra_args+=("$_arg"); _skip_next=true ;;
+      --*)
+        _new_extra_args+=("$_arg") ;;
+      *)
+        if [[ ! -e "$_arg" ]] && [[ -d "$REPOS_DIR/$_arg" ]]; then
+          local _plugin_input; _plugin_input=$(get_input_name "$_arg")
+          local _plugin_name; _plugin_name=$(_sa_metadata "$REPOS_DIR/$_arg" name)
+
+          log "Bundling plugin ${CYAN}$_arg${NC} → LGX..."
+          local _lgx; _lgx=$(mktemp -u -t "sa-plugin-XXXXXX")
+          _sa_bundle "$_plugin_input" "$_lgx" || exit 1
+
+          mkdir -p "$_plugins_dir"
+          log "Installing ${CYAN}${_plugin_name:-$_arg}${NC} → ${YELLOW}$_plugins_dir${NC}..."
+          "$_lgpm" --ui-plugins-dir "$_plugins_dir" install --file "$_lgx"/*.lgx || {
+            echo -e "${RED}Error:${NC} lgpm install failed for plugin $_arg" >&2
+            rm -f "$_lgx"; exit 1
+          }
+          rm -f "$_lgx"
+
+          local _plugin_dir="$_plugins_dir/${_plugin_name:-$_arg}"
+          if [[ ! -d "$_plugin_dir" ]]; then
+            _plugin_dir=$(find "$_plugins_dir" -mindepth 1 -maxdepth 1 -type d | head -1)
+          fi
+          if [[ -z "$_plugin_dir" ]]; then
+            echo -e "${RED}Error:${NC} lgpm installed nothing for plugin $_arg" >&2; exit 1
+          fi
+          log "Resolved ${CYAN}$_arg${NC} → ${YELLOW}$_plugin_dir${NC}"
+          _new_extra_args+=("$_plugin_dir")
+          continue
+        fi
+        _new_extra_args+=("$_arg") ;;
+    esac
+  done
+
+  if [[ ${#_module_names[@]} -gt 0 ]] && [[ -d "$REPOS_DIR/logos-capability-module" ]]; then
+    local _has_cap=false
+    local _n; for _n in "${_module_names[@]}"; do
+      [[ "$_n" == "capability_module" ]] && _has_cap=true && break
+    done
+    if ! $_has_cap; then
+      log "Auto-including ${CYAN}logos-capability-module${NC}..."
+      local _cap_input; _cap_input=$(get_input_name "logos-capability-module")
+      local _lgx; _lgx=$(mktemp -u -t "sa-cap-XXXXXX")
+      _sa_bundle "$_cap_input" "$_lgx" || exit 1
+      mkdir -p "$_modules_dir"
+      "$_lgpm" --modules-dir "$_modules_dir" install --file "$_lgx"/*.lgx || {
+        echo -e "${RED}Error:${NC} lgpm install failed for capability_module" >&2
+        rm -f "$_lgx"; exit 1
+      }
+      rm -f "$_lgx"
+      _module_names+=("capability_module")
+    fi
+  fi
+
+  if [[ ${#_module_names[@]} -gt 0 ]]; then
+    _new_extra_args+=("--modules-dir" "$_modules_dir")
+    local _n; for _n in "${_module_names[@]}"; do _new_extra_args+=("--load" "$_n"); done
+  fi
+
+  exec nix run --extra-experimental-features "nix-command flakes" \
+    "$WORKSPACE_ROOT#$_sa_input" \
+    ${flags[@]+"${flags[@]}"} \
+    -- \
+    "${_new_extra_args[@]}"
+}

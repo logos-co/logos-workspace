@@ -8,10 +8,13 @@ WORKSPACE_ROOT="${LOGOS_WORKSPACE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 REPOS_DIR="$WORKSPACE_ROOT/repos"
 DEP_GRAPH="$WORKSPACE_ROOT/nix/dep-graph.nix"
 
+# shellcheck source=scripts/_standalone-app
+source "$WORKSPACE_ROOT/scripts/_standalone-app"
+
 # Show help text and exit. Usage: show_help "text"
 show_help() { echo -e "$1"; exit 0; }
 # Check if any argument is --help or -h
-wants_help() { for a in "$@"; do [[ "$a" == "--help" || "$a" == "-h" ]] && return 0; done; return 1; }
+wants_help() { for a in "$@"; do [[ "$a" == "--" ]] && return 1; [[ "$a" == "--help" || "$a" == "-h" ]] && return 0; done; return 1; }
 
 # Global quiet flag — suppresses informational output
 QUIET=false
@@ -674,7 +677,7 @@ Examples:
 }
 
 cmd_run() {
-  wants_help "$@" && show_help "Usage: ws run <repo|--group name> [options]
+  wants_help "$@" && show_help "Usage: ws run <repo|--group name> [options] [-- <app-args>]
 
 Build and run a repo via nix. Only one repo at a time.
 
@@ -683,10 +686,18 @@ Options:
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
 
+logos-standalone-app extras (passed after --):
+  <ui-plugin-repo>              Repo name to bundle via nix-bundle-lgx and install
+                                into ./plugins, or an existing .dylib / plugin dir path.
+  --modules, -M <repo>[,...]    Backend module repo(s) to bundle and install into
+                                ./modules. logos-capability-module is always auto-included.
+
 Examples:
   ws run logos-basecamp
   ws run logos-basecamp --auto-local
-  ws run logos-basecamp --local logos-cpp-sdk"
+  ws run logos-basecamp --local logos-cpp-sdk
+  ws run logos-standalone-app -- logos-accounts-ui --modules logos-accounts-module
+  ws run logos-standalone-app -- ./repos/logos-accounts-ui/result/lib/accounts_ui.dylib"
 
   local repos=()
   local auto_local=false
@@ -695,6 +706,8 @@ Examples:
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --)
+        shift; extra_args+=("$@"); break ;;
       --group|-g)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -757,6 +770,9 @@ Examples:
 
   # For app repos, build first and check for Qt conflicts before launching.
   case "$input_name" in
+    logos-standalone-app)
+      cmd_run_standalone_app "$input_name"
+      ;;
     logos-basecamp)
       local store_path
       store_path=$(nix build --extra-experimental-features "nix-command flakes" \
@@ -797,10 +813,13 @@ Examples:
         fi
       fi
 
-      # Run the already-built output directly from the store
+      # Run the already-built output directly from the store.
+      # Always pass -- before extra_args so app flags (e.g. --help, --plugin)
+      # are not consumed by nix run itself.
       exec nix run --extra-experimental-features "nix-command flakes" \
         "$WORKSPACE_ROOT#$input_name" \
         ${flags[@]+"${flags[@]}"} \
+        -- \
         ${extra_args[@]+"${extra_args[@]}"}
       ;;
     *)
@@ -808,6 +827,7 @@ Examples:
         --extra-experimental-features "nix-command flakes" \
         "$WORKSPACE_ROOT#$input_name" \
         ${flags[@]+"${flags[@]}"} \
+        -- \
         ${extra_args[@]+"${extra_args[@]}"}
       ;;
   esac
@@ -2763,6 +2783,13 @@ COMMANDS:
     -o, --out-dir <path>          Output dir for multi-repo (default: result-bundle)
 
   run <repo> [opts]             Build and run a repo (single repo only)
+
+  run <repo> [opts] [-- <args>] Build and run a repo (single repo only)
+    --auto-local, -a              Auto-detect dirty repos and use as overrides
+    --local, -l <r1> <r2> ...    Use specific local repos as overrides
+    logos-standalone-app only (after --):
+      <ui-plugin-repo>            Bundle repo → install to ./plugins; or pass existing path
+      --modules, -M <repo>[,...]  Bundle backend module(s) → install to ./modules
 
   develop [repo...|--group G] [opts]  Enter a nix devShell
     --group, -g <name...>         Use a named repo group
