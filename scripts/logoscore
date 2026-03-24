@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/_tool-wrapper" logos-liblogos logos-liblogos-bin logoscore "$@"
+source "$(dirname "$0")/_tool-wrapper" logos-logoscore-cli logos-logoscore-cli logoscore "$@"

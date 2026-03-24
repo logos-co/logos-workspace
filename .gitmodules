@@ -133,7 +133,6 @@
 [submodule "repos/logos-basecamp"]
 	path = repos/logos-basecamp
 	url = git@github.com:logos-co/logos-basecamp.git
-
 [submodule "repos/logos-test-modules"]
 	path = repos/logos-test-modules
 	url = git@github.com:logos-co/logos-test-modules.git
@@ -143,3 +142,6 @@
 [submodule "repos/logos-standalone-app"]
 	path = repos/logos-standalone-app
 	url = git@github.com:logos-co/logos-standalone-app.git
+[submodule "repos/logos-logoscore-cli"]
+	path = repos/logos-logoscore-cli
+	url = git@github.com:logos-co/logos-logoscore-cli.git

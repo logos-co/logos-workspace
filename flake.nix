@@ -60,11 +60,16 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      # logos-capability-module no longer depends on logos-liblogos (uses logos-module
-      # for interface.h instead), so there is no circular dep to break.
-      # To override logos-capability-module in logos-liblogos, pass it explicitly:
-      #   --override-input logos-liblogos/logos-capability-module path:./repos/logos-capability-module
       inputs.logos-module.follows = "logos-module";
+      inputs.logos-capability-module.follows = "logos-capability-module";
+    };
+
+    logos-logoscore-cli = {
+      url = "github:logos-co/logos-logoscore-cli";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
@@ -445,13 +450,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-package-manager.follows = "logos-package-manager-module";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
 
     # Repos with no flake.nix (submodules only, not flake inputs):
-    #   logos-docs, logos-website, logos-tutorial, logos-template-module,
-    #   node-configs
+    #   logos-docs, logos-website, logos-tutorial,
+    #   logos-template-module, node-configs
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -463,7 +469,7 @@
       # are NOT listed here — they are submodules only.
       repoInputNames = [
         # Foundation
-        "logos-cpp-sdk" "logos-module" "logos-liblogos"
+        "logos-cpp-sdk" "logos-module" "logos-liblogos" "logos-logoscore-cli"
         "logos-capability-module" "logos-package" "logos-module-builder"
         # Packaging / Bundling
         "nix-bundle-dir" "nix-bundle-lgx"
