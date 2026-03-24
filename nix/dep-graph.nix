@@ -50,7 +50,7 @@
   logos-js-sdk                   = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" ]; hasTests = false; };
   logos-nim-sdk                  = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-rust-sdk                 = { deps = []; hasTests = false; };
-  logos-test-modules             = { deps = [ "logos-nix" "logos-liblogos" "logos-module-builder" "nix-bundle-lgx" "logos-package-manager-module" ]; hasTests = true; };
+  logos-test-modules             = { deps = [ "logos-nix" "logos-liblogos" "logos-logoscore-cli" "logos-module-builder" "nix-bundle-lgx" "logos-package-manager-module" ]; hasTests = true; };
   logos-modules                  = { deps = [ "logos-cpp-sdk" "logos-package" ]; hasTests = false; };
   logos-module-viewer            = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package-manager-module" ]; hasTests = false; };
 }
