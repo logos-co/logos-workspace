@@ -113,6 +113,7 @@ REPOS=(
   "logos-test-modules|logos-test-modules|https://github.com/logos-co/logos-test-modules.git|yes"
 
   # Other
+  "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
   "logos-modules|logos-modules|https://github.com/logos-co/logos-modules.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
