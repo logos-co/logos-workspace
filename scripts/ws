@@ -47,6 +47,7 @@ REPOS=(
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
   "logos-module|logos-module|https://github.com/logos-co/logos-module.git|yes"
   "logos-liblogos|logos-liblogos|https://github.com/logos-co/logos-liblogos.git|yes"
+  "logos-logoscore-cli|logos-logoscore-cli|https://github.com/logos-co/logos-logoscore-cli.git|yes"
   "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
   "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
   "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
@@ -128,7 +129,7 @@ REPOS=(
 # Members can be repo names or other group names (resolved recursively).
 
 REPO_GROUPS=(
-  "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
+  "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
   "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
   "package-manager|logos-package,logos-package-manager-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
@@ -977,21 +978,43 @@ _json_array_to_lines() {
   echo "$1" | tr -d '[]"' | tr ',' '\n' | sed '/^$/d'
 }
 
-# Discover checks and test-like packages in a single nix eval call
+# Discover checks and test-like packages via nix eval.
+# When override flags are present, uses installable syntax (flake ref + attribute)
+# so --override-input flags are respected (builtins.getFlake ignores them).
 _discover_test_outputs() {
   local repo_path="$1"
   local system="$2"
+  local override_flags="${3:-}"
 
-  # Single eval: get both checks and test-like packages at once
-  nix eval --extra-experimental-features "nix-command flakes" \
-    --impure --raw --expr '
-      let
-        flake = builtins.getFlake "path:'"$repo_path"'";
-        checks = builtins.attrNames (flake.checks.'"$system"' or {});
-        packages = builtins.attrNames (flake.packages.'"$system"' or {});
-        testPkgs = builtins.filter (n: builtins.match ".*[Tt]est.*" n != null) packages;
-      in builtins.toJSON { inherit checks testPkgs; }
-    ' 2>/dev/null || echo '{"checks":[],"testPkgs":[]}'
+  if [[ -n "$override_flags" ]]; then
+    # Two evals with explicit attribute paths — --override-input applies to the flake ref
+    local checks_json test_pkgs_json
+
+    # shellcheck disable=SC2086
+    checks_json=$(nix eval --extra-experimental-features "nix-command flakes" \
+      --json "path:${repo_path}#checks.${system}" \
+      --apply 'builtins.attrNames' \
+      $override_flags 2>/dev/null) || checks_json='[]'
+
+    # shellcheck disable=SC2086
+    test_pkgs_json=$(nix eval --extra-experimental-features "nix-command flakes" \
+      --json "path:${repo_path}#packages.${system}" \
+      --apply 'ps: builtins.filter (n: builtins.match ".*[Tt]est.*" n != null) (builtins.attrNames ps)' \
+      $override_flags 2>/dev/null) || test_pkgs_json='[]'
+
+    echo "{\"checks\":${checks_json},\"testPkgs\":${test_pkgs_json}}"
+  else
+    # No overrides: single eval via builtins.getFlake (faster, no extra resolution)
+    nix eval --extra-experimental-features "nix-command flakes" \
+      --impure --raw --expr '
+        let
+          flake = builtins.getFlake "path:'"$repo_path"'";
+          checks = builtins.attrNames (flake.checks.'"$system"' or {});
+          packages = builtins.attrNames (flake.packages.'"$system"' or {});
+          testPkgs = builtins.filter (n: builtins.match ".*[Tt]est.*" n != null) packages;
+        in builtins.toJSON { inherit checks testPkgs; }
+      ' 2>/dev/null || echo '{"checks":[],"testPkgs":[]}'
+  fi
 }
 
 # Run test for a single repo.
@@ -1023,10 +1046,10 @@ _test_one_repo() {
     return 2
   fi
 
-  # Discover checks + test packages in one eval (always from repo flake for discovery)
+  # Discover checks + test packages in one eval
   log "  ${BLUE}Discovering test outputs...${NC}"
   local outputs
-  outputs=$(_discover_test_outputs "$repo_path" "$system")
+  outputs=$(_discover_test_outputs "$repo_path" "$system" "$override_flags")
 
   local checks_json test_pkgs_json
   checks_json=$(echo "$outputs" | sed 's/.*"checks":\([^,}]*\).*/\1/')

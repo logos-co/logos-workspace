@@ -100,13 +100,13 @@ The `--group` flag accepts multiple group names: `ws build --group core chat`.
 ## Architecture
 
 ```
-logos-basecamp / logoscore (runtime)
+logos-basecamp / logoscore (frontends)
     |
     v
 modules (Qt plugins, process-isolated, communicate via Qt Remote Objects)
     |
     v
-logos-liblogos (core runtime: logoscore CLI, logos_host, liblogos_core)
+logos-liblogos (core library: logos_host, liblogos_core)
     |
     v
 logos-cpp-sdk (SDK: LogosAPI, LogosResult, code generator, IPC layer)
@@ -120,7 +120,8 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | Repo | Role |
 |------|------|
 | logos-cpp-sdk | SDK root. Pins nixpkgs/Qt. Code generator, LogosAPI, IPC |
-| logos-liblogos | Core runtime: `logoscore`, `logos_host`, `liblogos_core` |
+| logos-liblogos | Core library: `logos_host`, `liblogos_core` (C API) |
+| logos-logoscore-cli | Headless CLI runtime (`logoscore`) — frontend for logos-liblogos |
 | logos-module | Plugin introspection library + `lm` CLI |
 | logos-module-builder | Scaffolding + build system (module.yaml -> CMake) |
 | logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
@@ -164,7 +165,8 @@ nix flake init -t github:logos-co/logos-module-builder
 
 - **Developer guide** (comprehensive, 1100 lines): `repos/logos-tutorial/logos-developer-guide.md`
 - **SDK README** (code generator, LogosResult API): `repos/logos-cpp-sdk/README.md`
-- **Runtime README** (logoscore CLI, building): `repos/logos-liblogos/README.md`
+- **Runtime README** (liblogos library, building): `repos/logos-liblogos/README.md`
+- **logoscore CLI README** (logoscore CLI, usage): `repos/logos-logoscore-cli/README.md`
 - **Module builder README** (scaffolding, module.yaml): `repos/logos-module-builder/README.md`
 
 Read the developer guide first when working on module code. It covers the full lifecycle: creating, building, testing, packaging, inter-module communication.
@@ -176,10 +178,11 @@ nixpkgs (pinned by logos-cpp-sdk)
   -> logos-cpp-sdk
     -> logos-module
     -> logos-liblogos
+      -> logos-logoscore-cli (headless CLI frontend)
       -> logos-capability-module, logos-package, logos-module-builder, nix-bundle-dir
       -> nix-bundle-lgx (uses logos-package + nix-bundle-dir)
       -> logos-accounts-module, logos-chat-module, logos-waku-module, ...
-      -> logos-basecamp (aggregates many modules)
+      -> logos-basecamp (GUI frontend, aggregates many modules)
 ```
 
 Changing `logos-cpp-sdk` affects everything. Changing a leaf module (e.g., `logos-chat-module`) affects only `logos-basecamp`. Use `ws graph <repo>` or `ws dirty` to see impact.
@@ -211,7 +214,7 @@ nix build .#logos-basecamp --override-input logos-cpp-sdk path:./repos/logos-cpp
 Available directly or as `ws` subcommands (e.g. `lgx` or `ws lgx`).
 Auto-build on first use, auto-rebuild when source files change. Only builds the specific binary, not the full repo.
 
-### `logoscore` — headless module runtime (logos-liblogos)
+### `logoscore` — headless module runtime (logos-logoscore-cli)
 
 Loads modules and optionally calls their methods. Essential for testing modules without the full GUI app.
 
