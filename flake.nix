@@ -62,6 +62,7 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.process-stats.follows = "process-stats";
     };
 
     logos-logoscore-cli = {
@@ -424,6 +425,12 @@
 
     # ── Other ─────────────────────────────────────────────────────────────────
 
+    process-stats = {
+      url = "github:logos-co/process-stats";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     logos-modules = {
       url = "github:logos-co/logos-modules";
       inputs.logos-nix.follows = "logos-nix";
@@ -500,7 +507,7 @@
         # Testing
         "logos-test-modules"
         # Other
-        "logos-modules" "logos-module-viewer"
+        "process-stats" "logos-modules" "logos-module-viewer"
       ];
 
       # Mapping from flake input name → submodule directory name under repos/

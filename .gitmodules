@@ -145,3 +145,6 @@
 [submodule "repos/logos-logoscore-cli"]
 	path = repos/logos-logoscore-cli
 	url = git@github.com:logos-co/logos-logoscore-cli.git
+[submodule "repos/process-stats"]
+	path = repos/process-stats
+	url = git@github.com:logos-co/process-stats.git
