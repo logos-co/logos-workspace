@@ -1,6 +1,6 @@
 ---
 name: logos-module-development
-description: Activate when creating, building, testing, or modifying Logos modules — C++ Qt plugins, module.yaml config, CMake builds, LogosAPI usage, inter-module communication, code generation, packaging (LGX), or working with logos-cpp-sdk, logos-liblogos, logos-module, logos-module-builder repos.
+description: Activate when creating, building, testing, or modifying Logos modules — C++ Qt plugins, metadata.json config, CMake builds, LogosAPI usage, inter-module communication, code generation, packaging (LGX), or working with logos-cpp-sdk, logos-liblogos, logos-module, logos-module-builder repos.
 ---
 
 # Logos Module Development
@@ -36,31 +36,42 @@ nix flake init -t github:logos-co/logos-module-builder#with-external-lib  # wrap
 Generated structure:
 ```
 flake.nix          # ~15 lines, uses mkLogosModule
-module.yaml        # name, version, type, deps, cmake config
+metadata.json      # name, version, type, deps, cmake config (single source of truth)
 CMakeLists.txt     # ~25 lines
 src/
   my_module_interface.h   # Q_INVOKABLE methods = public API
   my_module_plugin.h/cpp  # Implementation
 ```
 
-## module.yaml reference
+## metadata.json reference
 
-```yaml
-name: my_module
-version: 1.0.0
-type: core                    # core | ui
-category: general             # general | network | chat | wallet | integration
-description: "Description"
-dependencies: []              # other module names
-nix_packages:
-  build: []                   # e.g. ["curl"]
-  runtime: []
-cmake:
-  find_packages: []           # e.g. ["CURL"]
-  extra_sources: []
-  extra_include_dirs: []
-  extra_link_libraries: []    # e.g. ["CURL::libcurl"]
+```json
+{
+  "name": "my_module",
+  "version": "1.0.0",
+  "type": "core",
+  "category": "general",
+  "description": "Description",
+  "main": "my_module_plugin",
+  "dependencies": [],
+
+  "nix": {
+    "packages": {
+      "build": [],
+      "runtime": []
+    },
+    "external_libraries": [],
+    "cmake": {
+      "find_packages": [],
+      "extra_sources": [],
+      "extra_include_dirs": [],
+      "extra_link_libraries": []
+    }
+  }
+}
 ```
+
+Dependency names must match the `name` field in the dependency module's own `metadata.json`. Flake input attribute names must also match — e.g., `waku_module.url = "github:logos-co/logos-waku-module"`.
 
 ## Building and testing
 
@@ -149,7 +160,7 @@ logos-cpp-generator --metadata <metadata.json> --module-dir <dir>
 - **core** — background services, no UI (loaded by logoscore or logos-basecamp)
 - **ui** — Qt Widgets or QML-based UI (loaded only by logos-basecamp, displayed in tabbed workspace)
 
-UI modules need `type: ui` in module.yaml and must implement `QWidget* createWidget()` or provide QML.
+UI modules need `"type": "ui"` in metadata.json and must implement `QWidget* createWidget()` or provide QML.
 
 ## Packaging for distribution
 
@@ -175,7 +186,7 @@ Automated Nix-based packaging uses `nix-bundle-lgx` (which uses `nix-bundle-dir`
 ## Common pitfalls
 
 - LogosAPI is only available when loaded by logoscore/logos-basecamp, NOT in module-viewer or standalone
-- Module binary name must match `name` in module.yaml (e.g., `my_module` -> `my_module_plugin.so`)
+- Module binary name must match `name` in metadata.json (e.g., `my_module` -> `my_module_plugin.so`)
 - `metadata.json` must be alongside the binary for discovery
 - Always build inside nix (raw cmake won't find Qt/deps)
 - After adding `checks` to a repo's flake.nix, run `ws sync-graph`

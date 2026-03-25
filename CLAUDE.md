@@ -123,7 +123,7 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-liblogos | Core library: `logos_host`, `liblogos_core` (C API) |
 | logos-logoscore-cli | Headless CLI runtime (`logoscore`) — frontend for logos-liblogos |
 | logos-module | Plugin introspection library + `lm` CLI |
-| logos-module-builder | Scaffolding + build system (module.yaml -> CMake) |
+| logos-module-builder | Scaffolding + build system (metadata.json -> CMake) |
 | logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
@@ -152,7 +152,7 @@ ws develop logos-cpp-sdk
 ## Module development
 
 Modules are Qt plugins built with CMake+Nix. Each module has:
-- `module.yaml` — declarative config (name, version, deps, cmake settings)
+- `metadata.json` — declarative config (name, version, deps, cmake settings)
 - `flake.nix` — nix build (~15 lines, uses logos-module-builder)
 - `src/` — C++ sources (Q_INVOKABLE methods = module API)
 
@@ -167,7 +167,7 @@ nix flake init -t github:logos-co/logos-module-builder
 - **SDK README** (code generator, LogosResult API): `repos/logos-cpp-sdk/README.md`
 - **Runtime README** (liblogos library, building): `repos/logos-liblogos/README.md`
 - **logoscore CLI README** (logoscore CLI, usage): `repos/logos-logoscore-cli/README.md`
-- **Module builder README** (scaffolding, module.yaml): `repos/logos-module-builder/README.md`
+- **Module builder README** (scaffolding, metadata.json): `repos/logos-module-builder/README.md`
 
 Read the developer guide first when working on module code. It covers the full lifecycle: creating, building, testing, packaging, inter-module communication.
 
@@ -360,7 +360,7 @@ Scaffold, build, test, package — the full lifecycle:
 # 1. Scaffold
 mkdir logos-my-module && cd logos-my-module
 nix flake init -t github:logos-co/logos-module-builder
-# Edit module.yaml (name, version, deps) and src/ files
+# Edit metadata.json (name, version, deps) and src/ files
 # For modules wrapping external C/C++ libs, use the #with-external-lib template instead
 
 # 2. Build
@@ -387,7 +387,7 @@ logoscore -m ./test-modules -l my_module -c "my_module.someMethod(test)"
 ```
 
 Key files in a module:
-- `module.yaml` — name, version, type, category, dependencies, nix_packages, external_libraries, cmake settings
+- `metadata.json` — name, version, type, category, dependencies, nix_packages, external_libraries, cmake settings
 - `flake.nix` — ~15 lines, calls `logos-module-builder.lib.mkLogosModule`
 - `src/<name>_interface.h` — pure virtual interface (inherits `PluginInterface`)
 - `src/<name>_plugin.h` — `Q_OBJECT` + `Q_INVOKABLE` methods = public API
