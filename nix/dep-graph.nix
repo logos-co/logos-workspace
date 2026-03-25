@@ -11,7 +11,7 @@
 # so that `ws test --all` picks it up.
 {
   logos-nix                      = { deps = []; hasTests = false; };
-  logos-cpp-sdk                  = { deps = [ "logos-nix" ]; hasTests = false; };
+  logos-cpp-sdk                  = { deps = [ "logos-nix" ]; hasTests = true; };
   logos-module                   = { deps = [ "logos-nix" ]; hasTests = true; };
   logos-liblogos                 = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "logos-capability-module" "process-stats" ]; hasTests = true; };
   logos-logoscore-cli            = { deps = [ "logos-nix" "logos-liblogos" "logos-capability-module" "nix-bundle-dir" ]; hasTests = true; };
