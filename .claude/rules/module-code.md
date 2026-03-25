@@ -5,7 +5,7 @@ paths:
   - "repos/logos-module/**"
   - "repos/logos-module-builder/**"
   - "repos/logos-basecamp/**"
-  - "repos/**/module.yaml"
+  - "repos/**/metadata.json"
   - "repos/**/*_plugin.cpp"
   - "repos/**/*_plugin.h"
   - "repos/**/*_interface.h"
@@ -19,5 +19,5 @@ paths:
 - Use `ws build <downstream> --auto-local` to test changes in downstream consumers.
 - `ws watch test <repo>` for live feedback during development.
 - Inter-module calls use LogosAPI::callModule() returning LogosResult. Check result.success().
-- module.yaml is the source of truth for module config. metadata.json is auto-generated at build time.
+- metadata.json is the single source of truth for module config (runtime metadata + nix build settings).
 - CLI tools (`lm`, `logoscore`, `lgx`, `lgpm`, `logos-cpp-generator`) are available directly and auto-build/rebuild from local repos. Use them or `ws <tool>` — no manual build step needed.
