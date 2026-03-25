@@ -20,7 +20,7 @@
   logos-module-builder           = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" ]; hasTests = false; };
   nix-bundle-dir                 = { deps = [ "logos-nix" ]; hasTests = false; };
   nix-bundle-lgx                 = { deps = [ "logos-nix" "logos-package" "nix-bundle-dir" ]; hasTests = false; };
-  logos-basecamp                 = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package" "nix-bundle-dir" "nix-bundle-lgx" "logos-package-manager-module" "logos-package-manager-ui" "logos-webview-app" "counter_qml" "counter" "logos-design-system" ]; hasTests = true; };
+  logos-basecamp                 = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "logos-liblogos" "logos-capability-module" "logos-package" "nix-bundle-dir" "nix-bundle-lgx" "logos-package-manager-module" "logos-package-manager-ui" "logos-webview-app" "counter_qml" "counter" "logos-design-system" ]; hasTests = true; };
   logos-accounts-module          = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-accounts-ui              = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "nix-bundle-lgx" "logos-accounts-module" "logos-package-manager-module" ]; hasTests = false; };
   logos-chat-module              = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
