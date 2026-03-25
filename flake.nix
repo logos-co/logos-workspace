@@ -112,6 +112,7 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-module.follows = "logos-module";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-package-manager.follows = "logos-package-manager-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
