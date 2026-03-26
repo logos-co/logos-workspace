@@ -48,6 +48,13 @@
       inputs.logos-nix.follows = "logos-nix";
     };
 
+    logos-module-client = {
+      url = "github:logos-co/logos-module-client";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+    };
+
     logos-module = {
       url = "github:logos-co/logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -70,6 +77,7 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module-client.follows = "logos-module-client";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -407,7 +415,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module-client.follows = "logos-module-client";
       inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.logos-module.follows = "logos-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
     };
 
     logos-nim-sdk = {
@@ -477,7 +488,7 @@
       # are NOT listed here — they are submodules only.
       repoInputNames = [
         # Foundation
-        "logos-cpp-sdk" "logos-module" "logos-liblogos" "logos-logoscore-cli"
+        "logos-cpp-sdk" "logos-module-client" "logos-module" "logos-liblogos" "logos-logoscore-cli"
         "logos-capability-module" "logos-package" "logos-module-builder"
         # Packaging / Bundling
         "nix-bundle-dir" "nix-bundle-lgx"
