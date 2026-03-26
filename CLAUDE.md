@@ -126,6 +126,8 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-module-builder | Scaffolding + build system (metadata.json -> CMake) |
 | logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
+| logos-package-manager | Local package management library (plain C++, no Qt) + `lgpm` CLI |
+| logos-package-downloader | Online catalog and download library (plain C++ + libcurl) + `lgpd` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
 | nix-bundle-lgx | Bundles Nix derivations into distributable `.lgx` packages |
 
@@ -312,44 +314,79 @@ lgx verify my_module.lgx
 lgx extract my_module.lgx -v linux-x86_64 -o ./extracted
 ```
 
-### `lgpm` — package manager (logos-package-manager-module)
+### `lgpm` — local package manager (logos-package-manager)
 
-Installs, searches, and manages module packages. Fetches from GitHub releases with automatic dependency resolution.
+Installs and manages locally-available `.lgx` packages. Plain C++ (no Qt).
 
 ```bash
-lgpm [global-options] <command> [options]
+lgpm [options] <command> [arguments]
 
-Global options:
+Options:
   --modules-dir <path>       Target directory for core modules
   --ui-plugins-dir <path>    Target directory for UI plugins
+  --json                     Output JSON format
+  -h, --help
+
+Commands:
+  install --file <path>      Install from a local .lgx file
+  install --dir <path>       Install all .lgx files in a directory
+  list                       List installed packages
+  info <package>             Show installed package info
+```
+
+```bash
+# Install from local .lgx file
+lgpm --modules-dir ./modules install --file ./my_module.lgx
+
+# Install all .lgx files in a directory
+lgpm --modules-dir ./modules install --dir ./downloads/
+
+# List installed packages
+lgpm --modules-dir ./modules list
+lgpm --modules-dir ./modules info my_module
+```
+
+Two variants: `lgpm` (portable build) and `lgpm-dev` (dev build, uses `-dev` variant suffixes).
+
+### `lgpd` — package downloader (logos-package-downloader)
+
+Browses the online package catalog and downloads `.lgx` files. Plain C++ with libcurl (no Qt).
+
+```bash
+lgpd [options] <command> [arguments]
+
+Options:
   --release <tag>            GitHub release tag (default: latest)
+  --category <cat>           Filter by category (for list command)
+  -o, --output <path>        Output directory for download (default: system temp)
   --json                     Output JSON format
   -h, --help
 
 Commands:
   search <query>             Search packages by name/description
-  list [--category <cat>] [--installed]  List packages
-  info <package>             Show package details
+  list                       List all available packages
   categories                 List available categories
-  install <pkg> [pkgs...]    Install packages (resolves deps automatically)
-    --file <path>              Install from local .lgx file instead
+  info <package>             Show package details from catalog
+  download <package>         Download .lgx package
 ```
 
 ```bash
-# Search and browse
-lgpm search waku
-lgpm list --installed
-lgpm list --category networking
-lgpm info my_module
+# Browse online catalog
+lgpd search waku
+lgpd list --category networking
+lgpd categories
+lgpd info my_module
 
-# Install from registry (with automatic dep resolution)
-lgpm --modules-dir ./modules install my_module
+# Download a package to a specific directory
+lgpd download my_module -o ./packages/
 
-# Install from local .lgx file
-lgpm --modules-dir ./modules install --file ./my_module.lgx
+# Download from specific release
+lgpd --release v2.0.0 download my_module -o ./packages/
 
-# Install specific release
-lgpm --modules-dir ./modules --release v2.0.0 install my_module
+# Typical workflow: download several packages then batch-install
+lgpd download waku_module -o ./packages/
+lgpd download chat_module -o ./packages/
+lgpm --modules-dir ./modules install --dir ./packages/
 ```
 
 ## Creating a new module
@@ -379,7 +416,7 @@ lgx create my_module
 lgx add my_module.lgx -v linux-x86_64 -f ./result/lib/my_module_plugin.so
 lgx verify my_module.lgx
 
-# 6. Install locally
+# 6. Install locally (lgpm = local install, lgpd = download from catalog)
 lgpm --modules-dir ./test-modules install --file ./my_module.lgx
 
 # 7. Run with other modules

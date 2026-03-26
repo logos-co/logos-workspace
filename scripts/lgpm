@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/_tool-wrapper" logos-package-manager-module cli lgpm "$@"
+source "$(dirname "$0")/_tool-wrapper" logos-package-manager cli-portable lgpm "$@"
