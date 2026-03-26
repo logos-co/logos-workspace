@@ -1634,11 +1634,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771682919,
-        "narHash": "sha256-wgN/kDO8T5KVaXMD82DXrExQH3ulfzcrpP6DqUcbcxo=",
+        "lastModified": 1774455376,
+        "narHash": "sha256-vEYHpE043Cv/2ScDiVCAy63oCQcEz7A7EomyuveghSY=",
         "owner": "logos-co",
         "repo": "logos-waku-module",
-        "rev": "cf30aa7e24f0782b5fffca1772da15862593063b",
+        "rev": "248f4b22a1bcd015114dd9ac530e30b146e33689",
         "type": "github"
       },
       "original": {

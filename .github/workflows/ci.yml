@@ -88,10 +88,22 @@ jobs:
           affected=$(echo "$affected" | xargs -n1 2>/dev/null | sort -u | xargs 2>/dev/null || true)
           echo "affected=$affected" >> "$GITHUB_OUTPUT"
 
+          # Filter affected repos to only those with tests (hasTests = true)
+          testable=""
+          for repo in $affected; do
+            if grep -q "^[[:space:]]*${repo}[[:space:]]*=" nix/dep-graph.nix && \
+               grep "^[[:space:]]*${repo}[[:space:]]*=" nix/dep-graph.nix | grep -q "hasTests = true"; then
+              testable="$testable $repo"
+            fi
+          done
+          testable=$(echo "$testable" | xargs -n1 2>/dev/null | sort -u | xargs 2>/dev/null || true)
+          echo "testable=$testable" >> "$GITHUB_OUTPUT"
+
           echo "## Change Detection" >> "$GITHUB_STEP_SUMMARY"
           echo "- Infrastructure changed: \`$infra\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Changed repos: \`${changed:-none}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Affected repos (+ dependents): \`${affected:-none}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Testable repos: \`${testable:-none}\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate dep-graph.nix is up to date
         if: steps.filter.outputs.skip_build != 'true'
@@ -104,11 +116,11 @@ jobs:
             exit 1
           fi
 
-      - name: Build changed repos and dependents
-        if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra != 'true' && steps.changes.outputs.affected != ''
+      - name: Build changed repos
+        if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra != 'true' && steps.changes.outputs.changed != ''
         run: |
           failed=0
-          for repo in ${{ steps.changes.outputs.affected }}; do
+          for repo in ${{ steps.changes.outputs.changed }}; do
             [[ ! -f "repos/$repo/flake.nix" ]] && continue
             echo "::group::Build $repo"
             if ! ws build "$repo" --quiet --workspace; then
@@ -119,7 +131,7 @@ jobs:
           done
           exit $failed
 
-      - name: Build core chain (infrastructure changed)
+      - name: Build and test core chain (infrastructure changed)
         if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra == 'true'
         run: |
           failed=0
@@ -131,8 +143,26 @@ jobs:
             fi
             echo "::endgroup::"
           done
+          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-basecamp; do
+            echo "::group::Test $repo"
+            if ! ws test "$repo" --quiet --workspace; then
+              echo "::error::Tests failed: $repo"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
           exit $failed
 
-      - name: Run tests
-        if: steps.filter.outputs.skip_build != 'true'
-        run: ws test --all --quiet --workspace
+      - name: Run tests for affected repos
+        if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra != 'true' && steps.changes.outputs.testable != ''
+        run: |
+          failed=0
+          for repo in ${{ steps.changes.outputs.testable }}; do
+            echo "::group::Test $repo"
+            if ! ws test "$repo" --quiet --workspace; then
+              echo "::error::Tests failed: $repo"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
