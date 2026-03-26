@@ -148,3 +148,6 @@
 [submodule "repos/process-stats"]
 	path = repos/process-stats
 	url = git@github.com:logos-co/process-stats.git
+[submodule "repos/logos-module-client"]
+	path = repos/logos-module-client
+	url = git@github.com:logos-co/logos-module-client.git

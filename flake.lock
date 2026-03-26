@@ -990,11 +990,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773760234,
-        "narHash": "sha256-LW8bckVuvH+NIKmfPxFz+/o4dvutEAANNFACO77ddCk=",
+        "lastModified": 1774455278,
+        "narHash": "sha256-sqFDWQQXwxvmyRQfMWPZ54UJnc0cLKdNT+ryCMGR/D8=",
         "owner": "logos-co",
         "repo": "logos-js-sdk",
-        "rev": "28b09f21bec39a54a4b8a9168b6f608b3793829e",
+        "rev": "bae3f17a0dfb67f2f6c57725e478f468bb95a11e",
         "type": "github"
       },
       "original": {
@@ -1171,6 +1171,32 @@
       "original": {
         "owner": "logos-co",
         "repo": "logos-module-builder",
+        "type": "github"
+      }
+    },
+    "logos-module-client": {
+      "inputs": {
+        "logos-cpp-sdk": [
+          "logos-cpp-sdk"
+        ],
+        "logos-nix": [
+          "logos-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1774467379,
+        "narHash": "sha256-aATH0YFWZK+GMPVvm7RPWFjG9mflJ8vcrEIIHjfYMTY=",
+        "owner": "logos-co",
+        "repo": "logos-module-client",
+        "rev": "c238cc366f5be1132111e4a3c28351c66bb779a2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-module-client",
         "type": "github"
       }
     },
@@ -1634,11 +1660,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771682919,
-        "narHash": "sha256-wgN/kDO8T5KVaXMD82DXrExQH3ulfzcrpP6DqUcbcxo=",
+        "lastModified": 1774455376,
+        "narHash": "sha256-vEYHpE043Cv/2ScDiVCAy63oCQcEz7A7EomyuveghSY=",
         "owner": "logos-co",
         "repo": "logos-waku-module",
-        "rev": "cf30aa7e24f0782b5fffca1772da15862593063b",
+        "rev": "248f4b22a1bcd015114dd9ac530e30b146e33689",
         "type": "github"
       },
       "original": {
@@ -2194,6 +2220,7 @@
         "logos-logoscore-cli": "logos-logoscore-cli",
         "logos-module": "logos-module",
         "logos-module-builder": "logos-module-builder",
+        "logos-module-client": "logos-module-client",
         "logos-module-viewer": "logos-module-viewer",
         "logos-modules": "logos-modules",
         "logos-nim-sdk": "logos-nim-sdk",
