@@ -418,3 +418,7 @@ Q_INVOKABLE LogosResult fetchData(const QString& id) {
     return {true, data};
 }
 ```
+
+## Tutorial Sync Rule
+
+Whenever you modify code that is referenced in any tutorial or guide in repos/logos-tutorial/ (tutorial-wrapping-c-library.md, tutorial-qml-ui-app.md, tutorial-cpp-ui-app.md, logos-developer-guide.md), you must update the corresponding tutorial/guide to reflect those changes before finishing. This includes code snippets, file paths, command examples, and expected output.
