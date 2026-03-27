@@ -79,7 +79,10 @@ REPOS=(
   "logos-waku-ui|logos-waku-ui|https://github.com/logos-co/logos-waku-ui.git|yes"
 
   # Package Manager
+  "logos-package-manager|logos-package-manager|https://github.com/logos-co/logos-package-manager.git|yes"
+  "logos-package-downloader|logos-package-downloader|https://github.com/logos-co/logos-package-downloader.git|yes"
   "logos-package-manager-module|logos-package-manager-module|https://github.com/logos-co/logos-package-manager-module.git|yes"
+  "logos-package-downloader-module|logos-package-downloader-module|https://github.com/logos-co/logos-package-downloader-module.git|yes"
   "logos-package-manager-ui|logos-package-manager-ui|https://github.com/logos-co/logos-package-manager-ui.git|yes"
 
   # Storage
@@ -134,7 +137,7 @@ REPOS=(
 REPO_GROUPS=(
   "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
   "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
-  "package-manager|logos-package,logos-package-manager-module,logos-package-manager-ui,nix-bundle-lgx"
+  "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
 )
 
@@ -2848,7 +2851,9 @@ COMMANDS:
   lm <args>                     Module inspector (auto-builds logos-module)
   logoscore <args>              Headless runtime (auto-builds logos-liblogos)
   lgx <args>                    Package tool (auto-builds logos-package)
-  lgpm <args>                   Package manager (auto-builds logos-package-manager-module)
+  lgpd <args>                   Package downloader (auto-builds logos-package-downloader)
+  lgpm <args>                   Package manager (Portable) (auto-builds logos-package-manager#cli-portable)
+  lgpm-dev <args>               Package manager (Development) (auto-builds logos-package-manager#cli)
   logos-cpp-generator <args>    SDK code generator (auto-builds logos-cpp-sdk)
 
   help                          Show this help
@@ -2992,7 +2997,7 @@ case "${1:-help}" in
   groups)         shift; cmd_groups "$@" ;;
   help|--help|-h) cmd_help ;;
   # CLI tool wrappers — delegate to scripts/
-  lm|logoscore|lgx|lgpm|logos-cpp-generator)
+  lm|logoscore|lgx|lgpm|lgpm-dev|lgpd|logos-cpp-generator)
     exec "$WORKSPACE_ROOT/scripts/$1" "${@:2}" ;;
   *)
     echo -e "${RED}Unknown command:${NC} $1" >&2

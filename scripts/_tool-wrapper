@@ -11,10 +11,10 @@ _REPO="$1"; _DERIV="$2"; _BIN="$3"; shift 3
 
 WORKSPACE_ROOT="${LOGOS_WORKSPACE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 REPO_PATH="$WORKSPACE_ROOT/repos/$_REPO"
-RESULT_LINK="$REPO_PATH/result"
+RESULT_LINK="$REPO_PATH/result-$_DERIV"
 RESULT_BIN="$RESULT_LINK/bin/$_BIN"
 STAMP_DIR="$WORKSPACE_ROOT/.build-stamps"
-BUILD_STAMP="$STAMP_DIR/$_REPO"
+BUILD_STAMP="$STAMP_DIR/${_REPO}--${_DERIV}"
 
 _needs_build() {
   # No binary yet

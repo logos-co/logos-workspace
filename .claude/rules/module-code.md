@@ -20,4 +20,4 @@ paths:
 - `ws watch test <repo>` for live feedback during development.
 - Inter-module calls use LogosAPI::callModule() returning LogosResult. Check result.success().
 - metadata.json is the single source of truth for module config (runtime metadata + nix build settings).
-- CLI tools (`lm`, `logoscore`, `lgx`, `lgpm`, `logos-cpp-generator`) are available directly and auto-build/rebuild from local repos. Use them or `ws <tool>` — no manual build step needed.
+- CLI tools (`lm`, `logoscore`, `lgx`, `lgpm`, `lgpm-dev`, `lgpd`, `logos-cpp-generator`) are available directly and auto-build/rebuild from local repos. Use them or `ws <tool>` — no manual build step needed.

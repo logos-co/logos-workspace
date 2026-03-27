@@ -70,6 +70,7 @@
       inputs.logos-module.follows = "logos-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.process-stats.follows = "process-stats";
+      inputs.logos-package-manager.follows = "logos-package-manager";
     };
 
     logos-logoscore-cli = {
@@ -79,6 +80,8 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-module-client.follows = "logos-module-client";
       inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
@@ -122,7 +125,9 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.logos-package-manager-module.follows = "logos-package-manager-module";
+      inputs.logos-package-downloader-module.follows = "logos-package-downloader-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-package.follows = "logos-package";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
@@ -156,7 +161,7 @@
       inputs.logos-accounts-module.follows = "logos-accounts-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
-      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
     };
 
     # ── Modules: Chat & Messaging ─────────────────────────────────────────────
@@ -257,6 +262,21 @@
 
     # ── Modules: Package Manager ──────────────────────────────────────────────
 
+    logos-package-manager = {
+      url = "github:logos-co/logos-package-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-package.follows = "logos-package";
+      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
+    };
+
+    logos-package-downloader = {
+      url = "github:logos-co/logos-package-downloader";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
+    };
+
     logos-package-manager-module = {
       url = "github:logos-co/logos-package-manager-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -264,6 +284,18 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-package.follows = "logos-package";
+      inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
+    };
+
+    logos-package-downloader-module = {
+      url = "github:logos-co/logos-package-downloader-module";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-module.follows = "logos-module";
+      inputs.logos-package-downloader.follows = "logos-package-downloader";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
@@ -275,6 +307,7 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
+      inputs.logos-package-downloader-module.follows = "logos-package-downloader-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
     };
 
@@ -364,7 +397,7 @@
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
-      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
     };
 
     # ── Modules: Other ────────────────────────────────────────────────────────
@@ -458,7 +491,7 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
     };
 
     # ── Testing ──────────────────────────────────────────────────────────────
@@ -470,7 +503,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
-      inputs.logos-package-manager.follows = "logos-package-manager-module";
+      inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
 
@@ -502,7 +535,8 @@
         # Waku
         "logos-waku-module" "logos-waku-ui"
         # Package Manager
-        "logos-package-manager-module" "logos-package-manager-ui"
+        "logos-package-manager" "logos-package-downloader"
+        "logos-package-manager-module" "logos-package-downloader-module" "logos-package-manager-ui"
         # Storage
         "logos-storage-module" "logos-storage-ui"
         # Wallet

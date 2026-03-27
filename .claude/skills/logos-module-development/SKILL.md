@@ -144,11 +144,17 @@ lgx add-variant <pkg.lgx> --variant <name> --files <path>
 lgx list <pkg.lgx>
 lgx verify <pkg.lgx>
 
-# Package manager
-lgpm install <pkg>
+# Local package manager (install .lgx files, list installed)
 lgpm install --file <path.lgx>
-lgpm search <query>
-lgpm list [--installed]
+lgpm install --dir <dir-of-lgx-files>
+lgpm list
+lgpm info <package>
+
+# Package downloader (browse online catalog, download .lgx)
+lgpd search <query>
+lgpd list [--category <cat>]
+lgpd categories
+lgpd download <package> [-o <output-dir>]
 
 # SDK code generator
 logos-cpp-generator <plugin-file> [--output-dir <dir>]
@@ -174,7 +180,7 @@ lgx create my_module.lgx --name my_module
 lgx add-variant my_module.lgx --variant linux-x86_64 --files ./result/lib/my_module_plugin.so
 lgx add-variant my_module.lgx --variant darwin-arm64 --files ./result/lib/my_module_plugin.dylib
 
-# Install locally
+# Install locally (lgpm = local, lgpd = download from catalog)
 lgpm install --file my_module.lgx
 ```
 
