@@ -18,9 +18,10 @@
   logos-logoscore-cli            = { deps = [ "logos-nix" "logos-module-client" "logos-liblogos" "logos-capability-module" "nix-bundle-dir" ]; hasTests = true; };
   logos-capability-module        = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" ]; hasTests = false; };
   logos-package                  = { deps = [ "logos-nix" ]; hasTests = true; };
-  logos-module-builder           = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" ]; hasTests = false; };
+  logos-module-builder           = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "nix-bundle-lgx" "logos-standalone-app" ]; hasTests = false; };
   nix-bundle-dir                 = { deps = [ "logos-nix" ]; hasTests = false; };
   nix-bundle-lgx                 = { deps = [ "logos-nix" "logos-package" "nix-bundle-dir" ]; hasTests = false; };
+  logos-standalone-app           = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "nix-bundle-lgx" "logos-design-system" ]; hasTests = false; };
   logos-basecamp                 = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "logos-liblogos" "logos-capability-module" "logos-package" "nix-bundle-dir" "nix-bundle-lgx" "logos-package-manager-module" "logos-package-manager-ui" "logos-webview-app" "counter_qml" "counter" "logos-design-system" ]; hasTests = true; };
   logos-accounts-module          = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-accounts-ui              = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "nix-bundle-lgx" "logos-accounts-module" "logos-package-manager-module" ]; hasTests = false; };

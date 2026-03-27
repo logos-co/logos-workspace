@@ -58,6 +58,7 @@ REPOS=(
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
 
   # App
+  "logos-standalone-app|logos-standalone-app|https://github.com/logos-co/logos-standalone-app.git|yes"
   "logos-basecamp|logos-basecamp|https://github.com/logos-co/logos-basecamp.git|yes"
 
   # Accounts
