@@ -35,7 +35,7 @@
   logos-waku-ui                  = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-waku-module" ]; hasTests = false; };
   logos-package-manager-module   = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-module" "logos-package" "nix-bundle-dir" ]; hasTests = false; };
   logos-package-manager-ui       = { deps = [ "logos-nix" "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-package-manager-module" ]; hasTests = false; };
-  logos-storage-module           = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
+  logos-storage-module           = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = true; };
   logos-storage-ui               = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-storage-module" "logos-design-system" ]; hasTests = false; };
   logos-wallet-module            = { deps = [ "logos-cpp-sdk" "logos-liblogos" ]; hasTests = false; };
   logos-wallet-ui                = { deps = [ "logos-cpp-sdk" "logos-liblogos" "logos-capability-module" "logos-wallet-module" ]; hasTests = false; };
