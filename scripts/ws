@@ -18,6 +18,8 @@ wants_help() { for a in "$@"; do [[ "$a" == "--" ]] && return 1; [[ "$a" == "--h
 
 # Global quiet flag — suppresses informational output
 QUIET=false
+# Global verbose flag — shows full nix output (default: capture and only show on error)
+VERBOSE=false
 
 # Colors
 RED='\033[0;31m'
@@ -30,6 +32,40 @@ NC='\033[0m'
 
 # Logging: log() is suppressed in quiet mode; errors always print to stderr
 log() { $QUIET || echo -e "$@"; }
+
+# Run a nix command, capturing output unless --verbose is set.
+# On failure, captured output is dumped to stderr.
+# Usage: run_nix <nix-args...>
+run_nix() {
+  if $VERBOSE; then
+    nix "$@"
+  else
+    local _nix_output _nix_rc=0
+    _nix_output=$(nix "$@" 2>&1) || _nix_rc=$?
+    if [[ $_nix_rc -ne 0 ]]; then
+      echo "$_nix_output" >&2
+      return $_nix_rc
+    fi
+    return 0
+  fi
+}
+
+# Run a nix command for tests — stderr (warnings) is suppressed unless --verbose,
+# but stdout (test output with -L) always flows through. On failure, captured stderr is shown.
+run_nix_test() {
+  if $VERBOSE; then
+    nix "$@"
+  else
+    local _nix_stderr_file _nix_rc=0
+    _nix_stderr_file=$(mktemp)
+    nix "$@" 2>"$_nix_stderr_file" || _nix_rc=$?
+    if [[ $_nix_rc -ne 0 ]]; then
+      cat "$_nix_stderr_file" >&2
+    fi
+    rm -f "$_nix_stderr_file"
+    return $_nix_rc
+  fi
+}
 
 
 # ── Repo registry ───────────────────────────────────────────────────────────
@@ -455,11 +491,25 @@ Examples:
     local display_name="$input_name"
     [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
     log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
-    exec nix build \
-      --extra-experimental-features "nix-command flakes" \
-      "$nix_ref" \
-      ${flags[@]+"${flags[@]}"} \
-      ${extra_args[@]+"${extra_args[@]}"}
+    if $VERBOSE; then
+      exec nix build \
+        --extra-experimental-features "nix-command flakes" \
+        "$nix_ref" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}
+    else
+      if run_nix build \
+        --extra-experimental-features "nix-command flakes" \
+        "$nix_ref" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}; then
+        echo -e "${GREEN}OK${NC}   $display_name"
+      else
+        echo -e "${RED}FAIL${NC} $display_name"
+        exit 1
+      fi
+      exit 0
+    fi
   fi
 
   local failed=0
@@ -484,7 +534,7 @@ Examples:
     [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
 
     log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
-    if ! nix build \
+    if ! run_nix build \
       --extra-experimental-features "nix-command flakes" \
       "$nix_ref" \
       ${flags[@]+"${flags[@]}"} \
@@ -639,13 +689,29 @@ Examples:
     local target
     target=$(_bundle_target "$input_name")
     log "${BOLD}Bundling ${CYAN}$input_name${NC}${BOLD} (mode: $bundle_mode)...${NC}"
-    exec nix bundle \
-      --extra-experimental-features "nix-command flakes" \
-      --bundler "$bundler_ref" \
-      -o result \
-      "$WORKSPACE_ROOT#$target" \
-      ${flags[@]+"${flags[@]}"} \
-      ${extra_args[@]+"${extra_args[@]}"}
+    if $VERBOSE; then
+      exec nix bundle \
+        --extra-experimental-features "nix-command flakes" \
+        --bundler "$bundler_ref" \
+        -o result \
+        "$WORKSPACE_ROOT#$target" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}
+    else
+      if run_nix bundle \
+        --extra-experimental-features "nix-command flakes" \
+        --bundler "$bundler_ref" \
+        -o result \
+        "$WORKSPACE_ROOT#$target" \
+        ${flags[@]+"${flags[@]}"} \
+        ${extra_args[@]+"${extra_args[@]}"}; then
+        echo -e "${GREEN}OK${NC}   $input_name → result/"
+      else
+        echo -e "${RED}FAIL${NC} $input_name"
+        exit 1
+      fi
+      exit 0
+    fi
   fi
 
   local failed=0
@@ -661,7 +727,7 @@ Examples:
     local target
     target=$(_bundle_target "$input_name")
     log "${BOLD}Bundling ${CYAN}$input_name${NC}${BOLD} (mode: $bundle_mode)...${NC}"
-    if ! nix bundle \
+    if ! run_nix bundle \
       --extra-experimental-features "nix-command flakes" \
       --bundler "$bundler_ref" \
       -o "$out_dir/$input_name" \
@@ -1088,7 +1154,7 @@ _test_one_repo() {
       ran_something=true
       log "  ${YELLOW}check${NC} tests"
       # shellcheck disable=SC2086
-      if nix build --extra-experimental-features "nix-command flakes" \
+      if run_nix_test build --extra-experimental-features "nix-command flakes" \
         "${check_ref}tests" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} ${dir_name} tests"
       else
@@ -1103,7 +1169,7 @@ _test_one_repo() {
       ran_something=true
       log "  ${YELLOW}check${NC} $check"
       # shellcheck disable=SC2086
-      if nix build --extra-experimental-features "nix-command flakes" \
+      if run_nix_test build --extra-experimental-features "nix-command flakes" \
         "${check_ref}${check}" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} ${dir_name} $check"
       else
@@ -1120,7 +1186,7 @@ _test_one_repo() {
       ran_something=true
       log "  ${YELLOW}package${NC} $pkg (build only — add checks.*.tests to run)"
       # shellcheck disable=SC2086
-      if nix build --extra-experimental-features "nix-command flakes" \
+      if run_nix_test build --extra-experimental-features "nix-command flakes" \
         "${pkg_ref}${pkg}" $override_flags -L; then
         echo -e "  ${GREEN}PASS${NC} ${dir_name} $pkg"
       else
@@ -2789,10 +2855,11 @@ cmd_help() {
 Logos Workspace CLI
 
 USAGE:
-  ws [--quiet] <command> [args]
+  ws [--quiet] [--verbose] <command> [args]
 
 GLOBAL OPTIONS:
   --quiet, -q                   Suppress informational output (for CI/scripting)
+  --verbose, -v                 Show full nix output (default: quiet, errors shown on failure)
 
 COMMANDS:
   init [jobs]                   Clone all submodules (default: 4 parallel jobs)
@@ -2962,6 +3029,7 @@ _args=()
 for _arg in "$@"; do
   case "$_arg" in
     --quiet|-q) QUIET=true ;;
+    --verbose|-v) VERBOSE=true ;;
     *) _args+=("$_arg") ;;
   esac
 done
