@@ -106,6 +106,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.logos-standalone-app.follows = "logos-standalone-app";
     };
 
     # ── App ───────────────────────────────────────────────────────────────────
@@ -507,9 +509,27 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
 
+    # ── Tutorial (sub-flakes inside logos-tutorial) ────────────────────────
+
+    logos-calc-module = {
+      url = "github:logos-co/logos-tutorial?dir=logos-calc-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
+
+    logos-calc-ui = {
+      url = "github:logos-co/logos-tutorial?dir=logos-calc-ui";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.calc_module.follows = "logos-calc-module";
+    };
+
+    logos-calc-cpp-ui = {
+      url = "github:logos-co/logos-tutorial?dir=logos-calc-cpp-ui";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.calc_module.follows = "logos-calc-module";
+    };
+
     # Repos with no flake.nix (submodules only, not flake inputs):
-    #   logos-docs, logos-website, logos-tutorial,
-    #   logos-template-module, node-configs
+    #   logos-docs, logos-website, logos-template-module, node-configs
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -552,6 +572,8 @@
         "logos-js-sdk" "logos-nim-sdk" "logos-rust-sdk"
         # Testing
         "logos-test-modules"
+        # Tutorial
+        "logos-calc-module" "logos-calc-ui" "logos-calc-cpp-ui"
         # Other
         "process-stats" "logos-modules" "logos-module-viewer"
       ];
@@ -563,6 +585,9 @@
         "counter" = "counter";
         "logos-chat-legacy-module" = "logos-chat-legacy-module";
         "logos-package-manager-module" = "logos-package-manager-module";
+        "logos-calc-module" = "logos-tutorial/logos-calc-module";
+        "logos-calc-ui" = "logos-tutorial/logos-calc-ui";
+        "logos-calc-cpp-ui" = "logos-tutorial/logos-calc-cpp-ui";
       };
 
       inputToDir = name: inputToDirOverrides.${name} or name;
