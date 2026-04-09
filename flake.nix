@@ -22,10 +22,24 @@
 
     # ── Packaging / Bundling ───────────────────────────────────────────────────
 
+    logos-package = {
+      url = "github:logos-co/logos-package";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-bundle-dir = {
       url = "github:logos-co/nix-bundle-dir";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    logos-package-manager = {
+      url = "github:logos-co/logos-package-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-package.follows = "logos-package";
+      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
 
     nix-bundle-lgx = {
@@ -34,6 +48,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+    };
+
+    nix-bundle-logos-module-install = {
+      url = "github:logos-co/nix-bundle-logos-module-install";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.logos-package-manager.follows = "logos-package-manager";
     };
 
     # ── Foundation ────────────────────────────────────────────────────────────
@@ -81,7 +103,7 @@
       inputs.logos-module-client.follows = "logos-module-client";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-package-manager.follows = "logos-package-manager";
-      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
@@ -94,10 +116,12 @@
       inputs.logos-module.follows = "logos-module";
     };
 
-    logos-package = {
-      url = "github:logos-co/logos-package";
+    logos-plugin-qt = {
+      url = "github:logos-co/logos-plugin-qt";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-module.follows = "logos-module";
     };
 
     logos-module-builder = {
@@ -106,6 +130,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
+      inputs.logos-plugin-core.follows = "logos-plugin-qt";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.logos-standalone-app.follows = "logos-standalone-app";
     };
@@ -137,7 +163,8 @@
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-counter-qml.follows = "counter_qml";
       inputs.logos-counter.follows = "counter";
-      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-macos-app.follows = "nix-bundle-macos-app";
@@ -151,6 +178,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-module-builder.follows = "logos-module-builder";
       # go-wallet-sdk: external dep (status-im org), left as-is
     };
 
@@ -164,6 +192,7 @@
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.logos-module-builder.follows = "logos-module-builder";
     };
 
     # ── Modules: Chat & Messaging ─────────────────────────────────────────────
@@ -264,14 +293,6 @@
 
     # ── Modules: Package Manager ──────────────────────────────────────────────
 
-    logos-package-manager = {
-      url = "github:logos-co/logos-package-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.logos-package.follows = "logos-package";
-      inputs.nix-bundle-dir.follows = "nix-bundle-dir";
-      inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
-    };
-
     logos-package-downloader = {
       url = "github:logos-co/logos-package-downloader";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -285,10 +306,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package.follows = "logos-package";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
     };
 
@@ -311,6 +334,7 @@
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-downloader-module.follows = "logos-package-downloader-module";
       inputs.logos-capability-module.follows = "logos-capability-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
     };
 
     # ── Modules: Storage ──────────────────────────────────────────────────────
@@ -542,9 +566,9 @@
       repoInputNames = [
         # Foundation
         "logos-cpp-sdk" "logos-module-client" "logos-module" "logos-liblogos" "logos-logoscore-cli"
-        "logos-capability-module" "logos-package" "logos-module-builder"
+        "logos-capability-module" "logos-package" "logos-plugin-qt" "logos-module-builder"
         # Packaging / Bundling
-        "nix-bundle-dir" "nix-bundle-lgx"
+        "nix-bundle-dir" "nix-bundle-lgx" "nix-bundle-logos-module-install"
         # App
         "logos-basecamp" "logos-standalone-app"
         # Accounts
@@ -679,10 +703,15 @@
       );
 
       # ── Bundlers ──────────────────────────────────────────────────────────
-      # Forwards nix-bundle-lgx bundlers so scripts can use "$WORKSPACE_ROOT"
-      # as the --bundler reference. 
+      # Forwards bundlers so scripts can use "$WORKSPACE_ROOT" as the
+      # --bundler reference.
+      # nix-bundle-lgx: package into .lgx files
+      # nix-bundle-logos-module-install: package + install via lgpm
       bundlers = forAllSystems (system:
         inputs.nix-bundle-lgx.bundlers.${system}
+        // (nixpkgs.lib.mapAttrs' (name: value:
+          { name = "install-${name}"; inherit value; }
+        ) inputs.nix-bundle-logos-module-install.bundlers.${system})
       );
 
       # ── Lib (for programmatic use) ────────────────────────────────────────

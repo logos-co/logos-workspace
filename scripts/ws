@@ -87,6 +87,7 @@ REPOS=(
   "logos-logoscore-cli|logos-logoscore-cli|https://github.com/logos-co/logos-logoscore-cli.git|yes"
   "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
   "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
+  "logos-plugin-qt|logos-plugin-qt|https://github.com/logos-co/logos-plugin-qt.git|yes"
   "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
 
   # Packaging / Bundling

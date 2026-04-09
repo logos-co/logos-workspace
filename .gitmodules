@@ -160,3 +160,9 @@
 [submodule "repos/logos-package-downloader-module"]
 	path = repos/logos-package-downloader-module
 	url = https://github.com/logos-co/logos-package-downloader-module.git
+[submodule "repos/nix-bundle-logos-module-install"]
+	path = repos/nix-bundle-logos-module-install
+	url = https://github.com/logos-co/nix-bundle-logos-module-install.git
+[submodule "repos/logos-plugin-qt"]
+	path = repos/logos-plugin-qt
+	url = https://github.com/logos-co/logos-plugin-qt.git
