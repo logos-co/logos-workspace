@@ -162,7 +162,7 @@ REPOS=(
   # Tutorial (sub-flakes inside logos-tutorial)
   "logos-calc-module|logos-tutorial/logos-calc-module|https://github.com/logos-co/logos-tutorial.git|yes"
   "logos-calc-ui|logos-tutorial/logos-calc-ui|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-cpp-ui|logos-tutorial/logos-calc-cpp-ui|https://github.com/logos-co/logos-tutorial.git|yes"
+  "logos-calc-ui-cpp|logos-tutorial/logos-calc-ui-cpp|https://github.com/logos-co/logos-tutorial.git|yes"
 
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"

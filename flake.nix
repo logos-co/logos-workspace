@@ -546,8 +546,8 @@
       inputs.calc_module.follows = "logos-calc-module";
     };
 
-    logos-calc-cpp-ui = {
-      url = "github:logos-co/logos-tutorial?dir=logos-calc-cpp-ui";
+    logos-calc-ui-cpp = {
+      url = "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.calc_module.follows = "logos-calc-module";
     };
@@ -597,7 +597,7 @@
         # Testing
         "logos-test-modules"
         # Tutorial
-        "logos-calc-module" "logos-calc-ui" "logos-calc-cpp-ui"
+        "logos-calc-module" "logos-calc-ui" "logos-calc-ui-cpp"
         # Other
         "process-stats" "logos-modules" "logos-module-viewer"
       ];
@@ -611,7 +611,7 @@
         "logos-package-manager-module" = "logos-package-manager-module";
         "logos-calc-module" = "logos-tutorial/logos-calc-module";
         "logos-calc-ui" = "logos-tutorial/logos-calc-ui";
-        "logos-calc-cpp-ui" = "logos-tutorial/logos-calc-cpp-ui";
+        "logos-calc-ui-cpp" = "logos-tutorial/logos-calc-ui-cpp";
       };
 
       inputToDir = name: inputToDirOverrides.${name} or name;
