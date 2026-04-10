@@ -161,14 +161,6 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
-    logos-chat-tui = {
-      url = "github:logos-co/logos-chat-tui";
-      inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-chat-module.follows = "logos-chat-module";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-rust-sdk.follows = "logos-rust-sdk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     logos-chat-ui = {
       url = "github:logos-co/logos-chat-ui";
       inputs.logos-capability-module.follows = "logos-capability-module";

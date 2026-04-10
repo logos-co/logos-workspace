@@ -28,9 +28,6 @@
 [submodule "repos/logos-chat-module"]
 	path = repos/logos-chat-module
 	url = git@github.com:logos-co/logos-chat-module.git
-[submodule "repos/logos-chat-tui"]
-	path = repos/logos-chat-tui
-	url = git@github.com:logos-co/logos-chat-tui.git
 [submodule "repos/logos-chat-ui"]
 	path = repos/logos-chat-ui
 	url = git@github.com:logos-co/logos-chat-ui.git

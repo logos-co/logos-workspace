@@ -104,7 +104,6 @@ REPOS=(
 
   # Chat & Messaging
   "logos-chat-module|logos-chat-module|https://github.com/logos-co/logos-chat-module.git|yes"
-  "logos-chat-tui|logos-chat-tui|https://github.com/logos-co/logos-chat-tui.git|yes"
   "logos-chat-ui|logos-chat-ui|https://github.com/logos-co/logos-chat-ui.git|yes"
 
   # Package Manager
