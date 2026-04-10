@@ -104,16 +104,8 @@ REPOS=(
 
   # Chat & Messaging
   "logos-chat-module|logos-chat-module|https://github.com/logos-co/logos-chat-module.git|yes"
-  "logos-chat-legacy-module|logos-chat-legacy-module|https://github.com/logos-co/logos-chat-legacy-module.git|yes"
   "logos-chat-tui|logos-chat-tui|https://github.com/logos-co/logos-chat-tui.git|yes"
   "logos-chat-ui|logos-chat-ui|https://github.com/logos-co/logos-chat-ui.git|yes"
-  "logos-chatsdk-module|logos-chatsdk-module|https://github.com/logos-co/logos-chatsdk-module.git|yes"
-  "logos-chatsdk-ui|logos-chatsdk-ui|https://github.com/logos-co/logos-chatsdk-ui.git|yes"
-  "logos-irc-module|logos-irc-module|https://github.com/logos-co/logos-irc-module.git|yes"
-
-  # Waku
-  "logos-waku-module|logos-waku-module|https://github.com/logos-co/logos-waku-module.git|yes"
-  "logos-waku-ui|logos-waku-ui|https://github.com/logos-co/logos-waku-ui.git|yes"
 
   # Package Manager
   "logos-package-manager|logos-package-manager|https://github.com/logos-co/logos-package-manager.git|yes"
@@ -177,7 +169,7 @@ REPOS=(
 
 REPO_GROUPS=(
   "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
-  "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
+  "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
 )
@@ -582,7 +574,7 @@ Options:
 Examples:
   ws bundle logos-chat-module
   ws bundle logos-chat-module --mode portable
-  ws bundle logos-chat-module logos-waku-module --auto-local
+  ws bundle logos-chat-module logos-storage-module --auto-local
   ws bundle --group core --mode dual"
 
   local repos=()
@@ -2244,11 +2236,6 @@ get_repo_url() {
 # `input_name<TAB>target` lines per repo.
 get_manual_follows() {
   case "$1" in
-    # logos-chat-ui's upstream points its `logos-chat-module` input at the
-    # NEW chat module, but the workspace builds it against the legacy one
-    # (matching how logos-irc-module is configured upstream).
-    logos-chat-ui)
-      printf 'logos-chat-module\tlogos-chat-legacy-module\n' ;;
     # These three repos declare an input named `logos-package-manager` that
     # actually points at `logos-package-manager-module` upstream.  The repos
     # consume `<input>.packages.${system}.cli`, which only exists on the
@@ -3211,7 +3198,7 @@ EXAMPLES:
   ws bundle logos-chat-module --mode portable
 
   # Bundle multiple repos (results in result-bundle/<repo>/)
-  ws bundle logos-chat-module logos-waku-module --auto-local
+  ws bundle logos-chat-module logos-storage-module --auto-local
 
   # Run all tests
   ws test --all

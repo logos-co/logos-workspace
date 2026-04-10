@@ -155,64 +155,20 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
-    logos-chat-legacy-module = {
-      url = "github:logos-co/logos-chat-legacy-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-waku-module.follows = "logos-waku-module";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     logos-chat-tui = {
       url = "github:logos-co/logos-chat-tui";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-chat-module.follows = "logos-chat-module";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-rust-sdk.follows = "logos-rust-sdk";
-      inputs.logos-waku-module.follows = "logos-waku-module";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-chat-ui = {
       url = "github:logos-co/logos-chat-ui";
       inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-chat-module.follows = "logos-chat-legacy-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    logos-chatsdk-module = {
-      url = "github:logos-co/logos-chatsdk-module";
-      inputs.logos-module-builder.follows = "logos-module-builder";
-      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
-    };
-    logos-chatsdk-ui = {
-      url = "github:logos-co/logos-chatsdk-ui";
-      inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-chat-module.follows = "logos-chat-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    logos-irc-module = {
-      url = "github:logos-co/logos-irc-module";
-      inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-chat-module.follows = "logos-chat-legacy-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-waku-module.follows = "logos-waku-module";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    logos-waku-module = {
-      url = "github:logos-co/logos-waku-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    logos-waku-ui = {
-      url = "github:logos-co/logos-waku-ui";
-      inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-waku-module.follows = "logos-waku-module";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-manager = {

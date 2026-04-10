@@ -28,30 +28,12 @@
 [submodule "repos/logos-chat-module"]
 	path = repos/logos-chat-module
 	url = git@github.com:logos-co/logos-chat-module.git
-[submodule "repos/logos-chat-legacy-module"]
-	path = repos/logos-chat-legacy-module
-	url = git@github.com:logos-co/logos-chat-legacy-module.git
 [submodule "repos/logos-chat-tui"]
 	path = repos/logos-chat-tui
 	url = git@github.com:logos-co/logos-chat-tui.git
 [submodule "repos/logos-chat-ui"]
 	path = repos/logos-chat-ui
 	url = git@github.com:logos-co/logos-chat-ui.git
-[submodule "repos/logos-chatsdk-module"]
-	path = repos/logos-chatsdk-module
-	url = git@github.com:logos-co/logos-chatsdk-module.git
-[submodule "repos/logos-chatsdk-ui"]
-	path = repos/logos-chatsdk-ui
-	url = git@github.com:logos-co/logos-chatsdk-ui.git
-[submodule "repos/logos-irc-module"]
-	path = repos/logos-irc-module
-	url = git@github.com:logos-co/logos-irc-module.git
-[submodule "repos/logos-waku-module"]
-	path = repos/logos-waku-module
-	url = git@github.com:logos-co/logos-waku-module.git
-[submodule "repos/logos-waku-ui"]
-	path = repos/logos-waku-ui
-	url = git@github.com:logos-co/logos-waku-ui.git
 [submodule "repos/logos-package-manager-module"]
 	path = repos/logos-package-manager-module
 	url = git@github.com:logos-co/logos-package-manager-module.git
