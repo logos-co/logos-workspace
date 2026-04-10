@@ -277,7 +277,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     counter_qml = {
-      url = "github:logos-co/counter_qml";
+      url = "github:logos-co/counter_qml/92cf894";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
