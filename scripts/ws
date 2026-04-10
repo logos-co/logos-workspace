@@ -2216,7 +2216,8 @@ Examples:
 
 # ── URL overrides for repos not at github:logos-co/<name> ──────────────────
 # Used by `ws sync-graph` when generating flake.nix's auto-inputs section.
-get_repo_url() {
+# Base URL (org/repo) — override for repos outside logos-co or with ?dir=.
+get_base_repo_url() {
   case "$1" in
     logos-blockchain-module)        echo "github:logos-blockchain/logos-blockchain-module" ;;
     logos-blockchain-ui)            echo "github:logos-blockchain/logos-blockchain-ui" ;;
@@ -2225,10 +2226,51 @@ get_repo_url() {
     logos-calc-module)              echo "github:logos-co/logos-tutorial?dir=logos-calc-module" ;;
     logos-calc-ui)                  echo "github:logos-co/logos-tutorial?dir=logos-calc-ui" ;;
     logos-calc-ui-cpp)              echo "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp" ;;
-    counter_qml)                    echo "github:logos-co/counter_qml/92cf894" ;;
-    logos-package-manager-ui)       echo "github:logos-co/logos-package-manager-ui/f2476f7" ;;
     *)                              echo "github:logos-co/$1" ;;
   esac
+}
+
+# Returns the flake URL for a repo, pinning to the submodule commit when it
+# differs from the remote default branch HEAD.  This way changing a submodule
+# pointer is all you need — ws sync-graph picks up the rev automatically.
+get_repo_url() {
+  local input_name="$1"
+  local base_url
+  base_url=$(get_base_repo_url "$input_name")
+
+  # Find the repo's directory from the REPOS table
+  local entry dir_name repo_dir
+  entry=$(find_repo_entry "$input_name") || { echo "$base_url"; return; }
+  dir_name=$(get_field "$entry" 2)
+  repo_dir="$REPOS_DIR/$dir_name"
+
+  [[ -d "$repo_dir" ]] || { echo "$base_url"; return; }
+
+  # Get the submodule commit that the workspace has checked out
+  local sub_rev
+  sub_rev=$(git -C "$WORKSPACE_ROOT" ls-tree HEAD -- "repos/$dir_name" 2>/dev/null \
+            | awk '{print $3}')
+  [[ -n "$sub_rev" ]] || { echo "$base_url"; return; }
+
+  # Get the remote default branch HEAD (master or main)
+  local remote_rev=""
+  remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/HEAD 2>/dev/null) \
+    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/master 2>/dev/null) \
+    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/main 2>/dev/null) \
+    || remote_rev=""
+
+  # If submodule commit matches remote HEAD, no pin needed
+  if [[ -n "$remote_rev" && "$sub_rev" == "$remote_rev" ]]; then
+    echo "$base_url"
+  else
+    # Pin to the submodule rev — append /rev for simple URLs,
+    # or &rev=... for URLs with ?dir= query params.
+    local short_rev="${sub_rev:0:7}"
+    case "$base_url" in
+      *\?*) echo "${base_url}&rev=${sub_rev}" ;;
+      *)    echo "${base_url}/${short_rev}" ;;
+    esac
+  fi
 }
 
 # ── Workspace-level follows that override what each repo's lock would

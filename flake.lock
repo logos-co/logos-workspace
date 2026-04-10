@@ -2257,6 +2257,7 @@
       },
       "original": {
         "owner": "logos-co",
+        "ref": "539f555",
         "repo": "logos-test-modules",
         "type": "github"
       }
