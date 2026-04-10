@@ -1770,6 +1770,7 @@
       },
       "original": {
         "owner": "logos-co",
+        "ref": "f2476f7",
         "repo": "logos-package-manager-ui",
         "type": "github"
       }

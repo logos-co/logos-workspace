@@ -2226,6 +2226,7 @@ get_repo_url() {
     logos-calc-ui)                  echo "github:logos-co/logos-tutorial?dir=logos-calc-ui" ;;
     logos-calc-ui-cpp)              echo "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp" ;;
     counter_qml)                    echo "github:logos-co/counter_qml/92cf894" ;;
+    logos-package-manager-ui)       echo "github:logos-co/logos-package-manager-ui/f2476f7" ;;
     *)                              echo "github:logos-co/$1" ;;
   esac
 }

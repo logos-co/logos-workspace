@@ -200,7 +200,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-manager-ui = {
-      url = "github:logos-co/logos-package-manager-ui";
+      url = "github:logos-co/logos-package-manager-ui/f2476f7";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.package_downloader.follows = "logos-package-downloader-module";
