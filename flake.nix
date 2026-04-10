@@ -83,7 +83,6 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-plugin-qt.url = "github:logos-co/logos-plugin-qt";
     logos-module-builder = {
       url = "github:logos-co/logos-module-builder";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
@@ -153,9 +152,8 @@
     };
     logos-chat-module = {
       url = "github:logos-co/logos-chat-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-chat-legacy-module = {
       url = "github:logos-co/logos-chat-legacy-module";
@@ -179,13 +177,13 @@
       inputs.logos-chat-module.follows = "logos-chat-legacy-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-waku-module.follows = "logos-waku-module";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-chatsdk-module = {
       url = "github:logos-co/logos-chatsdk-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-chatsdk-ui = {
       url = "github:logos-co/logos-chatsdk-ui";
@@ -270,17 +268,15 @@
     };
     logos-wallet-module = {
       url = "github:logos-co/logos-wallet-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-wallet-ui = {
       url = "github:logos-co/logos-wallet-ui";
-      inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-wallet-module.follows = "logos-wallet-module";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.logos-standalone-app.follows = "logos-standalone-app";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.wallet_module.follows = "logos-wallet-module";
     };
     logos-blockchain-module = {
       url = "github:logos-blockchain/logos-blockchain-module";
@@ -321,7 +317,12 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-webview-app.url = "github:logos-co/logos-webview-app";
+    logos-webview-app = {
+      url = "github:logos-co/logos-webview-app";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     counter_qml = {
       url = "github:logos-co/counter_qml";
       inputs.logos-nix.follows = "logos-nix";
