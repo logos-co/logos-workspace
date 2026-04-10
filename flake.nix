@@ -177,7 +177,6 @@
       inputs.logos-chat-module.follows = "logos-chat-legacy-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-waku-module.follows = "logos-waku-module";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-chatsdk-module = {
