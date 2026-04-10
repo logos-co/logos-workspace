@@ -142,6 +142,15 @@
 [submodule "repos/nix-bundle-logos-module-install"]
 	path = repos/nix-bundle-logos-module-install
 	url = https://github.com/logos-co/nix-bundle-logos-module-install.git
+[submodule "repos/logos-dev-boost"]
+	path = repos/logos-dev-boost
+	url = git@github.com:logos-co/logos-dev-boost.git
+[submodule "repos/logos-logoscore-tui"]
+	path = repos/logos-logoscore-tui
+	url = git@github.com:logos-co/logos-logoscore-tui.git
+[submodule "repos/logos-test-framework"]
+	path = repos/logos-test-framework
+	url = git@github.com:logos-co/logos-test-framework.git
 [submodule "repos/logos-plugin-qt"]
 	path = repos/logos-plugin-qt
-	url = https://github.com/logos-co/logos-plugin-qt.git
+	url = git@github.com:logos-co/logos-plugin-qt.git

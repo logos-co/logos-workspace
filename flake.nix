@@ -83,6 +83,12 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    logos-plugin-qt = {
+      url = "github:logos-co/logos-plugin-qt";
+      inputs.logos-module.follows = "logos-module";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     logos-module-builder = {
       url = "github:logos-co/logos-module-builder";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
