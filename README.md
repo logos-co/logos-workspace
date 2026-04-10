@@ -91,7 +91,8 @@ Because the workspace flake declares `logos-liblogos.inputs.logos-cpp-sdk.follow
 | `ws worktree remove <name>` | Remove a worktree |
 | `ws repo-upgrade [repo...\|--group G]` | Pull latest master/main for submodules |
 | `ws sync-graph` | Regenerate `nix/dep-graph.nix` from repo flake.nix files |
-| `ws nix-diagnose <repo>` | Detect circular deps and version conflicts in flake.lock |
+| `ws nix-diagnose <repo> [--suggest]` | Detect circular deps and version conflicts in flake.lock |
+| `ws update-order <dep> [--for target]` | Show topological update order for propagating a dep change |
 | `ws check-qt <repo>` | Detect Qt version conflicts in nix closure or module cache |
 
 ### Global Options
@@ -702,7 +703,89 @@ Output shows:
 - Cycles as `A -> B -> C -> A` chains
 - Version conflicts grouped by repo, with the input path from root to each conflicting copy (e.g. `root -> logos-liblogos -> logos-capability-module -> logos-nix`)
 
-**Fixing conflicts**: run `ws update --deep <repo>` to update the repo's `flake.lock` and all its sub-repo locks, then rebuild. For cycles, the dependency must be broken at the source (usually by removing a `follows` or restructuring inputs).
+Add `--suggest` to get a ranked resolution plan on top of the conflict output:
+
+```bash
+ws nix-diagnose logos-liblogos --suggest
+```
+
+This ranks the actionable conflicts (excluding infrastructure deps like `logos-nix`/`nixpkgs`) by impact — most divergent revisions first — and suggests where to start:
+
+```
+Suggested Resolution Order
+
+  Conflicts ranked by impact (excluding logos-nix/nixpkgs):
+    logos-cpp-sdk  (2 revisions, 2 lock references)
+    logos-module   (2 revisions, 2 lock references)
+
+  Start with: ws update-order logos-cpp-sdk --for logos-liblogos
+
+  This affects 2 repos across 2 levels:
+    1. logos-capability-module
+    2. logos-liblogos
+```
+
+**Fixing conflicts**: each conflict level must be resolved in order — update and push repos at level 1 before updating level 2 repos, since `nix flake lock` fetches from remote URLs. Use `ws update-order` to see the full sequence (see next section).
+
+## Propagating a dependency update: `ws update-order`
+
+When a dependency gets a new commit merged (or you need to align stale `flake.lock`s), all downstream repos need updating — but in a specific order. Repos that transitively depend on an intermediate repo can't update their lock until that intermediate repo has been pushed.
+
+`ws update-order` computes this topological order and groups repos into levels. All repos at the same level can be updated in parallel; all repos at a level must be pushed before the next level can proceed.
+
+```bash
+# Show the full propagation order when logos-module changes
+ws update-order logos-module
+
+# Scope to only the repos that feed into logos-basecamp
+ws update-order logos-module --for logos-basecamp
+
+# Print the exact nix flake lock + git commands to run at each level
+ws update-order logos-cpp-sdk --for logos-liblogos --commands
+
+# Machine-readable output for scripting
+ws update-order logos-module --json
+```
+
+Example output for `ws update-order logos-module --for logos-basecamp`:
+
+```
+Update order for logos-module (scoped to logos-basecamp)
+
+  Level 1 (update + push these first):
+    logos-capability-module          (depends on: logos-module)
+    logos-package-downloader-module  (depends on: logos-module)
+    logos-plugin-qt                  (depends on: logos-module)
+
+  Level 2 (after level 1 is pushed):
+    logos-liblogos                   (depends on: logos-module, logos-capability-module)
+
+  Level 3 (after level 2 is pushed):
+    logos-standalone-app             (depends on: logos-liblogos, logos-capability-module)
+
+  Level 4 (after level 3 is pushed):
+    logos-module-builder             (depends on: logos-module, logos-plugin-qt, logos-standalone-app)
+
+  ...
+
+  Total: 9 repos across 7 levels
+```
+
+Note: level 2's `logos-liblogos` shows both `logos-module` and `logos-capability-module` in its changed deps — when running `nix flake lock --update-input` for that repo, you need to update both inputs (not just the original dep), which `--commands` handles automatically.
+
+**Typical workflow**:
+
+```bash
+# 1. Diagnose what's stale and get a starting point
+ws nix-diagnose logos-basecamp --suggest
+
+# 2. See the full sequence for the top conflict
+ws update-order logos-cpp-sdk --for logos-basecamp
+
+# 3. For each level, update the repos and push, then proceed to the next level
+# Use --commands to get the exact nix flake lock + git commands
+ws update-order logos-cpp-sdk --commands
+```
 
 ## CI
 

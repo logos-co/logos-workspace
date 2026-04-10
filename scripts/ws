@@ -344,6 +344,108 @@ get_dependents() {
     ' 2>/dev/null
 }
 
+# Map a "owner/repo" GitHub identifier to the workspace flake input name.
+_github_repo_to_input_name() {
+  local gh_repo="$1"
+  for entry in "${REPOS[@]}"; do
+    local input url
+    input=$(get_field "$entry" 1)
+    url=$(get_field "$entry" 3)
+    [[ -z "$input" ]] && continue
+    if [[ "$url" == "https://github.com/${gh_repo}.git" || \
+          "$url" == "https://github.com/${gh_repo}" ]]; then
+      echo "$input"
+      return 0
+    fi
+  done
+}
+
+# Compute topological propagation levels starting from a given dependency.
+# Uses level-based relaxation: each level is a batch of repos that can be
+# updated in parallel, but all repos in a level must be committed and pushed
+# to GitHub before the next level can run nix flake lock (nix fetches from
+# remote URLs, not local paths).
+#
+# Usage: get_topo_levels <start_dep_input_name> [--for <target_input_name>]
+#
+# Output (one line per affected repo, sorted by level then name):
+#   LEVEL|REPO_INPUT_NAME|CHANGED_DEP1,CHANGED_DEP2,...
+#
+# --for <target>: only include repos on paths from start_dep to target
+get_topo_levels() {
+  local start_dep="$1"
+  local for_target=""
+  shift
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --for) for_target="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+
+  [[ ! -f "$DEP_GRAPH" ]] && return
+
+  local graph_json
+  graph_json=$(nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --json --expr 'import '"$DEP_GRAPH"'' 2>/dev/null) || return
+
+  echo "$graph_json" | jq -r --arg start "$start_dep" --arg target "$for_target" '
+    . as $g |
+
+    # Compute propagation levels via Gauss-Seidel relaxation.
+    # Level 0 = start_dep (seed). Level n = repos whose deepest upstream
+    # changed dep is at level n-1. Uses max-of-paths for diamond deps.
+    ( $g | keys_unsorted | map({key: ., value: -1}) | from_entries | .[$start] = 0 ) |
+    reduce range(60) as $_ (
+      .;
+      . as $acc |
+      reduce ($g | keys_unsorted[] | select(. != $start)) as $repo (
+        $acc;
+        . as $cur |
+        ( [($g[$repo].deps // [])[] | $cur[.] // -1] |
+          if length > 0 then max else -1 end
+        ) as $max_dep |
+        if $max_dep >= 0 and ($max_dep + 1) > $cur[$repo]
+        then .[$repo] = ($max_dep + 1)
+        else .
+        end
+      )
+    ) | . as $levels |
+
+    # If --for given, compute the set of transitive deps of target.
+    # Output is restricted to repos that are in both the forward propagation
+    # from start_dep AND the ancestor set of target (i.e. on a path between them).
+    ( if $target != "" then
+        ( $g | keys_unsorted | map({key: ., value: false}) | from_entries |
+          .[$target] = true ) |
+        reduce range(60) as $_ (
+          .;
+          . as $anc |
+          reduce ($g | keys_unsorted[]) as $repo (
+            $anc;
+            if .[$repo] then
+              reduce ($g[$repo].deps // [])[] as $dep (.; .[$dep] = true)
+            else .
+            end
+          )
+        )
+      else null
+      end
+    ) as $ancestors |
+
+    # Output: repos with level > 0, filtered, sorted by level then name
+    [ $levels | to_entries[] |
+      select(.value > 0) |
+      select( if $ancestors != null then ($ancestors[.key] // false) else true end ) |
+      .key as $repo | .value as $lvl |
+      [ ($g[$repo].deps // [])[] |
+        select(. == $start or (($levels[.] // -1) > 0))
+      ] as $changed_deps |
+      "\($lvl)|\($repo)|\($changed_deps | join(","))"
+    ] | sort[]
+  '
+}
+
 # ── Commands ─────────────────────────────────────────────────────────────────
 
 cmd_init() {
@@ -2605,8 +2707,147 @@ HEADER
   fi
 }
 
+cmd_update_order() {
+  wants_help "$@" && show_help "Usage: ws update-order <dep> [--for <target>] [--json] [--commands]
+
+Show the topological order for propagating a dependency change.
+
+When a dependency (e.g. logos-module) gets a new commit merged, all repos
+that depend on it need their flake.lock updated — but in the right order.
+Repos at the same level can be updated in parallel; each level must be
+committed and pushed to GitHub before the next level can run nix flake lock
+(since nix fetches from remote URLs, not local paths).
+
+Options:
+  --for <target>   Scope output to repos on paths leading to this target
+  --json           Output machine-readable JSON
+  --commands       Also print nix flake lock + git commands per level
+
+Examples:
+  ws update-order logos-module
+  ws update-order logos-cpp-sdk --for logos-basecamp
+  ws update-order logos-module-builder --commands
+  ws update-order logos-module --json"
+
+  local dep=""
+  local for_target=""
+  local json=false
+  local commands=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --for)      for_target="$2"; shift 2 ;;
+      --json)     json=true; shift ;;
+      --commands) commands=true; shift ;;
+      -*)         shift ;;
+      *)          dep="$1"; shift ;;
+    esac
+  done
+
+  if [[ -z "$dep" ]]; then
+    echo -e "${RED}Error:${NC} dependency name required" >&2
+    exit 1
+  fi
+
+  if ! command -v jq &>/dev/null; then
+    echo -e "${RED}jq is required but not found${NC}" >&2
+    exit 1
+  fi
+
+  local input_name
+  input_name=$(get_input_name "$dep")
+  local for_input=""
+  [[ -n "$for_target" ]] && for_input=$(get_input_name "$for_target")
+
+  local levels_raw
+  levels_raw=$(get_topo_levels "$input_name" ${for_input:+--for "$for_input"}) || true
+
+  if [[ -z "$levels_raw" ]]; then
+    $json && echo '{"dep":"'"$input_name"'","levels":[],"totalRepos":0,"totalLevels":0}' \
+           || echo -e "  ${YELLOW}No dependents found for${NC} ${BOLD}$input_name${NC}"
+    return
+  fi
+
+  # Count totals
+  local max_level=0 total_repos=0
+  while IFS='|' read -r lvl _r _d; do
+    [[ "$lvl" -gt "$max_level" ]] && max_level=$lvl
+    ((total_repos++)) || true
+  done <<< "$levels_raw"
+
+  if $json; then
+    local out='{"dep":"'"$input_name"'"'
+    [[ -n "$for_input" ]] && out+=',"for":"'"$for_input"'"'
+    out+=',"totalRepos":'"$total_repos"',"totalLevels":'"$max_level"',"levels":['
+    local prev_lvl=-1 first_level=true first_repo=true
+    while IFS='|' read -r lvl repo deps; do
+      if [[ "$lvl" -ne "$prev_lvl" ]]; then
+        [[ "$prev_lvl" -ge 0 ]] && out+=']}'
+        $first_level && first_level=false || out+=','
+        out+='{"level":'"$lvl"',"repos":['
+        prev_lvl=$lvl first_repo=true
+      fi
+      $first_repo && first_repo=false || out+=','
+      out+='{"repo":"'"$repo"'","changedDeps":['
+      local first_dep=true
+      IFS=',' read -ra dep_arr <<< "$deps"
+      for d in "${dep_arr[@]}"; do
+        [[ -z "$d" ]] && continue
+        $first_dep && first_dep=false || out+=','
+        out+='"'"$d"'"'
+      done
+      out+=']}'
+    done <<< "$levels_raw"
+    [[ "$prev_lvl" -ge 0 ]] && out+=']}'
+    out+=']}'
+    echo "$out"
+    return
+  fi
+
+  # Human-readable output
+  echo ""
+  local header="${BOLD}Update order for ${CYAN}$input_name${NC}"
+  [[ -n "$for_input" ]] && header+=" ${BOLD}(scoped to $for_input)${NC}"
+  echo -e "$header"
+  echo ""
+
+  local prev_lvl=-1
+  while IFS='|' read -r lvl repo deps; do
+    if [[ "$lvl" -ne "$prev_lvl" ]]; then
+      [[ "$prev_lvl" -ge 0 ]] && echo ""
+      if [[ "$lvl" -eq 1 ]]; then
+        echo -e "  ${BOLD}Level $lvl${NC} ${YELLOW}(update + push these first):${NC}"
+      else
+        echo -e "  ${BOLD}Level $lvl${NC} ${YELLOW}(after level $(( lvl - 1 )) is pushed):${NC}"
+      fi
+      prev_lvl=$lvl
+    fi
+    local dep_display="${deps//,/, }"
+    printf "    %-40s ${YELLOW}(depends on: %s)${NC}\n" "$repo" "$dep_display"
+    if $commands; then
+      local repo_dir
+      repo_dir=$(get_repo_path "$repo")
+      local update_flags=""
+      IFS=',' read -ra dep_arr <<< "$deps"
+      for d in "${dep_arr[@]}"; do
+        [[ -z "$d" ]] && continue
+        update_flags+=" --update-input $d"
+      done
+      echo -e "    ${BLUE}cd repos/$repo_dir${NC}"
+      echo -e "    ${BLUE}nix flake lock --extra-experimental-features 'nix-command flakes'$update_flags${NC}"
+      echo -e "    ${BLUE}git add flake.lock && git commit -m 'update $input_name' && git push${NC}"
+      echo ""
+    fi
+  done <<< "$levels_raw"
+
+  echo ""
+  local repo_word="repos" level_word="levels"
+  [[ "$total_repos" -eq 1 ]] && repo_word="repo"
+  [[ "$max_level" -eq 1 ]] && level_word="level"
+  echo -e "  ${BOLD}Total:${NC} $total_repos $repo_word across $max_level $level_word"
+}
+
 cmd_nix_diagnose() {
-  wants_help "$@" && show_help "Usage: ws nix-diagnose <repo>
+  wants_help "$@" && show_help "Usage: ws nix-diagnose <repo> [--suggest]
 
 Diagnose dependency issues in a repo's flake.
 
@@ -2615,15 +2856,21 @@ Checks:
   2. Duplicate dependencies — same repo appearing at different versions
      in the flake.lock (e.g. two copies of logos-nix at different revs)
 
+Options:
+  --suggest   After showing conflicts, rank them by impact and suggest
+              the best starting point with ws update-order
+
 Examples:
   ws nix-diagnose logos-basecamp
+  ws nix-diagnose logos-basecamp --suggest
   ws nix-diagnose logos-liblogos"
 
-  local repo=""
+  local repo="" suggest=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -*) shift ;;
-      *) repo="$1"; shift ;;
+      --suggest) suggest=true; shift ;;
+      -*)        shift ;;
+      *)         repo="$1"; shift ;;
     esac
   done
 
@@ -2865,6 +3112,72 @@ Examples:
     echo ""
     ((i++))
   done
+
+  # ── Suggested Resolution Order (--suggest) ────────────────────────────────
+  if $suggest; then
+    log ""
+    log "${BOLD}Suggested Resolution Order${NC}"
+
+    # Rank conflicts: score = rev_count * 1000 + total_lock_refs
+    # More distinct revisions = more divergence = higher priority
+    # Skip infrastructure-only deps (logos-nix, nixpkgs) — they're not actionable
+    local ranked
+    ranked=$(echo "$conflicts_json" | jq -r '
+      .[] | . as $group |
+      ($group[0].repo_id) as $repo_id |
+      select($repo_id | test("logos-nix|nixpkgs") | not) |
+      ($group | length) as $total_refs |
+      ($group | map(.rev) | unique | length) as $rev_count |
+      "\($rev_count * 1000 + $total_refs)|\($rev_count)|\($total_refs)|\($repo_id)"
+    ' | sort -t'|' -k1,1rn)
+
+    echo ""
+    if [[ -z "$ranked" ]]; then
+      echo -e "  ${YELLOW}All conflicts are in infrastructure deps (logos-nix/nixpkgs) — no actionable suggestions.${NC}"
+    else
+      echo -e "  ${BOLD}Conflicts ranked by impact (excluding logos-nix/nixpkgs):${NC}"
+      while IFS='|' read -r _score rev_count total_refs repo_id; do
+        local ws_input
+        ws_input=$(_github_repo_to_input_name "$repo_id")
+        local label="${ws_input:-$repo_id}"
+        echo -e "    ${CYAN}$label${NC}  ($rev_count revisions, $total_refs lock references)"
+      done <<< "$ranked"
+
+      # Show update-order for the most impactful conflict
+      local top_repo_id
+      top_repo_id=$(echo "$ranked" | head -1 | cut -d'|' -f4)
+      local top_input
+      top_input=$(_github_repo_to_input_name "$top_repo_id")
+
+      if [[ -n "$top_input" ]]; then
+        echo ""
+        echo -e "  ${BOLD}Start with:${NC} ${CYAN}ws update-order $top_input --for $input_name${NC}"
+        echo ""
+        local levels_raw
+        levels_raw=$(get_topo_levels "$top_input" --for "$input_name") || true
+        if [[ -n "$levels_raw" ]]; then
+          local lv_max=0 lv_total=0
+          while IFS='|' read -r lvl _r _d; do
+            [[ "$lvl" -gt "$lv_max" ]] && lv_max=$lvl
+            ((lv_total++)) || true
+          done <<< "$levels_raw"
+          echo -e "  This affects $lv_total repos across $lv_max levels:"
+          local prev_lvl=-1 level_repos=""
+          while IFS='|' read -r lvl repo _deps; do
+            if [[ "$lvl" -ne "$prev_lvl" ]]; then
+              [[ -n "$level_repos" ]] && echo -e "    $prev_lvl. $level_repos"
+              level_repos="$repo"
+              prev_lvl=$lvl
+            else
+              level_repos="$level_repos, $repo"
+            fi
+          done <<< "$levels_raw"
+          [[ -n "$level_repos" ]] && echo -e "    $prev_lvl. $level_repos"
+        fi
+      fi
+    fi
+    echo ""
+  fi
 }
 
 cmd_repo_upgrade() {
@@ -3200,7 +3513,9 @@ COMMANDS:
   worktree remove <name>       Remove a worktree
   repo-upgrade [repo...|--group G|--all]  Pull latest master/main for submodules
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
-  nix-diagnose <repo>            Detect circular deps and version conflicts in flake.lock
+  nix-diagnose <repo> [--suggest] Detect circular deps and version conflicts in flake.lock
+  update-order <dep> [--for target] [--json] [--commands]
+                                Show topological update order for a dependency change
   check-qt <repo>               Check for Qt version conflicts in a repo's nix closure
 
   lm <args>                     Module inspector (auto-builds logos-module)
@@ -3309,6 +3624,15 @@ EXAMPLES:
 
   # Regenerate dep-graph.nix after adding tests to a repo
   ws sync-graph
+
+  # Show what order to update deps when logos-module changes
+  ws update-order logos-module
+
+  # Scope to repos that affect logos-basecamp only
+  ws update-order logos-cpp-sdk --for logos-basecamp
+
+  # Diagnose version conflicts in logos-basecamp + suggest fix order
+  ws nix-diagnose logos-basecamp --suggest
 EOF
 }
 
@@ -3348,6 +3672,7 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
   nix-diagnose)   shift; cmd_nix_diagnose "$@" ;;
+  update-order)   shift; cmd_update_order "$@" ;;
   repo-upgrade)   shift; cmd_repo_upgrade "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   groups)         shift; cmd_groups "$@" ;;

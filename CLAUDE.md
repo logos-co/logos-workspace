@@ -43,6 +43,10 @@ ws foreach 'git add . && git commit -m "msg" || true'
 
 # Diagnostics
 ws nix-diagnose <repo>               # Detect circular deps and version conflicts in flake.lock
+ws nix-diagnose <repo> --suggest     # Also rank conflicts by impact and suggest update-order
+ws update-order <dep>                # Show topological update order for propagating a dep change
+ws update-order <dep> --for <target> # Scope to repos on paths leading to target
+ws update-order <dep> --commands     # Also print nix flake lock + git commands per level
 ws check-qt <repo>                   # Detect Qt version conflicts in nix closure or module cache
 
 # Other
