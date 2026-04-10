@@ -109,9 +109,6 @@
 [submodule "repos/node-configs"]
 	path = repos/node-configs
 	url = git@github.com:logos-co/node-configs.git
-[submodule "repos/logos-modules"]
-	path = repos/logos-modules
-	url = git@github.com:logos-co/logos-modules.git
 [submodule "repos/logos-module-viewer"]
 	path = repos/logos-module-viewer
 	url = git@github.com:logos-co/logos-module-viewer.git

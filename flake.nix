@@ -371,12 +371,6 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-modules = {
-      url = "github:logos-co/logos-modules";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-package.follows = "logos-package";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     logos-module-viewer = {
       url = "github:logos-co/logos-module-viewer";
       inputs.logos-capability-module.follows = "logos-capability-module";
