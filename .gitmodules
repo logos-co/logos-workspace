@@ -28,30 +28,9 @@
 [submodule "repos/logos-chat-module"]
 	path = repos/logos-chat-module
 	url = git@github.com:logos-co/logos-chat-module.git
-[submodule "repos/logos-chat-legacy-module"]
-	path = repos/logos-chat-legacy-module
-	url = git@github.com:logos-co/logos-chat-legacy-module.git
-[submodule "repos/logos-chat-tui"]
-	path = repos/logos-chat-tui
-	url = git@github.com:logos-co/logos-chat-tui.git
 [submodule "repos/logos-chat-ui"]
 	path = repos/logos-chat-ui
 	url = git@github.com:logos-co/logos-chat-ui.git
-[submodule "repos/logos-chatsdk-module"]
-	path = repos/logos-chatsdk-module
-	url = git@github.com:logos-co/logos-chatsdk-module.git
-[submodule "repos/logos-chatsdk-ui"]
-	path = repos/logos-chatsdk-ui
-	url = git@github.com:logos-co/logos-chatsdk-ui.git
-[submodule "repos/logos-irc-module"]
-	path = repos/logos-irc-module
-	url = git@github.com:logos-co/logos-irc-module.git
-[submodule "repos/logos-waku-module"]
-	path = repos/logos-waku-module
-	url = git@github.com:logos-co/logos-waku-module.git
-[submodule "repos/logos-waku-ui"]
-	path = repos/logos-waku-ui
-	url = git@github.com:logos-co/logos-waku-ui.git
 [submodule "repos/logos-package-manager-module"]
 	path = repos/logos-package-manager-module
 	url = git@github.com:logos-co/logos-package-manager-module.git
@@ -109,9 +88,6 @@
 [submodule "repos/node-configs"]
 	path = repos/node-configs
 	url = git@github.com:logos-co/node-configs.git
-[submodule "repos/logos-modules"]
-	path = repos/logos-modules
-	url = git@github.com:logos-co/logos-modules.git
 [submodule "repos/logos-module-viewer"]
 	path = repos/logos-module-viewer
 	url = git@github.com:logos-co/logos-module-viewer.git
@@ -160,3 +136,18 @@
 [submodule "repos/logos-package-downloader-module"]
 	path = repos/logos-package-downloader-module
 	url = https://github.com/logos-co/logos-package-downloader-module.git
+[submodule "repos/nix-bundle-logos-module-install"]
+	path = repos/nix-bundle-logos-module-install
+	url = https://github.com/logos-co/nix-bundle-logos-module-install.git
+[submodule "repos/logos-dev-boost"]
+	path = repos/logos-dev-boost
+	url = git@github.com:logos-co/logos-dev-boost.git
+[submodule "repos/logos-logoscore-tui"]
+	path = repos/logos-logoscore-tui
+	url = git@github.com:logos-co/logos-logoscore-tui.git
+[submodule "repos/logos-test-framework"]
+	path = repos/logos-test-framework
+	url = git@github.com:logos-co/logos-test-framework.git
+[submodule "repos/logos-plugin-qt"]
+	path = repos/logos-plugin-qt
+	url = git@github.com:logos-co/logos-plugin-qt.git

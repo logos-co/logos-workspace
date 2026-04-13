@@ -43,6 +43,10 @@ ws foreach 'git add . && git commit -m "msg" || true'
 
 # Diagnostics
 ws nix-diagnose <repo>               # Detect circular deps and version conflicts in flake.lock
+ws nix-diagnose <repo> --suggest     # Also rank conflicts by impact and suggest update-order
+ws update-order <dep>                # Show topological update order for propagating a dep change
+ws update-order <dep> --for <target> # Scope to repos on paths leading to target
+ws update-order <dep> --commands     # Also print nix flake lock + git commands per level
 ws check-qt <repo>                   # Detect Qt version conflicts in nix closure or module cache
 
 # Other
@@ -126,10 +130,9 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-module-builder | Scaffolding + build system (metadata.json -> CMake) |
 | logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
-| logos-package-manager | Local package management library (plain C++, no Qt) + `lgpm` CLI |
-| logos-package-downloader | Online catalog and download library (plain C++ + libcurl) + `lgpd` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |
 | nix-bundle-lgx | Bundles Nix derivations into distributable `.lgx` packages |
+| nix-bundle-logos-module-install | Bundles modules into `.lgx` and installs via lgpm in one step |
 
 ## Building and testing a repo
 
@@ -183,6 +186,7 @@ nixpkgs (pinned by logos-cpp-sdk)
       -> logos-logoscore-cli (headless CLI frontend)
       -> logos-capability-module, logos-package, logos-module-builder, nix-bundle-dir
       -> nix-bundle-lgx (uses logos-package + nix-bundle-dir)
+      -> nix-bundle-logos-module-install (uses nix-bundle-lgx + lgpm)
       -> logos-accounts-module, logos-chat-module, logos-waku-module, ...
       -> logos-basecamp (GUI frontend, aggregates many modules)
 ```
@@ -411,16 +415,12 @@ lm methods ./result/lib/my_module_plugin.so --json  # method signatures as JSON
 # 4. Test with logoscore
 logoscore -m ./result/lib -l my_module -c "my_module.someMethod(arg)"
 
-# 5. Package
-lgx create my_module
-lgx add my_module.lgx -v linux-x86_64 -f ./result/lib/my_module_plugin.so
-lgx verify my_module.lgx
+# 5. Package and install (one step via nix-bundle-logos-module-install)
+nix build .#install          # result/ contains modules/<name>/...
+# Or manually: nix build .#lgx then lgpm install --file
 
-# 6. Install locally (lgpm = local install, lgpd = download from catalog)
-lgpm --modules-dir ./test-modules install --file ./my_module.lgx
-
-# 7. Run with other modules
-logoscore -m ./test-modules -l my_module -c "my_module.someMethod(test)"
+# 6. Run with other modules
+logoscore -m ./result/modules -l my_module -c "my_module.someMethod(test)"
 ```
 
 Key files in a module:

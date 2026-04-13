@@ -87,6 +87,7 @@ REPOS=(
   "logos-logoscore-cli|logos-logoscore-cli|https://github.com/logos-co/logos-logoscore-cli.git|yes"
   "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
   "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
+  "logos-plugin-qt|logos-plugin-qt|https://github.com/logos-co/logos-plugin-qt.git|yes"
   "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
 
   # Packaging / Bundling
@@ -103,16 +104,7 @@ REPOS=(
 
   # Chat & Messaging
   "logos-chat-module|logos-chat-module|https://github.com/logos-co/logos-chat-module.git|yes"
-  "logos-chat-legacy-module|logos-chat-legacy-module|https://github.com/logos-co/logos-chat-legacy-module.git|yes"
-  "logos-chat-tui|logos-chat-tui|https://github.com/logos-co/logos-chat-tui.git|yes"
   "logos-chat-ui|logos-chat-ui|https://github.com/logos-co/logos-chat-ui.git|yes"
-  "logos-chatsdk-module|logos-chatsdk-module|https://github.com/logos-co/logos-chatsdk-module.git|yes"
-  "logos-chatsdk-ui|logos-chatsdk-ui|https://github.com/logos-co/logos-chatsdk-ui.git|yes"
-  "logos-irc-module|logos-irc-module|https://github.com/logos-co/logos-irc-module.git|yes"
-
-  # Waku
-  "logos-waku-module|logos-waku-module|https://github.com/logos-co/logos-waku-module.git|yes"
-  "logos-waku-ui|logos-waku-ui|https://github.com/logos-co/logos-waku-ui.git|yes"
 
   # Package Manager
   "logos-package-manager|logos-package-manager|https://github.com/logos-co/logos-package-manager.git|yes"
@@ -155,13 +147,12 @@ REPOS=(
 
   # Other
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
-  "logos-modules|logos-modules|https://github.com/logos-co/logos-modules.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
   # Tutorial (sub-flakes inside logos-tutorial)
   "logos-calc-module|logos-tutorial/logos-calc-module|https://github.com/logos-co/logos-tutorial.git|yes"
   "logos-calc-ui|logos-tutorial/logos-calc-ui|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-cpp-ui|logos-tutorial/logos-calc-cpp-ui|https://github.com/logos-co/logos-tutorial.git|yes"
+  "logos-calc-ui-cpp|logos-tutorial/logos-calc-ui-cpp|https://github.com/logos-co/logos-tutorial.git|yes"
 
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
@@ -177,7 +168,7 @@ REPOS=(
 
 REPO_GROUPS=(
   "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
-  "chat|core,logos-chat-module,logos-chatsdk-module,logos-waku-module,logos-irc-module"
+  "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
 )
@@ -351,6 +342,108 @@ get_dependents() {
         dependents = builtins.filter (n: builtins.elem "'"$target"'" graph.${n}.deps) names;
       in builtins.concatStringsSep "\n" dependents
     ' 2>/dev/null
+}
+
+# Map a "owner/repo" GitHub identifier to the workspace flake input name.
+_github_repo_to_input_name() {
+  local gh_repo="$1"
+  for entry in "${REPOS[@]}"; do
+    local input url
+    input=$(get_field "$entry" 1)
+    url=$(get_field "$entry" 3)
+    [[ -z "$input" ]] && continue
+    if [[ "$url" == "https://github.com/${gh_repo}.git" || \
+          "$url" == "https://github.com/${gh_repo}" ]]; then
+      echo "$input"
+      return 0
+    fi
+  done
+}
+
+# Compute topological propagation levels starting from a given dependency.
+# Uses level-based relaxation: each level is a batch of repos that can be
+# updated in parallel, but all repos in a level must be committed and pushed
+# to GitHub before the next level can run nix flake lock (nix fetches from
+# remote URLs, not local paths).
+#
+# Usage: get_topo_levels <start_dep_input_name> [--for <target_input_name>]
+#
+# Output (one line per affected repo, sorted by level then name):
+#   LEVEL|REPO_INPUT_NAME|CHANGED_DEP1,CHANGED_DEP2,...
+#
+# --for <target>: only include repos on paths from start_dep to target
+get_topo_levels() {
+  local start_dep="$1"
+  local for_target=""
+  shift
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --for) for_target="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+
+  [[ ! -f "$DEP_GRAPH" ]] && return
+
+  local graph_json
+  graph_json=$(nix eval --extra-experimental-features "nix-command flakes" \
+    --impure --json --expr 'import '"$DEP_GRAPH"'' 2>/dev/null) || return
+
+  echo "$graph_json" | jq -r --arg start "$start_dep" --arg target "$for_target" '
+    . as $g |
+
+    # Compute propagation levels via Gauss-Seidel relaxation.
+    # Level 0 = start_dep (seed). Level n = repos whose deepest upstream
+    # changed dep is at level n-1. Uses max-of-paths for diamond deps.
+    ( $g | keys_unsorted | map({key: ., value: -1}) | from_entries | .[$start] = 0 ) |
+    reduce range(60) as $_ (
+      .;
+      . as $acc |
+      reduce ($g | keys_unsorted[] | select(. != $start)) as $repo (
+        $acc;
+        . as $cur |
+        ( [($g[$repo].deps // [])[] | $cur[.] // -1] |
+          if length > 0 then max else -1 end
+        ) as $max_dep |
+        if $max_dep >= 0 and ($max_dep + 1) > $cur[$repo]
+        then .[$repo] = ($max_dep + 1)
+        else .
+        end
+      )
+    ) | . as $levels |
+
+    # If --for given, compute the set of transitive deps of target.
+    # Output is restricted to repos that are in both the forward propagation
+    # from start_dep AND the ancestor set of target (i.e. on a path between them).
+    ( if $target != "" then
+        ( $g | keys_unsorted | map({key: ., value: false}) | from_entries |
+          .[$target] = true ) |
+        reduce range(60) as $_ (
+          .;
+          . as $anc |
+          reduce ($g | keys_unsorted[]) as $repo (
+            $anc;
+            if .[$repo] then
+              reduce ($g[$repo].deps // [])[] as $dep (.; .[$dep] = true)
+            else .
+            end
+          )
+        )
+      else null
+      end
+    ) as $ancestors |
+
+    # Output: repos with level > 0, filtered, sorted by level then name
+    [ $levels | to_entries[] |
+      select(.value > 0) |
+      select( if $ancestors != null then ($ancestors[.key] // false) else true end ) |
+      .key as $repo | .value as $lvl |
+      [ ($g[$repo].deps // [])[] |
+        select(. == $start or (($levels[.] // -1) > 0))
+      ] as $changed_deps |
+      "\($lvl)|\($repo)|\($changed_deps | join(","))"
+    ] | sort[]
+  '
 }
 
 # ── Commands ─────────────────────────────────────────────────────────────────
@@ -582,7 +675,7 @@ Options:
 Examples:
   ws bundle logos-chat-module
   ws bundle logos-chat-module --mode portable
-  ws bundle logos-chat-module logos-waku-module --auto-local
+  ws bundle logos-chat-module logos-storage-module --auto-local
   ws bundle --group core --mode dual"
 
   local repos=()
@@ -2223,47 +2316,143 @@ Examples:
   done
 }
 
+# ── URL overrides for repos not at github:logos-co/<name> ──────────────────
+# Used by `ws sync-graph` when generating flake.nix's auto-inputs section.
+# Base URL (org/repo) — override for repos outside logos-co or with ?dir=.
+get_base_repo_url() {
+  case "$1" in
+    logos-blockchain-module)        echo "github:logos-blockchain/logos-blockchain-module" ;;
+    logos-blockchain-ui)            echo "github:logos-blockchain/logos-blockchain-ui" ;;
+    logos-execution-zone-module)    echo "github:logos-blockchain/logos-execution-zone-module" ;;
+    logos-execution-zone-wallet-ui) echo "github:logos-blockchain/logos-execution-zone-wallet-ui" ;;
+    logos-calc-module)              echo "github:logos-co/logos-tutorial?dir=logos-calc-module" ;;
+    logos-calc-ui)                  echo "github:logos-co/logos-tutorial?dir=logos-calc-ui" ;;
+    logos-calc-ui-cpp)              echo "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp" ;;
+    *)                              echo "github:logos-co/$1" ;;
+  esac
+}
+
+# Returns the flake URL for a repo, pinning to the submodule commit when it
+# differs from the remote default branch HEAD.  This way changing a submodule
+# pointer is all you need — ws sync-graph picks up the rev automatically.
+get_repo_url() {
+  local input_name="$1"
+  local base_url
+  base_url=$(get_base_repo_url "$input_name")
+
+  # Find the repo's directory from the REPOS table
+  local entry dir_name repo_dir
+  entry=$(find_repo_entry "$input_name") || { echo "$base_url"; return; }
+  dir_name=$(get_field "$entry" 2)
+  repo_dir="$REPOS_DIR/$dir_name"
+
+  [[ -d "$repo_dir" ]] || { echo "$base_url"; return; }
+
+  # Get the submodule commit that the workspace has checked out
+  local sub_rev
+  sub_rev=$(git -C "$WORKSPACE_ROOT" ls-tree HEAD -- "repos/$dir_name" 2>/dev/null \
+            | awk '{print $3}')
+  [[ -n "$sub_rev" ]] || { echo "$base_url"; return; }
+
+  # Get the remote default branch HEAD (master or main)
+  local remote_rev=""
+  remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/HEAD 2>/dev/null) \
+    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/master 2>/dev/null) \
+    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/main 2>/dev/null) \
+    || remote_rev=""
+
+  # If submodule commit matches remote HEAD, no pin needed
+  if [[ -n "$remote_rev" && "$sub_rev" == "$remote_rev" ]]; then
+    echo "$base_url"
+  else
+    # Pin to the submodule rev — append /rev for simple URLs,
+    # or &rev=... for URLs with ?dir= query params.
+    local short_rev="${sub_rev:0:7}"
+    case "$base_url" in
+      *\?*) echo "${base_url}&rev=${sub_rev}" ;;
+      *)    echo "${base_url}/${short_rev}" ;;
+    esac
+  fi
+}
+
+# ── Workspace-level follows that override what each repo's lock would
+# otherwise produce.  Every entry is a deliberate divergence from upstream
+# and should have a comment explaining why.  Returns tab-separated
+# `input_name<TAB>target` lines per repo.
+get_manual_follows() {
+  case "$1" in
+    # These three repos declare an input named `logos-package-manager` that
+    # actually points at `logos-package-manager-module` upstream.  The repos
+    # consume `<input>.packages.${system}.cli`, which only exists on the
+    # real `logos-package-manager` library — so the workspace retargets it.
+    logos-accounts-ui|logos-execution-zone-wallet-ui|logos-module-viewer)
+      printf 'logos-package-manager\tlogos-package-manager\n' ;;
+  esac
+}
+
 cmd_sync_graph() {
   wants_help "$@" && show_help "Usage: ws sync-graph
 
-Regenerate nix/dep-graph.nix by scanning each repo's flake.nix for
-workspace dependencies and test outputs.
+Regenerate nix/dep-graph.nix and the auto-inputs section of flake.nix by
+scanning each repo's flake.lock for workspace dependencies and follows
+mappings, plus its flake.nix for test outputs.
+
+Nix's flake parser requires \`inputs\` to be a literal attrset (no \`let\`,
+no \`//\`, no \`import\`), so the per-repo inputs in flake.nix must be
+generated by this command rather than computed at evaluation time.
 
 Examples:
   ws sync-graph"
 
-  log "${BOLD}Syncing nix/dep-graph.nix from repo flake.nix files...${NC}"
+  log "${BOLD}Syncing nix/dep-graph.nix and flake.nix inputs from repo flake.lock files...${NC}"
   log ""
 
-  # Build list of workspace input names
-  local ws_names=()
+  # Build list of workspace input names (in REPOS order), as a space-padded
+  # string for fast membership testing in bash 3.2 (no associative arrays).
+  # `ws_names_ordered` preserves REPOS order; `ws_names_set` is padded with
+  # leading/trailing spaces so `case "$ws_names_set" in *" $name "*)` matches.
+  # `ws_names_set` also includes synthetic workspace-level inputs that have
+  # no submodule (nixpkgs, nix-bundle-appimage, nix-bundle-macos-app) so that
+  # downstream follows for them are emitted into dep-graph.nix.  These are
+  # excluded from `deps` (they aren't repos).
+  local ws_names_ordered=""
   for entry in "${REPOS[@]}"; do
     local iname
     iname=$(get_field "$entry" 1)
-    [[ -n "$iname" ]] && ws_names+=("$iname")
+    [[ -n "$iname" ]] && ws_names_ordered+="$iname "
   done
+  local ws_names_set=" $ws_names_ordered nixpkgs nix-bundle-appimage nix-bundle-macos-app "
 
   # Find max name length for alignment
   local max_len=0
-  for name in "${ws_names[@]}"; do
+  for name in $ws_names_ordered; do
     [[ ${#name} -gt $max_len ]] && max_len=${#name}
   done
 
-  local tmpfile
+  local tmpfile flake_inputs_tmp
   tmpfile=$(mktemp)
+  flake_inputs_tmp=$(mktemp)
 
   cat > "$tmpfile" << 'HEADER'
-# Dependency graph: flake input name → { deps, hasTests }
+# Dependency graph: flake input name → { deps, follows, hasTests }
 #
-# deps:     list of workspace input names this repo depends on
-#           (only logos-co deps; external deps like go-wallet-sdk are omitted)
-# hasTests: whether this repo exposes checks or test packages in its flake
+# follows:  map from this repo's downstream-input-name → workspace input name
+#           it should follow.  Auto-derived from each repo's flake.lock by
+#           parsing root inputs (string refs become URL→workspace lookups,
+#           array refs are emitted when the input name itself matches a
+#           workspace input).
+# deps:     unique workspace input names this repo depends on (= unique values
+#           of follows, in REPOS table order, with "nixpkgs" elided).  Used by
+#           `ws dirty`, `ws graph`, and CI to compute downstream dependents.
+# hasTests: whether this repo exposes checks or test packages in its flake.
 #           Used by `ws test` to skip expensive nix eval for repos without tests.
 #
 # AUTO-GENERATED by `ws sync-graph`. To update: ws sync-graph
 #
-# If you add a `checks` output to a repo's flake.nix, re-run this command
-# so that `ws test --all` picks it up.
+# Consumed by:
+#   - scripts/ws:   ws dirty / ws graph / has_tests / get_dependents
+#   - .github/workflows/ci.yml: change-detection grep for `"$repo"` deps lines
+#   - flake.nix:    `lib.depGraph` re-export for programmatic introspection
 {
 HEADER
 
@@ -2275,67 +2464,390 @@ HEADER
 
     [[ "$has_flake" != "yes" || -z "$input_name" ]] && continue
 
-    local flake_file="$REPOS_DIR/$dir_name/flake.nix"
+    local repo_dir="$REPOS_DIR/$dir_name"
+    local flake_file="$repo_dir/flake.nix"
+    local lock_file="$repo_dir/flake.lock"
+
     if [[ ! -f "$flake_file" ]]; then
       log "  ${YELLOW}skip${NC}  $dir_name (not cloned)"
       continue
     fi
 
-    # Find deps: which workspace inputs does this flake reference?
-    local deps=()
-    for ws_name in "${ws_names[@]}"; do
-      [[ "$ws_name" == "$input_name" ]] && continue  # skip self
-      # Match by input name (name.url, name.follows, name = {)
-      # OR by URL referencing the repo (github:logos-co/<name>)
-      if grep -qE "^[[:space:]]+${ws_name}(\.|[[:space:]]*=)" "$flake_file" 2>/dev/null || \
-         grep -qE "logos-co/${ws_name}(\.git)?\"" "$flake_file" 2>/dev/null; then
-        deps+=("$ws_name")
-      fi
-    done
+    # ── Parse flake.lock → tab-separated `iname<TAB>ws_id` per accepted input
+    # `follows_pairs` is a single multi-line string (bash 3.2 has no
+    # associative arrays).  Lines are sorted alphabetically by iname later.
+    local follows_pairs=""
+    if [[ -f "$lock_file" ]]; then
+      # jq emits one tab-separated record per root input:
+      #   <kind>\t<input_name>\t<repo>\t<dir>
+      # where <kind> is "url" (string ref to a node) or "follows" (array ref,
+      # i.e. a pure follows declaration in the downstream flake).
+      local jq_out
+      jq_out=$(jq -r '
+        . as $r
+        | $r.nodes[$r.root].inputs
+        | to_entries[]
+        | .key as $iname
+        | .value as $v
+        | if ($v | type) == "string" then
+            ($r.nodes[$v].original // {}) as $o
+            | "url\t\($iname)\t\($o.repo // "")\t\($o.dir // "")"
+          else
+            "follows\t\($iname)\t\t"
+          end
+      ' "$lock_file" 2>/dev/null) || jq_out=""
 
-    # Check hasTests: does the flake declare a checks output?
+      while IFS=$'\t' read -r kind iname repo dir; do
+        [[ -z "$iname" ]] && continue
+
+        local ws_id=""
+        if [[ "$kind" == "url" ]]; then
+          # Tutorial sub-flakes encode the actual sub-repo as `?dir=...`
+          # (e.g., github:logos-co/logos-tutorial?dir=logos-calc-module).
+          # Use the dir basename when present, otherwise the repo name.
+          if [[ -n "$dir" ]]; then
+            ws_id="${dir##*/}"
+          else
+            ws_id="$repo"
+          fi
+        elif [[ "$kind" == "follows" ]]; then
+          # Pure follows declaration in the downstream flake — only override
+          # at workspace level if the input name itself matches a workspace
+          # input (the conventional `nixpkgs` / `logos-nix` follows pattern).
+          ws_id="$iname"
+        fi
+
+        # Skip self-references and non-workspace targets
+        [[ -z "$ws_id" || "$ws_id" == "$input_name" ]] && continue
+        case "$ws_names_set" in
+          *" $ws_id "*) follows_pairs+="${iname}	${ws_id}
+" ;;
+        esac
+      done <<< "$jq_out"
+    fi
+
+    # ── Apply manual workspace-level follows overrides ───────────────────
+    # Manual entries override (or add to) the auto-derived follows.  We
+    # rebuild `follows_pairs` keeping only the latest entry per iname.
+    local manual_follows
+    manual_follows=$(get_manual_follows "$input_name")
+    if [[ -n "$manual_follows" ]]; then
+      local merged=""
+      # First, drop auto entries whose iname appears in manual_follows
+      while IFS=$'\t' read -r f_iname f_target; do
+        [[ -z "$f_iname" ]] && continue
+        local override_target=""
+        while IFS=$'\t' read -r m_iname m_target; do
+          [[ -z "$m_iname" ]] && continue
+          [[ "$m_iname" == "$f_iname" ]] && override_target="$m_target"
+        done <<< "$manual_follows"
+        if [[ -n "$override_target" ]]; then
+          merged+="${f_iname}	${override_target}
+"
+        else
+          merged+="${f_iname}	${f_target}
+"
+        fi
+      done <<< "$follows_pairs"
+      # Then append any manual entries not already present in follows_pairs
+      while IFS=$'\t' read -r m_iname m_target; do
+        [[ -z "$m_iname" ]] && continue
+        case "$follows_pairs" in
+          *"$m_iname	"*) ;;
+          *) merged+="${m_iname}	${m_target}
+" ;;
+        esac
+      done <<< "$manual_follows"
+      follows_pairs="$merged"
+    fi
+
+    # Sort follows pairs alphabetically by input name for deterministic output
+    local follows_sorted=""
+    if [[ -n "$follows_pairs" ]]; then
+      follows_sorted=$(printf '%s' "$follows_pairs" | sort)
+    fi
+
+    # ── Compute deps: unique workspace targets in REPOS order ────────────
+    # Skip `nixpkgs` (not a tracked repo) and self-references.  Each ws name
+    # is checked against the second column of follows_pairs.
+    local unique_targets=""
+    if [[ -n "$follows_sorted" ]]; then
+      unique_targets=" $(printf '%s\n' "$follows_sorted" | awk -F'\t' '{print $2}' | sort -u | tr '\n' ' ') "
+    fi
+    local deps_str="[]"
+    local deps_acc=""
+    for ws in $ws_names_ordered; do
+      [[ "$ws" == "$input_name" ]] && continue
+      case "$unique_targets" in
+        *" $ws "*) deps_acc+="\"$ws\" " ;;
+      esac
+    done
+    [[ -n "$deps_acc" ]] && deps_str="[ $deps_acc]"
+
+    # ── Format follows attrset (alphabetically sorted by iname) ──────────
+    local follows_str="{}"
+    if [[ -n "$follows_sorted" ]]; then
+      follows_str="{"
+      while IFS=$'\t' read -r f_iname f_target; do
+        [[ -z "$f_iname" ]] && continue
+        follows_str+=" \"${f_iname}\" = \"${f_target}\";"
+      done <<< "$follows_sorted"
+      follows_str+=" }"
+    fi
+
+    # ── Check hasTests: does the flake declare a checks output? ──────────
     local has_tests="false"
     if grep -qE '^[[:space:]]+checks[[:space:]]*=' "$flake_file" 2>/dev/null; then
       has_tests="true"
     fi
 
-    # Format deps
-    local deps_str="[]"
-    if [[ ${#deps[@]} -gt 0 ]]; then
-      deps_str="[ $(printf '"%s" ' "${deps[@]}")]"
-    fi
-
-    # Write entry with padding
+    # ── Write dep-graph entry with name padding ──────────────────────────
     local pad
     pad=$(printf "%-${max_len}s" "$input_name")
-    echo "  ${pad} = { deps = ${deps_str}; hasTests = ${has_tests}; };" >> "$tmpfile"
+    echo "  ${pad} = { deps = ${deps_str}; follows = ${follows_str}; hasTests = ${has_tests}; };" >> "$tmpfile"
+
+    # ── Write flake.nix input entry ──────────────────────────────────────
+    # Skip logos-nix here — it's declared in the manual section of flake.nix
+    # because it's the root nixpkgs pin and `nixpkgs.follows` references it.
+    if [[ "$input_name" != "logos-nix" ]]; then
+      local repo_url
+      repo_url=$(get_repo_url "$input_name")
+      if [[ -z "$follows_sorted" ]]; then
+        echo "    ${input_name}.url = \"${repo_url}\";" >> "$flake_inputs_tmp"
+      else
+        echo "    ${input_name} = {" >> "$flake_inputs_tmp"
+        echo "      url = \"${repo_url}\";" >> "$flake_inputs_tmp"
+        while IFS=$'\t' read -r f_iname f_target; do
+          [[ -z "$f_iname" ]] && continue
+          echo "      inputs.${f_iname}.follows = \"${f_target}\";" >> "$flake_inputs_tmp"
+        done <<< "$follows_sorted"
+        echo "    };" >> "$flake_inputs_tmp"
+      fi
+    fi
 
     # Console status
+    local follow_count
+    follow_count=$(printf '%s' "$follows_pairs" | grep -c '	' || true)
     local marker="${GREEN}ok${NC}"
     [[ "$has_tests" == "true" ]] && marker="${GREEN}ok${NC} ${CYAN}(tests)${NC}"
-    log "  $marker  $input_name (${#deps[@]} deps)"
+    log "  $marker  $input_name (${follow_count} follows)"
   done
 
   echo "}" >> "$tmpfile"
   log ""
 
-  # Compare and update
+  # ── Update nix/dep-graph.nix ────────────────────────────────────────────
+  local dep_graph_changed=false
   if [[ -f "$DEP_GRAPH" ]] && diff -q "$DEP_GRAPH" "$tmpfile" >/dev/null 2>&1; then
     echo -e "${GREEN}No changes${NC} — nix/dep-graph.nix is already up to date."
     rm "$tmpfile"
   else
     if [[ -f "$DEP_GRAPH" ]]; then
-      echo -e "${BOLD}Changes:${NC}"
+      echo -e "${BOLD}Changes to nix/dep-graph.nix:${NC}"
       diff --color=auto -u "$DEP_GRAPH" "$tmpfile" || true
       echo ""
     fi
     mv "$tmpfile" "$DEP_GRAPH"
     echo -e "${GREEN}Updated${NC} nix/dep-graph.nix"
+    dep_graph_changed=true
+  fi
+
+  # ── Update auto-inputs section in flake.nix ─────────────────────────────
+  local flake_file="$WORKSPACE_ROOT/flake.nix"
+
+  if [[ ! -f "$flake_file" ]]; then
+    echo -e "${RED}Error${NC}: $flake_file not found" >&2
+    rm -f "$flake_inputs_tmp"
+    return 1
+  fi
+
+  local has_begin has_end
+  has_begin=$(grep -cF "# BEGIN AUTO-INPUTS" "$flake_file")
+  has_end=$(grep -cF "# END AUTO-INPUTS" "$flake_file")
+  if [[ "$has_begin" -ne 1 || "$has_end" -ne 1 ]]; then
+    echo -e "${RED}Error${NC}: flake.nix must contain exactly one '# BEGIN AUTO-INPUTS' and one '# END AUTO-INPUTS' marker line (found BEGIN=$has_begin END=$has_end)" >&2
+    echo "       Add the markers inside the \`inputs = { ... };\` block, e.g.:" >&2
+    echo "         # BEGIN AUTO-INPUTS — generated by \`ws sync-graph\`, do not edit by hand" >&2
+    echo "         # END AUTO-INPUTS" >&2
+    rm -f "$flake_inputs_tmp"
+    return 1
+  fi
+
+  local new_flake_tmp
+  new_flake_tmp=$(mktemp)
+  awk -v begin="# BEGIN AUTO-INPUTS" -v endm="# END AUTO-INPUTS" -v body_file="$flake_inputs_tmp" '
+    BEGIN { skipping = 0 }
+    {
+      if (index($0, begin) > 0) {
+        print
+        while ((getline line < body_file) > 0) print line
+        close(body_file)
+        skipping = 1
+        next
+      }
+      if (skipping && index($0, endm) > 0) {
+        skipping = 0
+        print
+        next
+      }
+      if (!skipping) print
+    }
+  ' "$flake_file" > "$new_flake_tmp"
+  rm -f "$flake_inputs_tmp"
+
+  if diff -q "$flake_file" "$new_flake_tmp" >/dev/null 2>&1; then
+    echo -e "${GREEN}No changes${NC} — flake.nix auto-inputs section is already up to date."
+    rm "$new_flake_tmp"
+  else
+    echo -e "${BOLD}Changes to flake.nix:${NC}"
+    diff --color=auto -u "$flake_file" "$new_flake_tmp" | head -200 || true
+    echo ""
+    mv "$new_flake_tmp" "$flake_file"
+    echo -e "${GREEN}Updated${NC} flake.nix auto-inputs section"
   fi
 }
 
+cmd_update_order() {
+  wants_help "$@" && show_help "Usage: ws update-order <dep> [--for <target>] [--json] [--commands]
+
+Show the topological order for propagating a dependency change.
+
+When a dependency (e.g. logos-module) gets a new commit merged, all repos
+that depend on it need their flake.lock updated — but in the right order.
+Repos at the same level can be updated in parallel; each level must be
+committed and pushed to GitHub before the next level can run nix flake lock
+(since nix fetches from remote URLs, not local paths).
+
+Options:
+  --for <target>   Scope output to repos on paths leading to this target
+  --json           Output machine-readable JSON
+  --commands       Also print nix flake lock + git commands per level
+
+Examples:
+  ws update-order logos-module
+  ws update-order logos-cpp-sdk --for logos-basecamp
+  ws update-order logos-module-builder --commands
+  ws update-order logos-module --json"
+
+  local dep=""
+  local for_target=""
+  local json=false
+  local commands=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --for)      for_target="$2"; shift 2 ;;
+      --json)     json=true; shift ;;
+      --commands) commands=true; shift ;;
+      -*)         shift ;;
+      *)          dep="$1"; shift ;;
+    esac
+  done
+
+  if [[ -z "$dep" ]]; then
+    echo -e "${RED}Error:${NC} dependency name required" >&2
+    exit 1
+  fi
+
+  if ! command -v jq &>/dev/null; then
+    echo -e "${RED}jq is required but not found${NC}" >&2
+    exit 1
+  fi
+
+  local input_name
+  input_name=$(get_input_name "$dep")
+  local for_input=""
+  [[ -n "$for_target" ]] && for_input=$(get_input_name "$for_target")
+
+  local levels_raw
+  levels_raw=$(get_topo_levels "$input_name" ${for_input:+--for "$for_input"}) || true
+
+  if [[ -z "$levels_raw" ]]; then
+    $json && echo '{"dep":"'"$input_name"'","levels":[],"totalRepos":0,"totalLevels":0}' \
+           || echo -e "  ${YELLOW}No dependents found for${NC} ${BOLD}$input_name${NC}"
+    return
+  fi
+
+  # Count totals
+  local max_level=0 total_repos=0
+  while IFS='|' read -r lvl _r _d; do
+    [[ "$lvl" -gt "$max_level" ]] && max_level=$lvl
+    ((total_repos++)) || true
+  done <<< "$levels_raw"
+
+  if $json; then
+    local out='{"dep":"'"$input_name"'"'
+    [[ -n "$for_input" ]] && out+=',"for":"'"$for_input"'"'
+    out+=',"totalRepos":'"$total_repos"',"totalLevels":'"$max_level"',"levels":['
+    local prev_lvl=-1 first_level=true first_repo=true
+    while IFS='|' read -r lvl repo deps; do
+      if [[ "$lvl" -ne "$prev_lvl" ]]; then
+        [[ "$prev_lvl" -ge 0 ]] && out+=']}'
+        $first_level && first_level=false || out+=','
+        out+='{"level":'"$lvl"',"repos":['
+        prev_lvl=$lvl first_repo=true
+      fi
+      $first_repo && first_repo=false || out+=','
+      out+='{"repo":"'"$repo"'","changedDeps":['
+      local first_dep=true
+      IFS=',' read -ra dep_arr <<< "$deps"
+      for d in "${dep_arr[@]}"; do
+        [[ -z "$d" ]] && continue
+        $first_dep && first_dep=false || out+=','
+        out+='"'"$d"'"'
+      done
+      out+=']}'
+    done <<< "$levels_raw"
+    [[ "$prev_lvl" -ge 0 ]] && out+=']}'
+    out+=']}'
+    echo "$out"
+    return
+  fi
+
+  # Human-readable output
+  echo ""
+  local header="${BOLD}Update order for ${CYAN}$input_name${NC}"
+  [[ -n "$for_input" ]] && header+=" ${BOLD}(scoped to $for_input)${NC}"
+  echo -e "$header"
+  echo ""
+
+  local prev_lvl=-1
+  while IFS='|' read -r lvl repo deps; do
+    if [[ "$lvl" -ne "$prev_lvl" ]]; then
+      [[ "$prev_lvl" -ge 0 ]] && echo ""
+      if [[ "$lvl" -eq 1 ]]; then
+        echo -e "  ${BOLD}Level $lvl${NC} ${YELLOW}(update + push these first):${NC}"
+      else
+        echo -e "  ${BOLD}Level $lvl${NC} ${YELLOW}(after level $(( lvl - 1 )) is pushed):${NC}"
+      fi
+      prev_lvl=$lvl
+    fi
+    local dep_display="${deps//,/, }"
+    printf "    %-40s ${YELLOW}(depends on: %s)${NC}\n" "$repo" "$dep_display"
+    if $commands; then
+      local repo_dir
+      repo_dir=$(get_repo_path "$repo")
+      local update_flags=""
+      IFS=',' read -ra dep_arr <<< "$deps"
+      for d in "${dep_arr[@]}"; do
+        [[ -z "$d" ]] && continue
+        update_flags+=" --update-input $d"
+      done
+      echo -e "    ${BLUE}cd repos/$repo_dir${NC}"
+      echo -e "    ${BLUE}nix flake lock --extra-experimental-features 'nix-command flakes'$update_flags${NC}"
+      echo -e "    ${BLUE}git add flake.lock && git commit -m 'update $input_name' && git push${NC}"
+      echo ""
+    fi
+  done <<< "$levels_raw"
+
+  echo ""
+  local repo_word="repos" level_word="levels"
+  [[ "$total_repos" -eq 1 ]] && repo_word="repo"
+  [[ "$max_level" -eq 1 ]] && level_word="level"
+  echo -e "  ${BOLD}Total:${NC} $total_repos $repo_word across $max_level $level_word"
+}
+
 cmd_nix_diagnose() {
-  wants_help "$@" && show_help "Usage: ws nix-diagnose <repo>
+  wants_help "$@" && show_help "Usage: ws nix-diagnose <repo> [--suggest]
 
 Diagnose dependency issues in a repo's flake.
 
@@ -2344,15 +2856,21 @@ Checks:
   2. Duplicate dependencies — same repo appearing at different versions
      in the flake.lock (e.g. two copies of logos-nix at different revs)
 
+Options:
+  --suggest   After showing conflicts, rank them by impact and suggest
+              the best starting point with ws update-order
+
 Examples:
   ws nix-diagnose logos-basecamp
+  ws nix-diagnose logos-basecamp --suggest
   ws nix-diagnose logos-liblogos"
 
-  local repo=""
+  local repo="" suggest=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -*) shift ;;
-      *) repo="$1"; shift ;;
+      --suggest) suggest=true; shift ;;
+      -*)        shift ;;
+      *)         repo="$1"; shift ;;
     esac
   done
 
@@ -2594,6 +3112,72 @@ Examples:
     echo ""
     ((i++))
   done
+
+  # ── Suggested Resolution Order (--suggest) ────────────────────────────────
+  if $suggest; then
+    log ""
+    log "${BOLD}Suggested Resolution Order${NC}"
+
+    # Rank conflicts: score = rev_count * 1000 + total_lock_refs
+    # More distinct revisions = more divergence = higher priority
+    # Skip infrastructure-only deps (logos-nix, nixpkgs) — they're not actionable
+    local ranked
+    ranked=$(echo "$conflicts_json" | jq -r '
+      .[] | . as $group |
+      ($group[0].repo_id) as $repo_id |
+      select($repo_id | test("logos-nix|nixpkgs") | not) |
+      ($group | length) as $total_refs |
+      ($group | map(.rev) | unique | length) as $rev_count |
+      "\($rev_count * 1000 + $total_refs)|\($rev_count)|\($total_refs)|\($repo_id)"
+    ' | sort -t'|' -k1,1rn)
+
+    echo ""
+    if [[ -z "$ranked" ]]; then
+      echo -e "  ${YELLOW}All conflicts are in infrastructure deps (logos-nix/nixpkgs) — no actionable suggestions.${NC}"
+    else
+      echo -e "  ${BOLD}Conflicts ranked by impact (excluding logos-nix/nixpkgs):${NC}"
+      while IFS='|' read -r _score rev_count total_refs repo_id; do
+        local ws_input
+        ws_input=$(_github_repo_to_input_name "$repo_id")
+        local label="${ws_input:-$repo_id}"
+        echo -e "    ${CYAN}$label${NC}  ($rev_count revisions, $total_refs lock references)"
+      done <<< "$ranked"
+
+      # Show update-order for the most impactful conflict
+      local top_repo_id
+      top_repo_id=$(echo "$ranked" | head -1 | cut -d'|' -f4)
+      local top_input
+      top_input=$(_github_repo_to_input_name "$top_repo_id")
+
+      if [[ -n "$top_input" ]]; then
+        echo ""
+        echo -e "  ${BOLD}Start with:${NC} ${CYAN}ws update-order $top_input --for $input_name${NC}"
+        echo ""
+        local levels_raw
+        levels_raw=$(get_topo_levels "$top_input" --for "$input_name") || true
+        if [[ -n "$levels_raw" ]]; then
+          local lv_max=0 lv_total=0
+          while IFS='|' read -r lvl _r _d; do
+            [[ "$lvl" -gt "$lv_max" ]] && lv_max=$lvl
+            ((lv_total++)) || true
+          done <<< "$levels_raw"
+          echo -e "  This affects $lv_total repos across $lv_max levels:"
+          local prev_lvl=-1 level_repos=""
+          while IFS='|' read -r lvl repo _deps; do
+            if [[ "$lvl" -ne "$prev_lvl" ]]; then
+              [[ -n "$level_repos" ]] && echo -e "    $prev_lvl. $level_repos"
+              level_repos="$repo"
+              prev_lvl=$lvl
+            else
+              level_repos="$level_repos, $repo"
+            fi
+          done <<< "$levels_raw"
+          [[ -n "$level_repos" ]] && echo -e "    $prev_lvl. $level_repos"
+        fi
+      fi
+    fi
+    echo ""
+  fi
 }
 
 cmd_repo_upgrade() {
@@ -2929,7 +3513,9 @@ COMMANDS:
   worktree remove <name>       Remove a worktree
   repo-upgrade [repo...|--group G|--all]  Pull latest master/main for submodules
   sync-graph                    Regenerate nix/dep-graph.nix from repo flake.nix files
-  nix-diagnose <repo>            Detect circular deps and version conflicts in flake.lock
+  nix-diagnose <repo> [--suggest] Detect circular deps and version conflicts in flake.lock
+  update-order <dep> [--for target] [--json] [--commands]
+                                Show topological update order for a dependency change
   check-qt <repo>               Check for Qt version conflicts in a repo's nix closure
 
   lm <args>                     Module inspector (auto-builds logos-module)
@@ -2970,7 +3556,7 @@ EXAMPLES:
   ws bundle logos-chat-module --mode portable
 
   # Bundle multiple repos (results in result-bundle/<repo>/)
-  ws bundle logos-chat-module logos-waku-module --auto-local
+  ws bundle logos-chat-module logos-storage-module --auto-local
 
   # Run all tests
   ws test --all
@@ -3038,6 +3624,15 @@ EXAMPLES:
 
   # Regenerate dep-graph.nix after adding tests to a repo
   ws sync-graph
+
+  # Show what order to update deps when logos-module changes
+  ws update-order logos-module
+
+  # Scope to repos that affect logos-basecamp only
+  ws update-order logos-cpp-sdk --for logos-basecamp
+
+  # Diagnose version conflicts in logos-basecamp + suggest fix order
+  ws nix-diagnose logos-basecamp --suggest
 EOF
 }
 
@@ -3077,6 +3672,7 @@ case "${1:-help}" in
   sync-graph)     shift; cmd_sync_graph "$@" ;;
   check-qt)       shift; cmd_check_qt "$@" ;;
   nix-diagnose)   shift; cmd_nix_diagnose "$@" ;;
+  update-order)   shift; cmd_update_order "$@" ;;
   repo-upgrade)   shift; cmd_repo_upgrade "$@" ;;
   list|ls)        shift; cmd_list "$@" ;;
   groups)         shift; cmd_groups "$@" ;;
