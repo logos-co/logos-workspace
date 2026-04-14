@@ -40,6 +40,12 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    logos-view-module-runtime = {
+      url = "github:logos-co/logos-view-module-runtime";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     logos-module-client = {
       url = "github:logos-co/logos-module-client";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
@@ -119,6 +125,7 @@
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -137,6 +144,7 @@
       inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
+      inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.logos-webview-app.follows = "logos-webview-app";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -200,7 +208,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-manager-ui = {
-      url = "github:logos-co/logos-package-manager-ui/f2476f7";
+      url = "github:logos-co/logos-package-manager-ui";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.package_downloader.follows = "logos-package-downloader-module";
@@ -313,7 +321,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/539f555";
+      url = "github:logos-co/logos-test-modules";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
