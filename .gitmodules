@@ -151,3 +151,6 @@
 [submodule "repos/logos-plugin-qt"]
 	path = repos/logos-plugin-qt
 	url = git@github.com:logos-co/logos-plugin-qt.git
+[submodule "repos/logos-view-module-runtime"]
+	path = repos/logos-view-module-runtime
+	url = https://github.com/logos-co/logos-view-module-runtime.git

@@ -81,6 +81,7 @@ REPOS=(
 
   # Foundation
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
+  "logos-view-module-runtime|logos-view-module-runtime|https://github.com/logos-co/logos-view-module-runtime.git|yes"
   "logos-module-client|logos-module-client|https://github.com/logos-co/logos-module-client.git|yes"
   "logos-module|logos-module|https://github.com/logos-co/logos-module.git|yes"
   "logos-liblogos|logos-liblogos|https://github.com/logos-co/logos-liblogos.git|yes"
