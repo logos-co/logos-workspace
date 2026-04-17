@@ -107,7 +107,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "$branch"
-          git add repos/ nix/dep-graph.nix
+          git add repos/ nix/dep-graph.nix flake.nix
           git commit -m "$(printf '%s\n\n%s\n' \
             "chore: nightly submodule bump $(date +%Y-%m-%d)" \
             "Updated: ${{ steps.check.outputs.repos }}")"
