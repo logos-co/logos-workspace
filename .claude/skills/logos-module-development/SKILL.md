@@ -179,3 +179,18 @@ Automated Nix-based packaging uses `nix-bundle-lgx` (which uses `nix-bundle-dir`
 - `metadata.json` must be alongside the binary for discovery
 - Always build inside nix (raw cmake won't find Qt/deps)
 - After adding `checks` to a repo's flake.nix, run `ws sync-graph`
+
+## UI plugins via QPluginLoader (non-module-builder path)
+
+Some UI components use `QPluginLoader` + `IComponent` directly, installed to `~/.local/share/Logos/LogosBasecampDev/plugins/<name>/` (not `modules/`). Key differences:
+
+- Install directory is `plugins/`, not `modules/`
+- Requires `manifest.json` with `"type": "ui"` (read by Basecamp to choose loader path)
+- Plugin must implement `IComponent` interface (`createWidget(LogosAPI*)` + `destroyWidget(QWidget*)`)
+- `Q_PLUGIN_METADATA` must embed `metadata.json` with matching `"type": "ui"`
+
+**QML loading:** If the plugin embeds QML as a Qt resource (QRC), edits to `.qml` files on disk have no effect until the plugin is rebuilt. Set `QML_PATH=<dir>` in the environment to override and load QML from the filesystem instead — essential for QML iteration without full rebuilds:
+
+```bash
+QML_PATH=/path/to/ui/qml logos-basecamp
+```
