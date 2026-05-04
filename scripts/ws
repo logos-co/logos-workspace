@@ -94,6 +94,8 @@ REPOS=(
   # Packaging / Bundling
   "nix-bundle-dir|nix-bundle-dir|https://github.com/logos-co/nix-bundle-dir.git|yes"
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
+  "nix-bundle-appimage|nix-bundle-appimage|https://github.com/logos-co/nix-bundle-appimage.git|yes"
+  "nix-bundle-macos-app|nix-bundle-macos-app|https://github.com/logos-co/nix-bundle-macos-app.git|yes"
 
   # App
   "logos-standalone-app|logos-standalone-app|https://github.com/logos-co/logos-standalone-app.git|yes"
@@ -142,6 +144,7 @@ REPOS=(
   "logos-js-sdk|logos-js-sdk|https://github.com/logos-co/logos-js-sdk.git|yes"
   "logos-nim-sdk|logos-nim-sdk|https://github.com/logos-co/logos-nim-sdk.git|yes"
   "logos-rust-sdk|logos-rust-sdk|https://github.com/logos-co/logos-rust-sdk.git|yes"
+  "logos-logoscore-py|logos-logoscore-py|https://github.com/logos-co/logos-logoscore-py.git|yes"
 
   # Testing
   "logos-test-modules|logos-test-modules|https://github.com/logos-co/logos-test-modules.git|yes"
@@ -2333,9 +2336,8 @@ get_base_repo_url() {
   esac
 }
 
-# Returns the flake URL for a repo, pinning to the submodule commit when it
-# differs from the remote default branch HEAD.  This way changing a submodule
-# pointer is all you need — ws sync-graph picks up the rev automatically.
+# Returns the flake URL for a repo, always pinning to the workspace submodule
+# commit so flake.nix tracks the exact same revision as the submodule pointer.
 get_repo_url() {
   local input_name="$1"
   local base_url
@@ -2355,25 +2357,12 @@ get_repo_url() {
             | awk '{print $3}')
   [[ -n "$sub_rev" ]] || { echo "$base_url"; return; }
 
-  # Get the remote default branch HEAD (master or main)
-  local remote_rev=""
-  remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/HEAD 2>/dev/null) \
-    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/master 2>/dev/null) \
-    || remote_rev=$(git -C "$repo_dir" rev-parse refs/remotes/origin/main 2>/dev/null) \
-    || remote_rev=""
-
-  # If submodule commit matches remote HEAD, no pin needed
-  if [[ -n "$remote_rev" && "$sub_rev" == "$remote_rev" ]]; then
-    echo "$base_url"
-  else
-    # Pin to the submodule rev — append /rev for simple URLs,
-    # or &rev=... for URLs with ?dir= query params.
-    local short_rev="${sub_rev:0:7}"
-    case "$base_url" in
-      *\?*) echo "${base_url}&rev=${sub_rev}" ;;
-      *)    echo "${base_url}/${short_rev}" ;;
-    esac
-  fi
+  # Always pin to the submodule rev — append /rev for simple URLs,
+  # or &rev=... for URLs with ?dir= query params.
+  case "$base_url" in
+    *\?*) echo "${base_url}&rev=${sub_rev}" ;;
+    *)    echo "${base_url}/${sub_rev}" ;;
+  esac
 }
 
 # ── Workspace-level follows that override what each repo's lock would
@@ -2388,7 +2377,54 @@ get_manual_follows() {
     # real `logos-package-manager` library — so the workspace retargets it.
     logos-accounts-ui|logos-execution-zone-wallet-ui|logos-module-viewer)
       printf 'logos-package-manager\tlogos-package-manager\n' ;;
+    # logos-blockchain-module's upstream lock currently resolves
+    # logos-blockchain as github:logos-blockchain/logos-blockchain/0.2.1
+    # which Nix interprets as a commit-ish and fails to fetch.
+    # Force it to follow the workspace-level pinned input instead.
+    logos-blockchain-module)
+      printf 'logos-blockchain\tlogos-blockchain\n' ;;
   esac
+}
+
+# Parse a flake.nix and emit its declared root input names, one per line.
+# Handles both styles:
+#   inputs.foo.url = "...";
+#   inputs = { foo.url = "..."; bar = { ... }; };
+get_declared_input_names() {
+  local flake_file="$1"
+  awk '
+    BEGIN { in_inputs = 0; depth = 0 }
+    {
+      line = $0
+
+      if (!in_inputs) {
+        if (match(line, /^[[:space:]]*inputs[[:space:]]*=[[:space:]]*\{/)) {
+          in_inputs = 1
+          depth = 1
+        }
+        next
+      }
+
+      # Capture names assigned at the top level of inputs attrset.
+      if (depth == 1 && match(line, /^[[:space:]]*[^[:space:]=]+[[:space:]]*=/)) {
+        key = substr(line, RSTART, RLENGTH)
+        sub(/^[[:space:]]*/, "", key)
+        sub(/[[:space:]]*=.*/, "", key)
+        sub(/\..*$/, "", key)
+        gsub(/^"/, "", key)
+        gsub(/"$/, "", key)
+        if (length(key) > 0) print key
+      }
+
+      opens = gsub(/\{/, "{", line)
+      closes = gsub(/\}/, "}", line)
+      depth += opens - closes
+      if (depth <= 0) {
+        in_inputs = 0
+        depth = 0
+      }
+    }
+  ' "$flake_file" | sort -u
 }
 
 cmd_sync_graph() {
@@ -2413,16 +2449,15 @@ Examples:
   # `ws_names_ordered` preserves REPOS order; `ws_names_set` is padded with
   # leading/trailing spaces so `case "$ws_names_set" in *" $name "*)` matches.
   # `ws_names_set` also includes synthetic workspace-level inputs that have
-  # no submodule (nixpkgs, nix-bundle-appimage, nix-bundle-macos-app) so that
-  # downstream follows for them are emitted into dep-graph.nix.  These are
-  # excluded from `deps` (they aren't repos).
+  # no submodule (nixpkgs) so that downstream follows for them are emitted
+  # into dep-graph.nix.  These are excluded from `deps` (they aren't repos).
   local ws_names_ordered=""
   for entry in "${REPOS[@]}"; do
     local iname
     iname=$(get_field "$entry" 1)
     [[ -n "$iname" ]] && ws_names_ordered+="$iname "
   done
-  local ws_names_set=" $ws_names_ordered nixpkgs nix-bundle-appimage nix-bundle-macos-app "
+  local ws_names_set=" $ws_names_ordered nixpkgs "
 
   # Find max name length for alignment
   local max_len=0
@@ -2474,6 +2509,12 @@ HEADER
       continue
     fi
 
+    # Only emit follows for inputs currently declared in flake.nix.
+    # flake.lock can retain stale root-input keys after input removal.
+    local declared_inputs
+    declared_inputs="$(get_declared_input_names "$flake_file")"
+    local declared_set=" $(printf '%s\n' "$declared_inputs" | tr '\n' ' ') "
+
     # ── Parse flake.lock → tab-separated `iname<TAB>ws_id` per accepted input
     # `follows_pairs` is a single multi-line string (bash 3.2 has no
     # associative arrays).  Lines are sorted alphabetically by iname later.
@@ -2500,6 +2541,10 @@ HEADER
 
       while IFS=$'\t' read -r kind iname repo dir; do
         [[ -z "$iname" ]] && continue
+        case "$declared_set" in
+          *" $iname "*) ;;
+          *) continue ;;
+        esac
 
         local ws_id=""
         if [[ "$kind" == "url" ]]; then
@@ -2553,6 +2598,10 @@ HEADER
       # Then append any manual entries not already present in follows_pairs
       while IFS=$'\t' read -r m_iname m_target; do
         [[ -z "$m_iname" ]] && continue
+        case "$declared_set" in
+          *" $m_iname "*) ;;
+          *) continue ;;
+        esac
         case "$follows_pairs" in
           *"$m_iname	"*) ;;
           *) merged+="${m_iname}	${m_target}

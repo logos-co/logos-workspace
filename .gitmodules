@@ -154,3 +154,12 @@
 [submodule "repos/logos-view-module-runtime"]
 	path = repos/logos-view-module-runtime
 	url = https://github.com/logos-co/logos-view-module-runtime.git
+[submodule "repos/nix-bundle-appimage"]
+	path = repos/nix-bundle-appimage
+	url = git@github.com:logos-co/nix-bundle-appimage.git
+[submodule "repos/nix-bundle-macos-app"]
+	path = repos/nix-bundle-macos-app
+	url = git@github.com:logos-co/nix-bundle-macos-app.git
+[submodule "repos/logos-logoscore-py"]
+	path = repos/logos-logoscore-py
+	url = git@github.com:logos-co/logos-logoscore-py.git
