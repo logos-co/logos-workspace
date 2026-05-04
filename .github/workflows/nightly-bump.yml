@@ -84,7 +84,7 @@ jobs:
         run: |
           updated_inputs=""
           for repo in ${{ steps.check.outputs.repos }}; do
-            if grep -qE "^[[:space:]]*${repo}[[:space:]]*=" flake.nix; then
+            if grep -qE "^[[:space:]]*${repo}([[:space:]]*=|\.)" flake.nix; then
               echo "Updating flake input: $repo"
               nix flake lock --update-input "$repo"
               updated_inputs="$updated_inputs $repo"

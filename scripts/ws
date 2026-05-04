@@ -2351,10 +2351,13 @@ get_repo_url() {
 
   [[ -d "$repo_dir" ]] || { echo "$base_url"; return; }
 
-  # Get the submodule commit that the workspace has checked out
+  # Get the submodule commit that the workspace has checked out.
+  # Read from the submodule's own HEAD (not the superproject's committed
+  # gitlink) so we pick up bumps that haven't been committed yet — e.g. the
+  # nightly workflow runs `ws sync-graph` between `git submodule update
+  # --remote` and the eventual commit.
   local sub_rev
-  sub_rev=$(git -C "$WORKSPACE_ROOT" ls-tree HEAD -- "repos/$dir_name" 2>/dev/null \
-            | awk '{print $3}')
+  sub_rev=$(git -C "$repo_dir" rev-parse HEAD 2>/dev/null)
   [[ -n "$sub_rev" ]] || { echo "$base_url"; return; }
 
   # Always pin to the submodule rev — append /rev for simple URLs,
@@ -2398,6 +2401,13 @@ get_declared_input_names() {
       line = $0
 
       if (!in_inputs) {
+        # Top-level attrpath form: `inputs.<name>.<...> = ...;`
+        if (match(line, /^[[:space:]]*inputs\.[^[:space:].={]+/)) {
+          key = substr(line, RSTART, RLENGTH)
+          sub(/^[[:space:]]*inputs\./, "", key)
+          if (length(key) > 0) print key
+        }
+        # Attrset block form: `inputs = { ... };`
         if (match(line, /^[[:space:]]*inputs[[:space:]]*=[[:space:]]*\{/)) {
           in_inputs = 1
           depth = 1
