@@ -79,6 +79,27 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: ws sync-graph --quiet
 
+      - name: Update flake.lock
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          updated_inputs=""
+          for repo in ${{ steps.check.outputs.repos }}; do
+            if grep -qE "^[[:space:]]*${repo}([[:space:]]*=|\.)" flake.nix; then
+              echo "Updating flake input: $repo"
+              nix flake lock --update-input "$repo"
+              updated_inputs="$updated_inputs $repo"
+            else
+              echo "Skipping $repo (not a top-level flake input)"
+            fi
+          done
+
+          if [[ -n "$updated_inputs" ]]; then
+            echo "## Updated flake.lock inputs" >> "$GITHUB_STEP_SUMMARY"
+            for r in $updated_inputs; do echo "- \`$r\`" >> "$GITHUB_STEP_SUMMARY"; done
+          else
+            echo "No matching flake inputs to update." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Build core chain
         if: steps.check.outputs.changed == 'true'
         run: |
@@ -107,7 +128,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "$branch"
-          git add repos/ nix/dep-graph.nix flake.nix
+          git add repos/ nix/dep-graph.nix flake.nix flake.lock
           git commit -m "$(printf '%s\n\n%s\n' \
             "chore: nightly submodule bump $(date +%Y-%m-%d)" \
             "Updated: ${{ steps.check.outputs.repos }}")"
