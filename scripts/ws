@@ -153,11 +153,6 @@ REPOS=(
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
-  # Tutorial (sub-flakes inside logos-tutorial)
-  "logos-calc-module|logos-tutorial/logos-calc-module|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-ui|logos-tutorial/logos-calc-ui|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-ui-cpp|logos-tutorial/logos-calc-ui-cpp|https://github.com/logos-co/logos-tutorial.git|yes"
-
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
   "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
@@ -2329,9 +2324,6 @@ get_base_repo_url() {
     logos-blockchain-ui)            echo "github:logos-blockchain/logos-blockchain-ui" ;;
     logos-execution-zone-module)    echo "github:logos-blockchain/logos-execution-zone-module" ;;
     logos-execution-zone-wallet-ui) echo "github:logos-blockchain/logos-execution-zone-wallet-ui" ;;
-    logos-calc-module)              echo "github:logos-co/logos-tutorial?dir=logos-calc-module" ;;
-    logos-calc-ui)                  echo "github:logos-co/logos-tutorial?dir=logos-calc-ui" ;;
-    logos-calc-ui-cpp)              echo "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp" ;;
     *)                              echo "github:logos-co/$1" ;;
   esac
 }
