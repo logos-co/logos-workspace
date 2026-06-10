@@ -332,7 +332,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/4fd0c646008ee63faf6efe5c90793a2a0c130100";
+      url = "github:logos-co/logos-test-modules/a410e0518395652e1b16daf0ec3e1baa5a6b5d28";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
