@@ -1,0 +1,613 @@
+name: Tests and Doc-tests
+
+# Reusable pipeline that runs the workspace's nix tests + doc-tests against a
+# given workspace state, then publishes the doc-test reports.
+#
+# It does NOT bump anything — it runs against whatever submodule commits the
+# checked-out `ref` pins. That makes it work for two cases with identical logic:
+#   • Nightly: the nightly-bump workflow bumps submodules, pushes `nightly/bump`,
+#     then calls this with ref=nightly/bump (workflow_call).
+#   • Manual: bump some modules in a branch, push it, then run this workflow on
+#     that branch from the Actions tab (workflow_dispatch) — it tests exactly
+#     that branch's workspace state.
+#
+# The doc-test suite list is pulled at run time from logos-doctest-hub
+# (repos.json), intersected with the workspace submodules. Each suite is checked
+# out at its pinned commit and run with --release-for pinning EVERY workspace
+# submodule to its pinned commit, so specs build against the same state
+# `ws test --all --workspace` exercises.
+#
+# One-time setup for report links: Repo Settings → Pages → "Deploy from a
+# branch", Branch: `gh-pages` / `(root)`. The publish job creates it on first run.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Workspace git ref (branch/tag/SHA) to test. Empty = the ref this run was triggered on.
+        type: string
+        required: false
+        default: ''
+      report-base:
+        description: gh-pages path segment for reports. Empty = branch/<branch>.
+        type: string
+        required: false
+        default: ''
+      pr-number:
+        description: If set, post the report links as a comment on this PR number.
+        type: string
+        required: false
+        default: ''
+      notify-team:
+        description: On failure, open/update the logos-core failure tracking issue and ping the team.
+        type: boolean
+        required: false
+        default: false
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Workspace git ref (branch/tag/SHA) to test. Empty = the branch you run this from.
+        type: string
+        required: false
+        default: ''
+      report-base:
+        description: gh-pages path segment for reports. Empty = branch/<branch>.
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Resolve the doc-test matrix + the workspace-wide --release-for overrides
+  # from the pinned submodule commits of the checked-out ref (no bump).
+  # ─────────────────────────────────────────────────────────────────────────
+  setup:
+    name: Resolve suites + overrides
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix:    ${{ steps.matrix.outputs.matrix }}
+      overrides: ${{ steps.matrix.outputs.overrides }}
+    steps:
+      - name: Checkout workspace at ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Initialize submodules (pinned state, no bump)
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth 1 --jobs 4
+
+      - name: Build doctest matrix + overrides
+        id: matrix
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            https://raw.githubusercontent.com/logos-co/logos-doctest-hub/master/repos.json \
+            -o /tmp/hub-repos.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, subprocess
+          hub = json.load(open('/tmp/hub-repos.json'))
+          # Names of workspace submodules (source of truth: .gitmodules).
+          sm = subprocess.run(
+              ['git', 'config', '--file', '.gitmodules', '--get-regexp', 'path'],
+              capture_output=True, text=True,
+          ).stdout
+          submodules = {
+              parts[1][len('repos/'):]
+              for line in sm.splitlines()
+              for parts in [line.split()]
+              if len(parts) == 2 and parts[1].startswith('repos/')
+          }
+          out, skipped = [], []
+          for r in hub.get('repos', []):
+              name = r['name']
+              d = os.path.join('repos', name)
+              if name not in submodules or not os.path.isdir(d):
+                  skipped.append(name)
+                  continue
+              try:
+                  sha = subprocess.run(
+                      ['git', '-C', d, 'rev-parse', 'HEAD'],
+                      capture_output=True, text=True, check=True,
+                  ).stdout.strip()
+              except Exception:
+                  skipped.append(name)
+                  continue
+              out.append({'name': name, 'sha': sha})
+          print('matrix=' + json.dumps(out, separators=(',', ':')))
+
+          # Override flags for the WHOLE workspace, not just the suites: pin
+          # every submodule's {release} to the ref's pinned commit so specs that
+          # reference any workspace repo (incl. deps that aren't doc-test suites,
+          # e.g. logos-module-builder) build against the same state
+          # `ws test --all --workspace` exercises. Harmless for repos a spec
+          # never references (the placeholder simply never appears).
+          flags = []
+          for name in sorted(submodules):
+              d = os.path.join('repos', name)
+              if not os.path.isdir(d):
+                  continue
+              try:
+                  sha = subprocess.run(
+                      ['git', '-C', d, 'rev-parse', 'HEAD'],
+                      capture_output=True, text=True, check=True,
+                  ).stdout.strip()
+              except Exception:
+                  continue
+              if sha:
+                  flags.append('--release-for %s=%s' % (name, sha))
+          print('overrides=' + ' '.join(flags))
+
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              with open(summary, 'a', encoding='utf-8') as s:
+                  s.write('## Doc-test suites (workspace submodules in logos-doctest-hub)\n')
+                  for o in out:
+                      s.write('- `%s` @ `%s`\n' % (o['name'], o['sha'][:7]))
+                  if skipped:
+                      s.write('\nSkipped (in hub but not workspace submodules): %s\n'
+                              % ', '.join('`%s`' % n for n in skipped))
+          PY
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Nix test suite — builds the core chain and runs `ws test --all --workspace`
+  # against the checked-out ref's pinned submodule state (local overrides).
+  # ─────────────────────────────────────────────────────────────────────────
+  nix-tests:
+    name: nix tests (ws test --all)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout workspace at ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Initialize submodules (pinned state, no bump)
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth 1 --jobs 4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: logos-co
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Add workspace tools to PATH
+        run: echo "${{ github.workspace }}/scripts" >> "$GITHUB_PATH"
+
+      # Ensure test discovery reflects this ref's flake.nix (in-place, uncommitted).
+      - name: Sync dep-graph
+        run: ws sync-graph --quiet
+
+      - name: Build core chain
+        run: |
+          failed=0
+          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-basecamp; do
+            echo "::group::Build $repo"
+            if ! ws build "$repo" --quiet --workspace; then
+              echo "::error::Build failed: $repo"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
+
+      - name: Run tests
+        run: ws test --all --quiet --workspace
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Doc-tests — one matrix leg per (suite × OS). Each leg checks out its repo at
+  # the pinned commit, parses that repo's own publish workflow to find the exact
+  # specs its CI runs, and runs them with the workspace-wide override set.
+  # ─────────────────────────────────────────────────────────────────────────
+  doctest:
+    name: doctest ${{ matrix.repo.name }} (${{ matrix.os }})
+    needs: setup
+    if: ${{ needs.setup.outputs.matrix != '' && needs.setup.outputs.matrix != '[]' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJSON(needs.setup.outputs.matrix) }}
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout ${{ matrix.repo.name }} at pinned SHA
+        uses: actions/checkout@v4
+        with:
+          repository: logos-co/${{ matrix.repo.name }}
+          ref: ${{ matrix.repo.sha }}
+          fetch-depth: 1
+
+      # Parse this repo's own doctest publish workflow to recover exactly the
+      # specs it passes to `doctest run … --report` (resolving globs, dropping
+      # flags/${{…}}), and whether it needs host graphics libraries. Mirrors the
+      # logic in logos-doctest-hub/refresh-repos.py.
+      - name: Discover doctest specs
+        id: disco
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import re, glob, sys
+          wf = text = None
+          cands = sorted(glob.glob('.github/workflows/*.yml')) + \
+                  sorted(glob.glob('.github/workflows/*.yaml'))
+          for p in cands:
+              t = open(p, encoding='utf-8').read()
+              if ('peaceiris/actions-gh-pages' in t and '--report' in t
+                      and re.search(r'--\s+run\s+', t)):
+                  wf, text = p, t
+                  break
+          if not text:
+              sys.stderr.write('no doctest publish workflow found\n')
+              sys.exit(1)
+          best = []
+          for b in re.findall(r'--\s+run\s+(.*?)\s+--report', text, re.DOTALL):
+              bb = re.sub(r'\\\s*\n', ' ', b)
+              bb = re.sub(r'\$\{\{[^}]+\}\}', '', bb)
+              res = []
+              for tk in bb.split():
+                  tk = tk.strip().strip('"').strip("'")
+                  if not tk or tk.startswith('-') or '.test.yaml' not in tk:
+                      continue
+                  res += sorted(glob.glob(tk)) if '*' in tk else [tk]
+              if len(res) > len(best):
+                  best = res
+          seen = set()
+          specs = [s for s in best if not (s in seen or seen.add(s))]
+          if not specs:
+              sys.stderr.write('no specs parsed from %s\n' % wf)
+              sys.exit(1)
+          graphics = 'true' if ('libopengl0' in text or 'libgl1' in text) else 'false'
+          print('specs=' + ' '.join(specs))
+          print('graphics=' + graphics)
+          print('workflow=' + wf)
+          PY
+
+      - name: Show discovered specs
+        run: |
+          echo "workflow: ${{ steps.disco.outputs.workflow }}"
+          echo "specs:    ${{ steps.disco.outputs.specs }}"
+          echo "graphics: ${{ steps.disco.outputs.graphics }}"
+
+      # Some repos (e.g. basecamp's portable bundle) load host libGL/EGL at
+      # launch. Detected from the repo's own workflow above, so no per-repo
+      # special-casing here.
+      - name: Install graphics runtime libraries
+        if: runner.os == 'Linux' && steps.disco.outputs.graphics == 'true'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libopengl0 libglx0 libgl1 libegl1 libglu1-mesa libvulkan1
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: logos-co
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      # --continue-on-fail so the report is complete; the job still exits
+      # non-zero if any step failed. The --release-for flags (from setup) pin
+      # EVERY workspace submodule's {release} to its pinned commit, so this spec
+      # builds its whole dependency closure against the workspace state rather
+      # than letting deps fall back to latest master.
+      - name: Run ${{ matrix.repo.name }} doctests
+        run: |
+          nix run github:logos-co/logos-doctest -- run \
+            ${{ steps.disco.outputs.specs }} \
+            --verbose \
+            --continue-on-fail \
+            ${{ needs.setup.outputs.overrides }} \
+            --report "${{ runner.temp }}/report.html"
+
+      - name: Stage report
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p report-out
+          if [ -f "${{ runner.temp }}/report.html" ]; then
+            cp "${{ runner.temp }}/report.html" report-out/index.html
+          else
+            echo "<h1>No report produced</h1>" > report-out/index.html
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doctest-report-${{ matrix.repo.name }}-${{ matrix.os }}
+          path: report-out/index.html
+          if-no-files-found: warn
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Aggregate reports into a gh-pages site under <report-base>/, write a run
+  # summary, and (when pr-number is set) post/refresh a comment on that PR.
+  # ─────────────────────────────────────────────────────────────────────────
+  publish-reports:
+    name: Publish doctest reports
+    needs:
+      - setup
+      - nix-tests
+      - doctest
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      base:  ${{ steps.arrange.outputs.base }}
+      found: ${{ steps.arrange.outputs.found }}
+    # Serialize Pages pushes so concurrent runs (nightly + manual) don't race.
+    concurrency:
+      group: gh-pages-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all doctest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: doctest-report-*
+
+      - name: Arrange site directory
+        id: arrange
+        shell: bash
+        env:
+          REPORT_BASE: ${{ inputs.report-base }}
+          REF_NAME: ${{ github.ref_name }}
+          NIX_RESULT: ${{ needs.nix-tests.result }}
+        run: |
+          set -euo pipefail
+          BASE="$REPORT_BASE"
+          if [ -z "$BASE" ]; then
+            safe="$(printf '%s' "$REF_NAME" | tr -c 'A-Za-z0-9._-' '-')"
+            BASE="branch/$safe"
+          fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          python3 - "$BASE" "$NIX_RESULT" <<'PY' >> "$GITHUB_OUTPUT"
+          import os, sys, json, glob, html
+          base = sys.argv[1]
+          nix_result = sys.argv[2] or "unknown"
+          oses = ["ubuntu-latest", "macos-latest"]
+          # artifacts/doctest-report-<suite>-<os>/index.html  →  suite, os
+          suites = {}   # suite -> set(os)
+          for d in sorted(glob.glob("artifacts/doctest-report-*")):
+              name = os.path.basename(d)
+              rest = name[len("doctest-report-"):]
+              the_os = next((o for o in oses if rest.endswith("-" + o)), None)
+              if not the_os:
+                  continue
+              suite = rest[: -(len(the_os) + 1)]
+              src = os.path.join(d, "index.html")
+              if not os.path.isfile(src):
+                  continue
+              dst_dir = os.path.join("site", base, suite, the_os)
+              os.makedirs(dst_dir, exist_ok=True)
+              with open(src, "rb") as f, open(os.path.join(dst_dir, "index.html"), "wb") as g:
+                  g.write(f.read())
+              suites.setdefault(suite, set()).add(the_os)
+
+          # Per-suite landing pages
+          for suite, found in sorted(suites.items()):
+              p = os.path.join("site", base, suite, "index.html")
+              with open(p, "w", encoding="utf-8") as f:
+                  f.write("<!doctype html><meta charset=utf-8>\n")
+                  f.write(f"<title>{html.escape(suite)} doc-test — {html.escape(base)}</title>\n")
+                  f.write("<style>body{font:16px system-ui;margin:40px;max-width:640px}a{color:#2563eb}</style>\n")
+                  f.write(f"<h1>{html.escape(suite)} — {html.escape(base)}</h1><ul>\n")
+                  for o in oses:
+                      if o in found:
+                          f.write(f'<li><a href="./{o}/">{o}</a></li>\n')
+                  f.write("</ul>\n")
+
+          # Top-level index — table of every suite × OS
+          os.makedirs(os.path.join("site", base), exist_ok=True)
+          with open(os.path.join("site", base, "index.html"), "w", encoding="utf-8") as f:
+              f.write("<!doctype html><meta charset=utf-8>\n")
+              f.write(f"<title>Doc-test reports — {html.escape(base)}</title>\n")
+              f.write("<style>body{font:16px system-ui;margin:40px;max-width:900px}"
+                      "a{color:#2563eb}table{border-collapse:collapse;width:100%}"
+                      "td,th{border:1px solid #e5e7eb;padding:8px 14px;text-align:left}"
+                      "th{background:#f9fafb;font-weight:600}</style>\n")
+              f.write("<h1>Doc-test reports</h1>\n")
+              f.write(f"<p><strong>{html.escape(base)}</strong> · {len(suites)} suites · "
+                      f"nix tests: <strong>{html.escape(nix_result)}</strong></p>\n")
+              f.write("<table><tr><th>Suite</th>" + "".join(f"<th>{o}</th>" for o in oses) + "</tr>\n")
+              for suite, found in sorted(suites.items()):
+                  f.write(f'<tr><td><a href="./{suite}/">{html.escape(suite)}</a></td>')
+                  for o in oses:
+                      if o in found:
+                          f.write(f'<td><a href="./{suite}/{o}/">report</a></td>')
+                      else:
+                          f.write('<td style="color:#9ca3af">not run</td>')
+                  f.write("</tr>\n")
+              f.write("</table>\n")
+
+          print("found=" + ("1" if suites else ""))
+          print("suites=" + json.dumps(sorted(suites.keys())))
+          PY
+
+      - name: Deploy to gh-pages
+        if: steps.arrange.outputs.found != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          keep_files: true
+          commit_message: "Publish doc-test reports for ${{ steps.arrange.outputs.base }}"
+
+      # Always surface the links + results in the run summary (useful for manual
+      # runs that have no PR to comment on).
+      - name: Write run summary
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          BASE:   ${{ steps.arrange.outputs.base }}
+          FOUND:  ${{ steps.arrange.outputs.found }}
+          SUITES: ${{ steps.arrange.outputs.suites }}
+          NIX_RESULT: ${{ needs.nix-tests.result }}
+        with:
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const base = process.env.BASE;
+            const nix = process.env.NIX_RESULT || "unknown";
+            let md = `### Tests and doc-tests\n\n` +
+                     `- **nix tests (\`ws test --all\`):** ${nix}\n`;
+            if (process.env.FOUND && base) {
+              const root = `https://${owner}.github.io/${repo}/${base}`;
+              const suites = JSON.parse(process.env.SUITES || "[]");
+              md += `- **doc-test reports:** [${base}](${root}/) — ${suites.length} suites\n`;
+            } else {
+              md += `- **doc-test reports:** none produced\n`;
+            }
+            await core.summary.addRaw(md).write();
+
+      - name: Post report links on PR
+        if: ${{ inputs.pr-number != '' && steps.arrange.outputs.found != '' }}
+        uses: actions/github-script@v7
+        env:
+          BASE:   ${{ steps.arrange.outputs.base }}
+          SUITES: ${{ steps.arrange.outputs.suites }}
+          PR_NUMBER: ${{ inputs.pr-number }}
+          NIX_RESULT: ${{ needs.nix-tests.result }}
+        with:
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const base = process.env.BASE;
+            const nix  = process.env.NIX_RESULT || "unknown";
+            const issue_number = Number(process.env.PR_NUMBER);
+            const root = `https://${owner}.github.io/${repo}/${base}`;
+            const oses = ["ubuntu-latest", "macos-latest"];
+            const suites = JSON.parse(process.env.SUITES || "[]");
+
+            const header = `| Suite | ${oses.map(o => `\`${o}\``).join(" | ")} |`;
+            const sep    = `|-------|${oses.map(() => "--------").join("|")}|`;
+            const rows = suites.map(suite => {
+              const cols = oses.map(os => `[report](${root}/${suite}/${os}/)`).join(" | ");
+              return `| [\`${suite}\`](${root}/${suite}/) | ${cols} |`;
+            }).join("\n");
+
+            const marker = "<!-- doctest-report-links -->";
+            const body =
+              `${marker}\n` +
+              `### Tests and doc-test reports\n\n` +
+              `**nix tests (\`ws test --all\`):** ${nix} · ` +
+              `${suites.length} doc-test suites, pinned to this run's workspace commits.\n\n` +
+              `${header}\n${sep}\n${rows}\n\n` +
+              `Full index: [${base}](${root}/) · ` +
+              `_Pages can take a minute to update after the run finishes._`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find(c => c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Notify the logos-core team on any failure (only when notify-team is set —
+  # i.e. the nightly). A reused tracking issue is used (not a PR comment): a
+  # build/test failure can abort before any PR exists. The team @mention in the
+  # issue comment notifies every member of logos-co/logos-core.
+  # ─────────────────────────────────────────────────────────────────────────
+  notify-on-failure:
+    name: Notify logos-core on failure
+    needs:
+      - setup
+      - nix-tests
+      - doctest
+      - publish-reports
+    if: ${{ always() && inputs.notify-team && contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+
+    steps:
+      - name: Open or update failure issue and ping team
+        uses: actions/github-script@v7
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          REPORT_BASE:  ${{ needs.publish-reports.outputs.base }}
+          REPORT_FOUND: ${{ needs.publish-reports.outputs.found }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const team  = "@logos-co/logos-core";
+            const runUrl =
+              `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            // Which needed jobs failed (skipped/cancelled are not failures).
+            const needs = JSON.parse(process.env.NEEDS_JSON);
+            const failed = Object.entries(needs)
+              .filter(([, v]) => v.result === "failure")
+              .map(([k]) => k);
+
+            const failList = failed.length
+              ? failed.map(j => `- \`${j}\``).join("\n")
+              : "- _(failure detected but no job reported `failure` — check the run)_";
+
+            const base = process.env.REPORT_BASE;
+            const reportLine = (process.env.REPORT_FOUND && base)
+              ? `**Doc-test reports:** ` +
+                `https://${owner}.github.io/${repo}/${base}/ ` +
+                `_(Pages can take a minute to update)_\n\n`
+              : "";
+
+            const marker = "<!-- nightly-bump-failure-tracker -->";
+            const title  = "Nightly bump / doc-tests failing";
+
+            const comment =
+              `${team} the nightly run failed.\n\n` +
+              `**Run:** ${runUrl}\n\n` +
+              reportLine +
+              `**Failed jobs:**\n${failList}\n\n` +
+              `(The \`doctest\` job is a matrix — open the run to see which ` +
+              `suite/OS legs failed.)\n\n` +
+              `_Posted automatically by the tests-and-doctests pipeline._`;
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", per_page: 100,
+            });
+            let issue = open.find(i => !i.pull_request && i.body?.includes(marker));
+
+            if (!issue) {
+              const created = await github.rest.issues.create({
+                owner, repo, title,
+                body:
+                  `${marker}\n` +
+                  `Tracking issue for nightly-bump / doc-test failures. ` +
+                  `Each failing run adds a comment below pinging ${team}.\n\n` +
+                  `Close this once the nightly run is green again — it will be ` +
+                  `reopened automatically on the next failure.`,
+              });
+              issue = created.data;
+            }
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issue.number, body: comment,
+            });
+            core.info(`Notified ${team} on issue #${issue.number}`);

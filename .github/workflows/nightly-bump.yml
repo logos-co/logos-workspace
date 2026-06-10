@@ -9,42 +9,35 @@ concurrency:
   group: nightly-bump
   cancel-in-progress: true
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 # ─────────────────────────────────────────────────────────────────────────────
-# One-time setup for doc-test report links:
-#   Repo Settings → Pages → "Build and deployment" → Source: "Deploy from a
-#   branch", Branch: `gh-pages` / `(root)`. The publish-doctest-reports job
-#   creates the branch on its first run; nothing else is needed.
+# Nightly: bump every submodule to its latest upstream default branch, push the
+# result to `nightly/bump`, open/update its PR, then hand off to the reusable
+# `tests-and-doctests` pipeline which runs the nix tests + doc-tests against that
+# bumped workspace state and publishes the reports.
 #
-# The doc-test suite list is NOT hardcoded — it is pulled at run time from the
-# central registry at github:logos-co/logos-doctest-hub (repos.json). Each
-# registered repo is checked out at its bumped commit, its own publish workflow
-# is parsed to find exactly the specs that repo's CI runs, and those are run
-# pinned to the same commit (via --release-for). Reports are published to:
-#   https://<owner>.github.io/<repo>/nightly/<date>/<suite>/<os>/
-# and linked in the nightly PR as a comment each run.
+# The exact same pipeline can be run manually against any branch — see
+# .github/workflows/tests-and-doctests.yml (Actions tab → "Tests and Doc-tests"
+# → Run workflow on your branch). That's the way to bump some modules in a
+# branch and test the whole workspace state of that branch.
 # ─────────────────────────────────────────────────────────────────────────────
 
 jobs:
-  nightly-bump:
+  bump:
+    name: Bump submodules and open PR
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
-
     outputs:
       changed: ${{ steps.check.outputs.changed }}
-      # JSON array of {name, sha} — one entry per hub repo that is also a
-      # workspace submodule, pinned to its bumped commit. Hub repos that aren't
-      # workspace submodules are skipped (they aren't bumped or covered by the
-      # nix tests, so there's no workspace commit to pin them to).
-      matrix:  ${{ steps.matrix.outputs.matrix }}
-      # Pre-joined `--release-for <name>=<sha>` flags covering EVERY workspace
-      # submodule (not just the doc-test suites). Passed to every doctest run so
-      # any {release} URL in a spec — for any workspace repo, e.g. a dependency
-      # like logos-module-builder that isn't itself a suite — resolves to its
-      # bumped commit, matching `ws test --all --workspace`.
-      overrides: ${{ steps.matrix.outputs.overrides }}
+      date:    ${{ steps.meta.outputs.date }}
+      pr:      ${{ steps.pr.outputs.number }}
 
     steps:
       - name: Checkout
@@ -66,84 +59,9 @@ jobs:
           '
           git submodule update --remote --depth 1 --jobs 4
 
-      # Build the doc-test job matrix from the central hub registry, restricted
-      # to repos that are also workspace submodules — those are the ones the bump
-      # pins and the nix tests cover, so the doc-tests can run against the exact
-      # same commit. Hub repos that aren't submodules are skipped (logged in the
-      # step summary). Runs right after the bump (before the nix steps) so the
-      # matrix is available even if a later build/test step in this job fails —
-      # the doc-test jobs guard only on `changed`.
-      - name: Build doctest matrix from hub repos.json
-        id: matrix
-        run: |
-          set -euo pipefail
-          curl -fsSL \
-            https://raw.githubusercontent.com/logos-co/logos-doctest-hub/master/repos.json \
-            -o /tmp/hub-repos.json
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os, subprocess
-          hub = json.load(open('/tmp/hub-repos.json'))
-          # Names of workspace submodules (source of truth: .gitmodules).
-          sm = subprocess.run(
-              ['git', 'config', '--file', '.gitmodules', '--get-regexp', 'path'],
-              capture_output=True, text=True,
-          ).stdout
-          submodules = {
-              parts[1][len('repos/'):]
-              for line in sm.splitlines()
-              for parts in [line.split()]
-              if len(parts) == 2 and parts[1].startswith('repos/')
-          }
-          out, skipped = [], []
-          for r in hub.get('repos', []):
-              name = r['name']
-              d = os.path.join('repos', name)
-              if name not in submodules or not os.path.isdir(d):
-                  skipped.append(name)
-                  continue
-              try:
-                  sha = subprocess.run(
-                      ['git', '-C', d, 'rev-parse', 'HEAD'],
-                      capture_output=True, text=True, check=True,
-                  ).stdout.strip()
-              except Exception:
-                  skipped.append(name)
-                  continue
-              out.append({'name': name, 'sha': sha})
-          print('matrix=' + json.dumps(out, separators=(',', ':')))
-
-          # Override flags for the WHOLE bumped workspace, not just the suites:
-          # pin every submodule's {release} to its bumped commit so specs that
-          # reference any workspace repo (incl. deps that aren't doc-test suites,
-          # e.g. logos-module-builder) build against the bumped set — the same
-          # state `ws test --all --workspace` exercises. Harmless for repos a
-          # spec never references (the placeholder simply never appears).
-          flags = []
-          for name in sorted(submodules):
-              d = os.path.join('repos', name)
-              if not os.path.isdir(d):
-                  continue
-              try:
-                  sha = subprocess.run(
-                      ['git', '-C', d, 'rev-parse', 'HEAD'],
-                      capture_output=True, text=True, check=True,
-                  ).stdout.strip()
-              except Exception:
-                  continue
-              if sha:
-                  flags.append('--release-for %s=%s' % (name, sha))
-          print('overrides=' + ' '.join(flags))
-
-          summary = os.environ.get('GITHUB_STEP_SUMMARY')
-          if summary:
-              with open(summary, 'a', encoding='utf-8') as s:
-                  s.write('## Doc-test suites (workspace submodules in logos-doctest-hub)\n')
-                  for o in out:
-                      s.write('- `%s` @ `%s`\n' % (o['name'], o['sha'][:7]))
-                  if skipped:
-                      s.write('\nSkipped (in hub but not workspace submodules): %s\n'
-                              % ', '.join('`%s`' % n for n in skipped))
-          PY
+      - name: Compute date
+        id: meta
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: check
@@ -208,25 +126,11 @@ jobs:
             echo "No matching flake inputs to update." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Build core chain
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          failed=0
-          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-basecamp; do
-            echo "::group::Build $repo"
-            if ! ws build "$repo" --quiet --workspace; then
-              echo "::error::Build failed: $repo"
-              failed=1
-            fi
-            echo "::endgroup::"
-          done
-          exit $failed
-
-      - name: Run tests
-        if: steps.check.outputs.changed == 'true'
-        run: ws test --all --quiet --workspace
-
+      # Push the bumped workspace to `nightly/bump` and open/refresh its PR. The
+      # tests + doc-tests run afterwards in the reusable pipeline (against this
+      # pushed state) and post their results back as a comment.
       - name: Create or update pull request
+        id: pr
         if: steps.check.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -238,12 +142,12 @@ jobs:
           git checkout -b "$branch"
           git add repos/ nix/dep-graph.nix flake.nix flake.lock
           git commit -m "$(printf '%s\n\n%s\n' \
-            "chore: nightly submodule bump $(date +%Y-%m-%d)" \
+            "chore: nightly submodule bump ${{ steps.meta.outputs.date }}" \
             "Updated: ${{ steps.check.outputs.repos }}")"
 
           git push --force -u origin "$branch"
 
-          title="chore: nightly submodule bump $(date +%Y-%m-%d)"
+          title="chore: nightly submodule bump ${{ steps.meta.outputs.date }}"
           body="$(printf '%s\n' \
             '## Nightly Submodule Bump' \
             '' \
@@ -253,410 +157,32 @@ jobs:
             "$(for r in ${{ steps.check.outputs.repos }}; do echo "- \`$r\`"; done)" \
             '' \
             '### Checks' \
-            '- [x] Core chain builds' \
-            '- [x] All tests pass' \
-            '- [ ] Doc-test reports (posted as a comment once reports are published)' \
+            'Tests + doc-tests run in the linked **Tests and Doc-tests** pipeline' \
+            'against this bumped state; results are posted as a comment below.' \
             '' \
             'Auto-generated by the nightly bump workflow.')"
 
           existing=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number' 2>/dev/null || true)
           if [[ -n "$existing" ]]; then
             gh pr edit "$existing" --title "$title" --body "$body"
+            number="$existing"
             echo "Updated PR #$existing"
           else
             gh pr create --title "$title" --body "$body"
+            number=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
           fi
+          echo "number=$number" >> "$GITHUB_OUTPUT"
 
-  # ─────────────────────────────────────────────────────────────────────────
-  # Doc-tests — one matrix leg per (hub repo × OS). Each leg checks out its
-  # repo at the bumped SHA, parses that repo's own publish workflow to find the
-  # exact specs its CI runs (so curated subsets and spec locations are honoured
-  # without hardcoding), and runs them pinned to the same commit via
-  # --release-for. Runs even when nightly-bump's build/test failed (guards only
-  # on `changed`) — a failing nightly is exactly when the reports are wanted.
-  # ─────────────────────────────────────────────────────────────────────────
-  doctest:
-    name: doctest ${{ matrix.repo.name }} (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true'
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        repo: ${{ fromJSON(needs.nightly-bump.outputs.matrix) }}
-        os: [ubuntu-latest, macos-latest]
-
-    steps:
-      # Check out the repo under test at its bumped commit (every matrix entry
-      # is a workspace submodule, so the SHA is always set).
-      - name: Checkout ${{ matrix.repo.name }} at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/${{ matrix.repo.name }}
-          ref: ${{ matrix.repo.sha }}
-          fetch-depth: 1
-
-      # Parse this repo's own doctest publish workflow to recover exactly the
-      # specs it passes to `doctest run … --report` (resolving globs, dropping
-      # flags/${{…}}), and whether it needs host graphics libraries. Mirrors the
-      # logic in logos-doctest-hub/refresh-repos.py so the nightly run executes
-      # precisely what each repo's CI executes.
-      - name: Discover doctest specs
-        id: disco
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import re, glob, sys
-          wf = text = None
-          cands = sorted(glob.glob('.github/workflows/*.yml')) + \
-                  sorted(glob.glob('.github/workflows/*.yaml'))
-          for p in cands:
-              t = open(p, encoding='utf-8').read()
-              if ('peaceiris/actions-gh-pages' in t and '--report' in t
-                      and re.search(r'--\s+run\s+', t)):
-                  wf, text = p, t
-                  break
-          if not text:
-              sys.stderr.write('no doctest publish workflow found\n')
-              sys.exit(1)
-          best = []
-          for b in re.findall(r'--\s+run\s+(.*?)\s+--report', text, re.DOTALL):
-              bb = re.sub(r'\\\s*\n', ' ', b)
-              bb = re.sub(r'\$\{\{[^}]+\}\}', '', bb)
-              res = []
-              for tk in bb.split():
-                  tk = tk.strip().strip('"').strip("'")
-                  if not tk or tk.startswith('-') or '.test.yaml' not in tk:
-                      continue
-                  res += sorted(glob.glob(tk)) if '*' in tk else [tk]
-              if len(res) > len(best):
-                  best = res
-          seen = set()
-          specs = [s for s in best if not (s in seen or seen.add(s))]
-          if not specs:
-              sys.stderr.write('no specs parsed from %s\n' % wf)
-              sys.exit(1)
-          graphics = 'true' if ('libopengl0' in text or 'libgl1' in text) else 'false'
-          print('specs=' + ' '.join(specs))
-          print('graphics=' + graphics)
-          print('workflow=' + wf)
-          PY
-          echo "Using workflow: ${{ steps.disco.outputs.workflow }}"
-
-      # Some repos (e.g. basecamp's portable bundle) load host libGL/EGL at
-      # launch. Detected from the repo's own workflow above, so no per-repo
-      # special-casing here.
-      - name: Install graphics runtime libraries
-        if: runner.os == 'Linux' && steps.disco.outputs.graphics == 'true'
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libopengl0 libglx0 libgl1 libegl1 libglu1-mesa libvulkan1
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
-      # --continue-on-fail so the report is complete; the job still exits
-      # non-zero if any step failed. The --release-for flags (from nightly-bump)
-      # pin EVERY workspace submodule's {release} to its bumped commit, so this
-      # spec builds its whole dependency closure against the bumped set — the
-      # same state `ws test --all --workspace` exercises — rather than letting
-      # deps fall back to latest master. Repos a spec doesn't reference are
-      # unaffected (the placeholder never appears).
-      - name: Run ${{ matrix.repo.name }} doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            ${{ steps.disco.outputs.specs }} \
-            --verbose \
-            --continue-on-fail \
-            ${{ needs.nightly-bump.outputs.overrides }} \
-            --report "${{ runner.temp }}/report.html"
-
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-${{ matrix.repo.name }}-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Aggregate all doctest reports into a single dated gh-pages site and post a
-  # summary comment on the nightly PR. Suites and OSes are discovered from the
-  # uploaded artifacts, so this stays in sync with whatever the matrix ran.
-  # ─────────────────────────────────────────────────────────────────────────
-  publish-doctest-reports:
-    name: Publish nightly doctest reports
-    needs:
-      - nightly-bump
-      - doctest
-    if: always() && needs.nightly-bump.outputs.changed == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      # Consumed by notify-on-failure to link the published report page.
-      date:  ${{ steps.arrange.outputs.date }}
-      found: ${{ steps.arrange.outputs.found }}
-    # Serialize Pages pushes so concurrent nightly runs can't race on gh-pages.
-    concurrency:
-      group: gh-pages-nightly-publish
-      cancel-in-progress: false
-
-    steps:
-      - name: Download all nightly doctest artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          pattern: nightly-doctest-*
-
-      - name: Arrange site directory
-        id: arrange
-        shell: bash
-        run: |
-          set -euo pipefail
-          DATE="$(date -u +%Y-%m-%d)"
-          echo "date=$DATE" >> "$GITHUB_OUTPUT"
-          python3 - "$DATE" <<'PY' >> "$GITHUB_OUTPUT"
-          import os, sys, json, glob, html
-          date = sys.argv[1]
-          base = f"nightly/{date}"
-          oses = ["ubuntu-latest", "macos-latest"]
-          root = "."
-          # artifacts/nightly-doctest-<suite>-<os>/index.html  →  suite, os
-          suites = {}   # suite -> set(os)
-          for d in sorted(glob.glob("artifacts/nightly-doctest-*")):
-              name = os.path.basename(d)
-              rest = name[len("nightly-doctest-"):]
-              the_os = next((o for o in oses if rest.endswith("-" + o)), None)
-              if not the_os:
-                  continue
-              suite = rest[: -(len(the_os) + 1)]
-              src = os.path.join(d, "index.html")
-              if not os.path.isfile(src):
-                  continue
-              dst_dir = os.path.join("site", base, suite, the_os)
-              os.makedirs(dst_dir, exist_ok=True)
-              with open(src, "rb") as f, open(os.path.join(dst_dir, "index.html"), "wb") as g:
-                  g.write(f.read())
-              suites.setdefault(suite, set()).add(the_os)
-
-          # Per-suite landing pages
-          for suite, found in sorted(suites.items()):
-              p = os.path.join("site", base, suite, "index.html")
-              with open(p, "w", encoding="utf-8") as f:
-                  f.write("<!doctype html><meta charset=utf-8>\n")
-                  f.write(f"<title>{html.escape(suite)} nightly doc-test — {date}</title>\n")
-                  f.write("<style>body{font:16px system-ui;margin:40px;max-width:640px}a{color:#2563eb}</style>\n")
-                  f.write(f"<h1>{html.escape(suite)} — {date}</h1><ul>\n")
-                  for o in oses:
-                      if o in found:
-                          f.write(f'<li><a href="./{o}/">{o}</a></li>\n')
-                  f.write("</ul>\n")
-
-          # Top-level index — table of every suite × OS
-          os.makedirs(os.path.join("site", base), exist_ok=True)
-          with open(os.path.join("site", base, "index.html"), "w", encoding="utf-8") as f:
-              f.write("<!doctype html><meta charset=utf-8>\n")
-              f.write(f"<title>Nightly doc-test reports — {date}</title>\n")
-              f.write("<style>body{font:16px system-ui;margin:40px;max-width:900px}"
-                      "a{color:#2563eb}table{border-collapse:collapse;width:100%}"
-                      "td,th{border:1px solid #e5e7eb;padding:8px 14px;text-align:left}"
-                      "th{background:#f9fafb;font-weight:600}</style>\n")
-              f.write("<h1>Nightly doc-test reports</h1>\n")
-              f.write(f"<p>Date: <strong>{date}</strong> · {len(suites)} suites</p>\n")
-              f.write("<table><tr><th>Suite</th>" + "".join(f"<th>{o}</th>" for o in oses) + "</tr>\n")
-              for suite, found in sorted(suites.items()):
-                  f.write(f'<tr><td><a href="./{suite}/">{html.escape(suite)}</a></td>')
-                  for o in oses:
-                      if o in found:
-                          f.write(f'<td><a href="./{suite}/{o}/">report</a></td>')
-                      else:
-                          f.write('<td style="color:#9ca3af">not run</td>')
-                  f.write("</tr>\n")
-              f.write("</table>\n")
-
-          print("found=" + ("1" if suites else ""))
-          print("suites=" + json.dumps(sorted(suites.keys())))
-          PY
-
-      - name: Deploy to gh-pages
-        if: steps.arrange.outputs.found != ''
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          keep_files: true
-          commit_message: "Publish nightly doc-test reports for ${{ steps.arrange.outputs.date }}"
-
-      - name: Post report links on nightly PR
-        if: steps.arrange.outputs.found != ''
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const date  = "${{ steps.arrange.outputs.date }}";
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            const root  = `https://${owner}.github.io/${repo}/nightly/${date}`;
-            const oses  = ["ubuntu-latest", "macos-latest"];
-            const suites = JSON.parse('${{ steps.arrange.outputs.suites }}');
-
-            const header = `| Suite | ${oses.map(o => `\`${o}\``).join(" | ")} |`;
-            const sep    = `|-------|${oses.map(() => "--------").join("|")}|`;
-            const rows = suites.map(suite => {
-              const cols = oses
-                .map(os => `[report](${root}/${suite}/${os}/)`)
-                .join(" | ");
-              return `| [\`${suite}\`](${root}/${suite}/) | ${cols} |`;
-            }).join("\n");
-
-            const marker = "<!-- nightly-doctest-report-links -->";
-            const body =
-              `${marker}\n` +
-              `### Doc-test reports (${date})\n\n` +
-              `${suites.length} suites, pulled from ` +
-              `[logos-doctest-hub](https://github.com/logos-co/logos-doctest-hub) ` +
-              `and pinned to this run's bumped commits.\n\n` +
-              `${header}\n${sep}\n${rows}\n\n` +
-              `Full index: [nightly/${date}](${root}/) · ` +
-              `_Pages can take a minute to update after the run finishes._`;
-
-            const { data: prs } = await github.rest.pulls.list({
-              owner, repo, head: `${owner}:nightly/bump`, state: "open",
-            });
-            if (prs.length === 0) {
-              core.info("No open nightly/bump PR — skipping comment");
-              return;
-            }
-            const issue_number = prs[0].number;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner, repo, issue_number, per_page: 100,
-            });
-            const existing = comments.find(c => c.body?.includes(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner, repo, comment_id: existing.id, body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number, body,
-              });
-            }
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Notify the logos-core team on any failure across the nightly run — the
-  # bump/build/test job, any doctest matrix leg, or the report publish. A
-  # tracking issue is used (not a PR comment): a build/test failure aborts
-  # nightly-bump before the PR is created, so there may be no PR to comment on.
-  # The team @mention in the issue comment notifies every member of
-  # logos-co/logos-core.
-  #
-  # A single open issue (found via a hidden marker) is reused: each failure
-  # adds a fresh comment (which re-notifies) rather than opening a new issue.
-  # ─────────────────────────────────────────────────────────────────────────
-  notify-on-failure:
-    name: Notify logos-core on failure
-    needs:
-      - nightly-bump
-      - doctest
-      - publish-doctest-reports
-    if: always() && contains(needs.*.result, 'failure')
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      issues: write
-
-    steps:
-      - name: Open or update failure issue and ping team
-        uses: actions/github-script@v7
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-          # From the publish job — used to link the report page (empty when no
-          # reports were published, e.g. the run failed before publishing).
-          REPORT_DATE:  ${{ needs.publish-doctest-reports.outputs.date }}
-          REPORT_FOUND: ${{ needs.publish-doctest-reports.outputs.found }}
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            const team  = "@logos-co/logos-core";
-            const runUrl =
-              `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-
-            // Which needed jobs failed (skipped/cancelled are not failures).
-            const needs = JSON.parse(process.env.NEEDS_JSON);
-            const failed = Object.entries(needs)
-              .filter(([, v]) => v.result === "failure")
-              .map(([k]) => k);
-
-            const failList = failed.length
-              ? failed.map(j => `- \`${j}\``).join("\n")
-              : "- _(failure detected but no job reported `failure` — check the run)_";
-
-            // Link the published report page when reports were produced. The
-            // reports are published even on failure (that's when you want them),
-            // so this is usually present.
-            const date = process.env.REPORT_DATE;
-            const reportLine = (process.env.REPORT_FOUND && date)
-              ? `**Doc-test reports:** ` +
-                `https://${owner}.github.io/${repo}/nightly/${date}/ ` +
-                `_(Pages can take a minute to update)_\n\n`
-              : "";
-
-            const marker = "<!-- nightly-bump-failure-tracker -->";
-            const title  = "Nightly bump / doc-tests failing";
-
-            const comment =
-              `${team} the nightly run failed.\n\n` +
-              `**Run:** ${runUrl}\n\n` +
-              reportLine +
-              `**Failed jobs:**\n${failList}\n\n` +
-              `(The \`doctest\` job is a matrix — open the run to see which ` +
-              `suite/OS legs failed.)\n\n` +
-              `_Posted automatically by the nightly-bump workflow._`;
-
-            // Reuse a single open tracking issue (found via the hidden marker).
-            const { data: open } = await github.rest.issues.listForRepo({
-              owner, repo, state: "open", per_page: 100,
-            });
-            let issue = open.find(i => !i.pull_request && i.body?.includes(marker));
-
-            if (!issue) {
-              const created = await github.rest.issues.create({
-                owner, repo, title,
-                body:
-                  `${marker}\n` +
-                  `Tracking issue for nightly-bump / doc-test failures. ` +
-                  `Each failing run adds a comment below pinging ${team}.\n\n` +
-                  `Close this once the nightly run is green again — it will be ` +
-                  `reopened automatically on the next failure.`,
-              });
-              issue = created.data;
-            }
-
-            await github.rest.issues.createComment({
-              owner, repo, issue_number: issue.number, body: comment,
-            });
-            core.info(`Notified ${team} on issue #${issue.number}`);
+  # Run the nix tests + doc-tests against the just-pushed bumped state, publish
+  # the reports under nightly/<date>/, comment on the nightly PR, and notify the
+  # logos-core team on any failure.
+  tests-and-doctests:
+    needs: bump
+    if: ${{ needs.bump.outputs.changed == 'true' }}
+    uses: ./.github/workflows/tests-and-doctests.yml
+    with:
+      ref: nightly/bump
+      report-base: nightly/${{ needs.bump.outputs.date }}
+      pr-number: ${{ needs.bump.outputs.pr }}
+      notify-team: true
+    secrets: inherit
