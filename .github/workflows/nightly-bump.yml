@@ -416,6 +416,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      # Consumed by notify-on-failure to link the published report page.
+      date:  ${{ steps.arrange.outputs.date }}
+      found: ${{ steps.arrange.outputs.found }}
     # Serialize Pages pushes so concurrent nightly runs can't race on gh-pages.
     concurrency:
       group: gh-pages-nightly-publish
@@ -589,6 +593,10 @@ jobs:
         uses: actions/github-script@v7
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
+          # From the publish job — used to link the report page (empty when no
+          # reports were published, e.g. the run failed before publishing).
+          REPORT_DATE:  ${{ needs.publish-doctest-reports.outputs.date }}
+          REPORT_FOUND: ${{ needs.publish-doctest-reports.outputs.found }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -607,12 +615,23 @@ jobs:
               ? failed.map(j => `- \`${j}\``).join("\n")
               : "- _(failure detected but no job reported `failure` — check the run)_";
 
+            // Link the published report page when reports were produced. The
+            // reports are published even on failure (that's when you want them),
+            // so this is usually present.
+            const date = process.env.REPORT_DATE;
+            const reportLine = (process.env.REPORT_FOUND && date)
+              ? `**Doc-test reports:** ` +
+                `https://${owner}.github.io/${repo}/nightly/${date}/ ` +
+                `_(Pages can take a minute to update)_\n\n`
+              : "";
+
             const marker = "<!-- nightly-bump-failure-tracker -->";
             const title  = "Nightly bump / doc-tests failing";
 
             const comment =
               `${team} the nightly run failed.\n\n` +
               `**Run:** ${runUrl}\n\n` +
+              reportLine +
               `**Failed jobs:**\n${failList}\n\n` +
               `(The \`doctest\` job is a matrix — open the run to see which ` +
               `suite/OS legs failed.)\n\n` +
