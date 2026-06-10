@@ -15,7 +15,11 @@ concurrency:
 #   branch", Branch: `gh-pages` / `(root)`. The publish-doctest-reports job
 #   creates the branch on its first run; nothing else is needed.
 #
-# Nightly doc-test reports are published to:
+# The doc-test suite list is NOT hardcoded — it is pulled at run time from the
+# central registry at github:logos-co/logos-doctest-hub (repos.json). Each
+# registered repo is checked out at its bumped commit, its own publish workflow
+# is parsed to find exactly the specs that repo's CI runs, and those are run
+# pinned to the same commit (via --release-for). Reports are published to:
 #   https://<owner>.github.io/<repo>/nightly/<date>/<suite>/<os>/
 # and linked in the nightly PR as a comment each run.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -29,16 +33,11 @@ jobs:
       pull-requests: write
 
     outputs:
-      changed:             ${{ steps.check.outputs.changed }}
-      sha_cpp_sdk:         ${{ steps.shas.outputs.cpp_sdk }}
-      sha_liblogos:        ${{ steps.shas.outputs.liblogos }}
-      sha_logoscore_cli:   ${{ steps.shas.outputs.logoscore_cli }}
-      sha_module_builder:  ${{ steps.shas.outputs.module_builder }}
-      sha_basecamp:        ${{ steps.shas.outputs.basecamp }}
-      sha_package_manager: ${{ steps.shas.outputs.package_manager }}
-      sha_rust_sdk:        ${{ steps.shas.outputs.rust_sdk }}
-      sha_openmetrics:     ${{ steps.shas.outputs.openmetrics }}
-      sha_tutorial:        ${{ steps.shas.outputs.tutorial }}
+      changed: ${{ steps.check.outputs.changed }}
+      # JSON array of {name, sha} — one entry per repo in the hub's repos.json.
+      # `sha` is the bumped commit when the repo is a workspace submodule, or ""
+      # (→ run against the repo's default branch) when it is not.
+      matrix:  ${{ steps.matrix.outputs.matrix }}
 
     steps:
       - name: Checkout
@@ -60,23 +59,41 @@ jobs:
           '
           git submodule update --remote --depth 1 --jobs 4
 
-      # Capture the exact bumped SHA for every repo that has doctests. These
-      # are passed as --release-for arguments to the doctest CLI in the parallel
-      # doctest jobs below, ensuring each doctest builds against the same commit
-      # that the nix tests ran against.
-      - name: Collect repo SHAs for doctests
-        id: shas
+      # Build the doc-test job matrix from the central hub registry. For every
+      # repo listed in logos-doctest-hub/repos.json, record its bumped SHA (when
+      # it is a workspace submodule) so the doc-test job can pin it to the exact
+      # commit the nix tests run against. Runs right after the bump (before the
+      # nix steps) so the matrix is available even if a later build/test step in
+      # this job fails — the doc-test jobs guard only on `changed`.
+      - name: Build doctest matrix from hub repos.json
+        id: matrix
         run: |
-          get_sha() { git -C "repos/$1" rev-parse HEAD 2>/dev/null || true; }
-          echo "cpp_sdk=$(get_sha logos-cpp-sdk)"                >> "$GITHUB_OUTPUT"
-          echo "liblogos=$(get_sha logos-liblogos)"               >> "$GITHUB_OUTPUT"
-          echo "logoscore_cli=$(get_sha logos-logoscore-cli)"     >> "$GITHUB_OUTPUT"
-          echo "module_builder=$(get_sha logos-module-builder)"   >> "$GITHUB_OUTPUT"
-          echo "basecamp=$(get_sha logos-basecamp)"               >> "$GITHUB_OUTPUT"
-          echo "package_manager=$(get_sha logos-package-manager)" >> "$GITHUB_OUTPUT"
-          echo "rust_sdk=$(get_sha logos-rust-sdk)"               >> "$GITHUB_OUTPUT"
-          echo "openmetrics=$(get_sha openmetrics-module)"        >> "$GITHUB_OUTPUT"
-          echo "tutorial=$(get_sha logos-tutorial)"               >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          curl -fsSL \
+            https://raw.githubusercontent.com/logos-co/logos-doctest-hub/master/repos.json \
+            -o /tmp/hub-repos.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, subprocess
+          hub = json.load(open('/tmp/hub-repos.json'))
+          out = []
+          for r in hub.get('repos', []):
+              name = r['name']
+              sha = ''
+              d = os.path.join('repos', name)
+              if os.path.isdir(d):
+                  try:
+                      sha = subprocess.run(
+                          ['git', '-C', d, 'rev-parse', 'HEAD'],
+                          capture_output=True, text=True, check=True,
+                      ).stdout.strip()
+                  except Exception:
+                      sha = ''
+              out.append({'name': name, 'sha': sha})
+          print('matrix=' + json.dumps(out, separators=(',', ':')))
+          PY
+          echo "## Doc-test suites (from logos-doctest-hub)" >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json;[print('- \`%s\`'%r['name']) for r in json.load(open('/tmp/hub-repos.json'))['repos']]" \
+            >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check for changes
         id: check
@@ -201,473 +218,117 @@ jobs:
           fi
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Doctest jobs — run in parallel on ubuntu + macos after the bump.
-  #
-  # Each job checks out its repo at the exact bumped SHA and runs that repo's
-  # doctest specs, passing the same SHA to --release-for so the builds are
-  # pinned identically to the nix tests above.
-  #
-  # These jobs run even when nightly-bump fails (they guard on changed=true
-  # and a non-empty SHA): the SHA collection step runs early enough that it
-  # is set even when a later step in nightly-bump fails.
+  # Doc-tests — one matrix leg per (hub repo × OS). Each leg checks out its
+  # repo at the bumped SHA, parses that repo's own publish workflow to find the
+  # exact specs its CI runs (so curated subsets and spec locations are honoured
+  # without hardcoding), and runs them pinned to the same commit via
+  # --release-for. Runs even when nightly-bump's build/test failed (guards only
+  # on `changed`) — a failing nightly is exactly when the reports are wanted.
   # ─────────────────────────────────────────────────────────────────────────
-
-  doctest-cpp-sdk:
-    name: cpp-sdk doctests (${{ matrix.os }})
+  doctest:
+    name: doctest ${{ matrix.repo.name }} (${{ matrix.os }})
     needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_cpp_sdk != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout logos-cpp-sdk at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-cpp-sdk
-          ref: ${{ needs.nightly-bump.outputs.sha_cpp_sdk }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run cpp-sdk doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/cpp-sdk-module-runtime.test.yaml \
-            doctests/cpp-sdk-module-composition.test.yaml \
-            doctests/cpp-sdk-worker-thread-http.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-cpp-sdk=${{ needs.nightly-bump.outputs.sha_cpp_sdk }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-cpp-sdk-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
-
-  doctest-liblogos:
-    name: liblogos doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_liblogos != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout logos-liblogos at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-liblogos
-          ref: ${{ needs.nightly-bump.outputs.sha_liblogos }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run liblogos doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/liblogos-module-runtime.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-liblogos=${{ needs.nightly-bump.outputs.sha_liblogos }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-liblogos-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
-
-  doctest-logoscore-cli:
-    name: logoscore-cli doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_logoscore_cli != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout logos-logoscore-cli at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-logoscore-cli
-          ref: ${{ needs.nightly-bump.outputs.sha_logoscore_cli }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run logoscore-cli doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/logoscore-daemon.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-logoscore-cli=${{ needs.nightly-bump.outputs.sha_logoscore_cli }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-logoscore-cli-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
-
-  doctest-module-builder:
-    name: module-builder doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_module_builder != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout logos-module-builder at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-module-builder
-          ref: ${{ needs.nightly-bump.outputs.sha_module_builder }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run module-builder doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/wrap-external-lib-1-source.test.yaml \
-            doctests/wrap-external-lib-2-prebuilt-binaries.test.yaml \
-            doctests/wrap-external-lib-3-external-source.test.yaml \
-            doctests/wrap-external-lib-4-nix-flake.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-module-builder=${{ needs.nightly-bump.outputs.sha_module_builder }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-module-builder-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
-
-  doctest-basecamp:
-    name: basecamp doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_basecamp != ''
+    if: always() && needs.nightly-bump.outputs.changed == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
+        repo: ${{ fromJSON(needs.nightly-bump.outputs.matrix) }}
         os: [ubuntu-latest, macos-latest]
+
     steps:
-      - name: Checkout logos-basecamp at nightly SHA
+      # Check out the repo under test at its bumped commit (empty SHA → the
+      # repo's default branch, used for hub repos that aren't workspace
+      # submodules, e.g. openmetrics-module / logos-doctest).
+      - name: Checkout ${{ matrix.repo.name }} at nightly SHA
         uses: actions/checkout@v4
         with:
-          repository: logos-co/logos-basecamp
-          ref: ${{ needs.nightly-bump.outputs.sha_basecamp }}
+          repository: logos-co/${{ matrix.repo.name }}
+          ref: ${{ matrix.repo.sha }}
           fetch-depth: 1
-      # The portable bundle relies on host libGL/EGL (the bundle carries the app
-      # but not GPU drivers). Install the standard glvnd/mesa runtime so the
-      # launch behaves like a real Linux desktop. The dev-app spec is unaffected.
-      - name: Install graphics runtime libraries (Linux bundle launch)
-        if: runner.os == 'Linux'
+
+      # Parse this repo's own doctest publish workflow to recover exactly the
+      # specs it passes to `doctest run … --report` (resolving globs, dropping
+      # flags/${{…}}), and whether it needs host graphics libraries. Mirrors the
+      # logic in logos-doctest-hub/refresh-repos.py so the nightly run executes
+      # precisely what each repo's CI executes.
+      - name: Discover doctest specs
+        id: disco
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import re, glob, sys
+          wf = text = None
+          cands = sorted(glob.glob('.github/workflows/*.yml')) + \
+                  sorted(glob.glob('.github/workflows/*.yaml'))
+          for p in cands:
+              t = open(p, encoding='utf-8').read()
+              if ('peaceiris/actions-gh-pages' in t and '--report' in t
+                      and re.search(r'--\s+run\s+', t)):
+                  wf, text = p, t
+                  break
+          if not text:
+              sys.stderr.write('no doctest publish workflow found\n')
+              sys.exit(1)
+          best = []
+          for b in re.findall(r'--\s+run\s+(.*?)\s+--report', text, re.DOTALL):
+              bb = re.sub(r'\\\s*\n', ' ', b)
+              bb = re.sub(r'\$\{\{[^}]+\}\}', '', bb)
+              res = []
+              for tk in bb.split():
+                  tk = tk.strip().strip('"').strip("'")
+                  if not tk or tk.startswith('-') or '.test.yaml' not in tk:
+                      continue
+                  res += sorted(glob.glob(tk)) if '*' in tk else [tk]
+              if len(res) > len(best):
+                  best = res
+          seen = set()
+          specs = [s for s in best if not (s in seen or seen.add(s))]
+          if not specs:
+              sys.stderr.write('no specs parsed from %s\n' % wf)
+              sys.exit(1)
+          graphics = 'true' if ('libopengl0' in text or 'libgl1' in text) else 'false'
+          print('specs=' + ' '.join(specs))
+          print('graphics=' + graphics)
+          print('workflow=' + wf)
+          PY
+          echo "Using workflow: ${{ steps.disco.outputs.workflow }}"
+
+      # Some repos (e.g. basecamp's portable bundle) load host libGL/EGL at
+      # launch. Detected from the repo's own workflow above, so no per-repo
+      # special-casing here.
+      - name: Install graphics runtime libraries
+        if: runner.os == 'Linux' && steps.disco.outputs.graphics == 'true'
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libopengl0 libglx0 libgl1 libegl1 libglu1-mesa libvulkan1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run basecamp doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/basecamp-modules.test.yaml \
-            doctests/basecamp-modules-bundle.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-basecamp=${{ needs.nightly-bump.outputs.sha_basecamp }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-basecamp-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
 
-  doctest-package-manager:
-    name: package-manager doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_package_manager != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout logos-package-manager at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-package-manager
-          ref: ${{ needs.nightly-bump.outputs.sha_package_manager }}
-          fetch-depth: 1
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run package-manager doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/*.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --release-for logos-package-manager=${{ needs.nightly-bump.outputs.sha_package_manager }} \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-package-manager-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
 
-  doctest-rust-sdk:
-    name: rust-sdk doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_rust_sdk != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      # rust-sdk doctests don't use --release-for (the Rust provider module
-      # doesn't consume the SDK), but we still check out the bumped SHA so
-      # the spec files reflect exactly what was bumped.
-      - name: Checkout logos-rust-sdk at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-rust-sdk
-          ref: ${{ needs.nightly-bump.outputs.sha_rust_sdk }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
       - name: Setup Cachix
         uses: cachix/cachix-action@v15
         with:
           name: logos-co
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run rust-sdk doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            doctests/rust-provider-module.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-rust-sdk-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
 
-  doctest-openmetrics:
-    name: openmetrics doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_openmetrics != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout openmetrics-module at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/openmetrics-module
-          ref: ${{ needs.nightly-bump.outputs.sha_openmetrics }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run openmetrics doctests
+      # --continue-on-fail so the report is complete; the job still exits
+      # non-zero if any step failed. --release-for pins this repo's {release}
+      # placeholder to the bumped commit (empty SHA → latest, harmless for
+      # repos whose specs don't reference their own {release}).
+      - name: Run ${{ matrix.repo.name }} doctests
         run: |
           nix run github:logos-co/logos-doctest -- run \
-            doctests/openmetrics.test.yaml \
+            ${{ steps.disco.outputs.specs }} \
             --verbose \
             --continue-on-fail \
-            --release-for openmetrics-module=${{ needs.nightly-bump.outputs.sha_openmetrics }} \
+            --release-for ${{ matrix.repo.name }}=${{ matrix.repo.sha }} \
             --report "${{ runner.temp }}/report.html"
-      - name: Stage report
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p report-out
-          if [ -f "${{ runner.temp }}/report.html" ]; then
-            cp "${{ runner.temp }}/report.html" report-out/index.html
-          else
-            echo "<h1>No report produced</h1>" > report-out/index.html
-          fi
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-doctest-openmetrics-${{ matrix.os }}
-          path: report-out/index.html
-          if-no-files-found: warn
 
-  doctest-tutorial:
-    name: tutorial doctests (${{ matrix.os }})
-    needs: nightly-bump
-    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_tutorial != ''
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      # logos-tutorial keeps its specs under tests/ (not doctests/) and does not
-      # pin itself via --release-for — checking out the bumped SHA is what pins
-      # the spec content. This mirrors the tutorial's own ci.yml, which runs
-      # these three leaves (the C-library and QML specs are pulled in via the
-      # cpp-ui-app chain's `requires:` / are generate-only there).
-      - name: Checkout logos-tutorial at nightly SHA
-        uses: actions/checkout@v4
-        with:
-          repository: logos-co/logos-tutorial
-          ref: ${{ needs.nightly-bump.outputs.sha_tutorial }}
-          fetch-depth: 1
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: logos-co
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run tutorial doctests
-        run: |
-          nix run github:logos-co/logos-doctest -- run \
-            tests/tutorial-cpp-ui-app.test.yaml \
-            tests/tutorial-composing-modules.test.yaml \
-            tests/tutorial-interface-dependencies.test.yaml \
-            --verbose \
-            --continue-on-fail \
-            --report "${{ runner.temp }}/report.html"
       - name: Stage report
         if: always()
         shell: bash
@@ -678,32 +339,25 @@ jobs:
           else
             echo "<h1>No report produced</h1>" > report-out/index.html
           fi
+
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nightly-doctest-tutorial-${{ matrix.os }}
+          name: nightly-doctest-${{ matrix.repo.name }}-${{ matrix.os }}
           path: report-out/index.html
           if-no-files-found: warn
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Aggregate all doctest reports into a single gh-pages site and post a
-  # summary comment on the nightly PR. Runs even when individual doctest
-  # jobs fail — a failing run is exactly when you want to open the report.
+  # Aggregate all doctest reports into a single dated gh-pages site and post a
+  # summary comment on the nightly PR. Suites and OSes are discovered from the
+  # uploaded artifacts, so this stays in sync with whatever the matrix ran.
   # ─────────────────────────────────────────────────────────────────────────
   publish-doctest-reports:
     name: Publish nightly doctest reports
     needs:
       - nightly-bump
-      - doctest-cpp-sdk
-      - doctest-liblogos
-      - doctest-logoscore-cli
-      - doctest-module-builder
-      - doctest-basecamp
-      - doctest-package-manager
-      - doctest-rust-sdk
-      - doctest-openmetrics
-      - doctest-tutorial
+      - doctest
     if: always() && needs.nightly-bump.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -728,77 +382,72 @@ jobs:
         run: |
           set -euo pipefail
           DATE="$(date -u +%Y-%m-%d)"
-          BASE="nightly/$DATE"
-          echo "date=$DATE"   >> "$GITHUB_OUTPUT"
-          echo "base=$BASE"   >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          python3 - "$DATE" <<'PY' >> "$GITHUB_OUTPUT"
+          import os, sys, json, glob, html
+          date = sys.argv[1]
+          base = f"nightly/{date}"
+          oses = ["ubuntu-latest", "macos-latest"]
+          root = "."
+          # artifacts/nightly-doctest-<suite>-<os>/index.html  →  suite, os
+          suites = {}   # suite -> set(os)
+          for d in sorted(glob.glob("artifacts/nightly-doctest-*")):
+              name = os.path.basename(d)
+              rest = name[len("nightly-doctest-"):]
+              the_os = next((o for o in oses if rest.endswith("-" + o)), None)
+              if not the_os:
+                  continue
+              suite = rest[: -(len(the_os) + 1)]
+              src = os.path.join(d, "index.html")
+              if not os.path.isfile(src):
+                  continue
+              dst_dir = os.path.join("site", base, suite, the_os)
+              os.makedirs(dst_dir, exist_ok=True)
+              with open(src, "rb") as f, open(os.path.join(dst_dir, "index.html"), "wb") as g:
+                  g.write(f.read())
+              suites.setdefault(suite, set()).add(the_os)
 
-          SUITES="cpp-sdk liblogos logoscore-cli module-builder basecamp package-manager rust-sdk openmetrics tutorial"
-          mkdir -p "site/$BASE"
-          found_suites=""
+          # Per-suite landing pages
+          for suite, found in sorted(suites.items()):
+              p = os.path.join("site", base, suite, "index.html")
+              with open(p, "w", encoding="utf-8") as f:
+                  f.write("<!doctype html><meta charset=utf-8>\n")
+                  f.write(f"<title>{html.escape(suite)} nightly doc-test — {date}</title>\n")
+                  f.write("<style>body{font:16px system-ui;margin:40px;max-width:640px}a{color:#2563eb}</style>\n")
+                  f.write(f"<h1>{html.escape(suite)} — {date}</h1><ul>\n")
+                  for o in oses:
+                      if o in found:
+                          f.write(f'<li><a href="./{o}/">{o}</a></li>\n')
+                  f.write("</ul>\n")
 
-          for suite in $SUITES; do
-            found_oses=""
-            for os in ubuntu-latest macos-latest; do
-              src="artifacts/nightly-doctest-${suite}-${os}/index.html"
-              if [ -f "$src" ]; then
-                mkdir -p "site/$BASE/$suite/$os"
-                cp "$src" "site/$BASE/$suite/$os/index.html"
-                found_oses="$found_oses $os"
-              fi
-            done
-            if [ -n "$found_oses" ]; then
-              found_suites="$found_suites $suite"
-              # Per-suite landing page
-              {
-                printf '<!doctype html><meta charset=utf-8>\n'
-                printf '<title>%s nightly doc-test \xe2\x80\x94 %s</title>\n' "$suite" "$DATE"
-                printf '<style>body{font:16px system-ui;margin:40px;max-width:640px}a{color:#2563eb}</style>\n'
-                printf '<h1>%s \xe2\x80\x94 %s</h1><ul>\n' "$suite" "$DATE"
-                for os in ubuntu-latest macos-latest; do
-                  if [ -d "site/$BASE/$suite/$os" ]; then
-                    printf '<li><a href="./%s/">%s</a></li>\n' "$os" "$os"
-                  fi
-                done
-                printf '</ul>\n'
-              } > "site/$BASE/$suite/index.html"
-            fi
-          done
+          # Top-level index — table of every suite × OS
+          os.makedirs(os.path.join("site", base), exist_ok=True)
+          with open(os.path.join("site", base, "index.html"), "w", encoding="utf-8") as f:
+              f.write("<!doctype html><meta charset=utf-8>\n")
+              f.write(f"<title>Nightly doc-test reports — {date}</title>\n")
+              f.write("<style>body{font:16px system-ui;margin:40px;max-width:900px}"
+                      "a{color:#2563eb}table{border-collapse:collapse;width:100%}"
+                      "td,th{border:1px solid #e5e7eb;padding:8px 14px;text-align:left}"
+                      "th{background:#f9fafb;font-weight:600}</style>\n")
+              f.write("<h1>Nightly doc-test reports</h1>\n")
+              f.write(f"<p>Date: <strong>{date}</strong> · {len(suites)} suites</p>\n")
+              f.write("<table><tr><th>Suite</th>" + "".join(f"<th>{o}</th>" for o in oses) + "</tr>\n")
+              for suite, found in sorted(suites.items()):
+                  f.write(f'<tr><td><a href="./{suite}/">{html.escape(suite)}</a></td>')
+                  for o in oses:
+                      if o in found:
+                          f.write(f'<td><a href="./{suite}/{o}/">report</a></td>')
+                      else:
+                          f.write('<td style="color:#9ca3af">not run</td>')
+                  f.write("</tr>\n")
+              f.write("</table>\n")
 
-          echo "found_suites=${found_suites## }" >> "$GITHUB_OUTPUT"
-
-          # Top-level nightly landing page — table of all suites x OSes
-          {
-            printf '<!doctype html><meta charset=utf-8>\n'
-            printf '<title>Nightly doc-test reports \xe2\x80\x94 %s</title>\n' "$DATE"
-            printf '<style>'
-            printf 'body{font:16px system-ui;margin:40px;max-width:900px}'
-            printf 'a{color:#2563eb}'
-            printf 'table{border-collapse:collapse;width:100%%}'
-            printf 'td,th{border:1px solid #e5e7eb;padding:8px 14px;text-align:left}'
-            printf 'th{background:#f9fafb;font-weight:600}'
-            printf '.pass{color:#16a34a}.fail{color:#dc2626}'
-            printf '</style>\n'
-            printf '<h1>Nightly doc-test reports</h1>\n'
-            printf '<p>Date: <strong>%s</strong></p>\n' "$DATE"
-            printf '<table><tr><th>Suite</th><th>ubuntu-latest</th><th>macos-latest</th></tr>\n'
-            for suite in $SUITES; do
-              if [ -d "site/$BASE/$suite" ]; then
-                printf '<tr><td><a href="./%s/">%s</a></td>' "$suite" "$suite"
-                for os in ubuntu-latest macos-latest; do
-                  if [ -d "site/$BASE/$suite/$os" ]; then
-                    printf '<td><a href="./%s/%s/">report</a></td>' "$suite" "$os"
-                  else
-                    printf '<td style="color:#9ca3af">not run</td>'
-                  fi
-                done
-                printf '</tr>\n'
-              fi
-            done
-            printf '</table>\n'
-          } > "site/$BASE/index.html"
+          print("found=" + ("1" if suites else ""))
+          print("suites=" + json.dumps(sorted(suites.keys())))
+          PY
 
       - name: Deploy to gh-pages
-        if: steps.arrange.outputs.found_suites != ''
+        if: steps.arrange.outputs.found != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -807,7 +456,7 @@ jobs:
           commit_message: "Publish nightly doc-test reports for ${{ steps.arrange.outputs.date }}"
 
       - name: Post report links on nightly PR
-        if: steps.arrange.outputs.found_suites != ''
+        if: steps.arrange.outputs.found != ''
         uses: actions/github-script@v7
         with:
           script: |
@@ -815,13 +464,15 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
             const root  = `https://${owner}.github.io/${repo}/nightly/${date}`;
-            const suites = "${{ steps.arrange.outputs.found_suites }}"
-              .trim().split(/\s+/).filter(Boolean);
+            const oses  = ["ubuntu-latest", "macos-latest"];
+            const suites = JSON.parse('${{ steps.arrange.outputs.suites }}');
 
+            const header = `| Suite | ${oses.map(o => `\`${o}\``).join(" | ")} |`;
+            const sep    = `|-------|${oses.map(() => "--------").join("|")}|`;
             const rows = suites.map(suite => {
-              const cols = ["ubuntu-latest", "macos-latest"]
-                .map(os => `[\`${os}\`](${root}/${suite}/${os}/)`)
-                .join(" · ");
+              const cols = oses
+                .map(os => `[report](${root}/${suite}/${os}/)`)
+                .join(" | ");
               return `| [\`${suite}\`](${root}/${suite}/) | ${cols} |`;
             }).join("\n");
 
@@ -829,24 +480,21 @@ jobs:
             const body =
               `${marker}\n` +
               `### Doc-test reports (${date})\n\n` +
-              `| Suite | Reports |\n` +
-              `|-------|--------|\n` +
-              `${rows}\n\n` +
+              `${suites.length} suites, pulled from ` +
+              `[logos-doctest-hub](https://github.com/logos-co/logos-doctest-hub) ` +
+              `and pinned to this run's bumped commits.\n\n` +
+              `${header}\n${sep}\n${rows}\n\n` +
               `Full index: [nightly/${date}](${root}/) · ` +
               `_Pages can take a minute to update after the run finishes._`;
 
-            // Find the open nightly/bump PR
             const { data: prs } = await github.rest.pulls.list({
-              owner, repo,
-              head: `${owner}:nightly/bump`,
-              state: "open",
+              owner, repo, head: `${owner}:nightly/bump`, state: "open",
             });
             if (prs.length === 0) {
               core.info("No open nightly/bump PR — skipping comment");
               return;
             }
             const issue_number = prs[0].number;
-
             const { data: comments } = await github.rest.issues.listComments({
               owner, repo, issue_number, per_page: 100,
             });
@@ -863,10 +511,11 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────────────────
   # Notify the logos-core team on any failure across the nightly run — the
-  # bump/build/test job, any doctest suite, or the report publish. A tracking
-  # issue is used (not a PR comment): a build/test failure aborts nightly-bump
-  # before the PR is created, so there may be no PR to comment on. The team
-  # @mention in the issue comment notifies every member of logos-co/logos-core.
+  # bump/build/test job, any doctest matrix leg, or the report publish. A
+  # tracking issue is used (not a PR comment): a build/test failure aborts
+  # nightly-bump before the PR is created, so there may be no PR to comment on.
+  # The team @mention in the issue comment notifies every member of
+  # logos-co/logos-core.
   #
   # A single open issue (found via a hidden marker) is reused: each failure
   # adds a fresh comment (which re-notifies) rather than opening a new issue.
@@ -875,15 +524,7 @@ jobs:
     name: Notify logos-core on failure
     needs:
       - nightly-bump
-      - doctest-cpp-sdk
-      - doctest-liblogos
-      - doctest-logoscore-cli
-      - doctest-module-builder
-      - doctest-basecamp
-      - doctest-package-manager
-      - doctest-rust-sdk
-      - doctest-openmetrics
-      - doctest-tutorial
+      - doctest
       - publish-doctest-reports
     if: always() && contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
@@ -921,6 +562,8 @@ jobs:
               `${team} the nightly run failed.\n\n` +
               `**Run:** ${runUrl}\n\n` +
               `**Failed jobs:**\n${failList}\n\n` +
+              `(The \`doctest\` job is a matrix — open the run to see which ` +
+              `suite/OS legs failed.)\n\n` +
               `_Posted automatically by the nightly-bump workflow._`;
 
             // Reuse a single open tracking issue (found via the hidden marker).
