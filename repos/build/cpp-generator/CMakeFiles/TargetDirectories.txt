@@ -1,0 +1,5 @@
+/Users/dlipicar/repos/logos-workspace/repos/build/cpp-generator/CMakeFiles/logos-cpp-generator.dir
+/Users/dlipicar/repos/logos-workspace/repos/build/cpp-generator/CMakeFiles/edit_cache.dir
+/Users/dlipicar/repos/logos-workspace/repos/build/cpp-generator/CMakeFiles/rebuild_cache.dir
+/Users/dlipicar/repos/logos-workspace/repos/build/cpp-generator/CMakeFiles/logos-cpp-generator_autogen_timestamp_deps.dir
+/Users/dlipicar/repos/logos-workspace/repos/build/cpp-generator/CMakeFiles/logos-cpp-generator_autogen.dir
