@@ -38,6 +38,7 @@ jobs:
       sha_package_manager: ${{ steps.shas.outputs.package_manager }}
       sha_rust_sdk:        ${{ steps.shas.outputs.rust_sdk }}
       sha_openmetrics:     ${{ steps.shas.outputs.openmetrics }}
+      sha_tutorial:        ${{ steps.shas.outputs.tutorial }}
 
     steps:
       - name: Checkout
@@ -75,6 +76,7 @@ jobs:
           echo "package_manager=$(get_sha logos-package-manager)" >> "$GITHUB_OUTPUT"
           echo "rust_sdk=$(get_sha logos-rust-sdk)"               >> "$GITHUB_OUTPUT"
           echo "openmetrics=$(get_sha openmetrics-module)"        >> "$GITHUB_OUTPUT"
+          echo "tutorial=$(get_sha logos-tutorial)"               >> "$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: check
@@ -628,6 +630,62 @@ jobs:
           path: report-out/index.html
           if-no-files-found: warn
 
+  doctest-tutorial:
+    name: tutorial doctests (${{ matrix.os }})
+    needs: nightly-bump
+    if: always() && needs.nightly-bump.outputs.changed == 'true' && needs.nightly-bump.outputs.sha_tutorial != ''
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      # logos-tutorial keeps its specs under tests/ (not doctests/) and does not
+      # pin itself via --release-for — checking out the bumped SHA is what pins
+      # the spec content. This mirrors the tutorial's own ci.yml, which runs
+      # these three leaves (the C-library and QML specs are pulled in via the
+      # cpp-ui-app chain's `requires:` / are generate-only there).
+      - name: Checkout logos-tutorial at nightly SHA
+        uses: actions/checkout@v4
+        with:
+          repository: logos-co/logos-tutorial
+          ref: ${{ needs.nightly-bump.outputs.sha_tutorial }}
+          fetch-depth: 1
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: logos-co
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Run tutorial doctests
+        run: |
+          nix run github:logos-co/logos-doctest -- run \
+            tests/tutorial-cpp-ui-app.test.yaml \
+            tests/tutorial-composing-modules.test.yaml \
+            tests/tutorial-interface-dependencies.test.yaml \
+            --verbose \
+            --continue-on-fail \
+            --report "${{ runner.temp }}/report.html"
+      - name: Stage report
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p report-out
+          if [ -f "${{ runner.temp }}/report.html" ]; then
+            cp "${{ runner.temp }}/report.html" report-out/index.html
+          else
+            echo "<h1>No report produced</h1>" > report-out/index.html
+          fi
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-doctest-tutorial-${{ matrix.os }}
+          path: report-out/index.html
+          if-no-files-found: warn
+
   # ─────────────────────────────────────────────────────────────────────────
   # Aggregate all doctest reports into a single gh-pages site and post a
   # summary comment on the nightly PR. Runs even when individual doctest
@@ -645,6 +703,7 @@ jobs:
       - doctest-package-manager
       - doctest-rust-sdk
       - doctest-openmetrics
+      - doctest-tutorial
     if: always() && needs.nightly-bump.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -673,7 +732,7 @@ jobs:
           echo "date=$DATE"   >> "$GITHUB_OUTPUT"
           echo "base=$BASE"   >> "$GITHUB_OUTPUT"
 
-          SUITES="cpp-sdk liblogos logoscore-cli module-builder basecamp package-manager rust-sdk openmetrics"
+          SUITES="cpp-sdk liblogos logoscore-cli module-builder basecamp package-manager rust-sdk openmetrics tutorial"
           mkdir -p "site/$BASE"
           found_suites=""
 
@@ -824,6 +883,7 @@ jobs:
       - doctest-package-manager
       - doctest-rust-sdk
       - doctest-openmetrics
+      - doctest-tutorial
       - publish-doctest-reports
     if: always() && contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
