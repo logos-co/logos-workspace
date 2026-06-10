@@ -864,22 +864,25 @@
         "logos-nix": [
           "logos-nix"
         ],
+        "logos-protocol": [
+          "logos-protocol"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1778705445,
-        "narHash": "sha256-iyVLixHdgdCbqdqwUdX4XfN9sg7dCH3yfs4F9tGcDLc=",
+        "lastModified": 1781059307,
+        "narHash": "sha256-/Kyo91r3XhABL4rYuCbTce0NAMZwrQEMty7cQTMST+A=",
         "owner": "logos-co",
         "repo": "logos-cpp-sdk",
-        "rev": "800f65a912cf7f0f3ad2ece691a90ee6083e661b",
+        "rev": "fc9e546851f75a8c95c4bd7ab85067edb6a8569b",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-cpp-sdk",
-        "rev": "800f65a912cf7f0f3ad2ece691a90ee6083e661b",
+        "rev": "fc9e546851f75a8c95c4bd7ab85067edb6a8569b",
         "type": "github"
       }
     },
@@ -6266,6 +6269,30 @@
         "type": "github"
       }
     },
+    "logos-protocol": {
+      "inputs": {
+        "logos-nix": [
+          "logos-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781059064,
+        "narHash": "sha256-TCwCp4b0pjlvDM2RrFJ0oGfLQjjT5nBrkkURNLCjAHE=",
+        "owner": "logos-co",
+        "repo": "logos-protocol",
+        "rev": "7d56c363c8956f291ae0da08681ddfc40f9b4ffc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-protocol",
+        "rev": "7d56c363c8956f291ae0da08681ddfc40f9b4ffc",
+        "type": "github"
+      }
+    },
     "logos-qt-mcp": {
       "inputs": {
         "logos-nix": "logos-nix_32",
@@ -11431,6 +11458,7 @@
         "logos-package-manager-module": "logos-package-manager-module",
         "logos-package-manager-ui": "logos-package-manager-ui",
         "logos-plugin-qt": "logos-plugin-qt_4",
+        "logos-protocol": "logos-protocol",
         "logos-rust-sdk": "logos-rust-sdk",
         "logos-standalone-app": "logos-standalone-app_4",
         "logos-storage-module": "logos-storage-module",

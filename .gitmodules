@@ -163,3 +163,6 @@
 [submodule "repos/logos-logoscore-py"]
 	path = repos/logos-logoscore-py
 	url = git@github.com:logos-co/logos-logoscore-py.git
+[submodule "repos/logos-protocol"]
+	path = repos/logos-protocol
+	url = git@github.com:logos-co/logos-protocol.git

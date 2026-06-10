@@ -19,7 +19,8 @@
 #   - flake.nix:    `lib.depGraph` re-export for programmatic introspection
 {
   logos-nix                       = { deps = []; follows = { "nixpkgs" = "nixpkgs"; }; hasTests = false; };
-  logos-cpp-sdk                   = { deps = [ "logos-nix" ]; follows = { "logos-nix" = "logos-nix"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
+  logos-protocol                  = { deps = [ "logos-nix" ]; follows = { "logos-nix" = "logos-nix"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
+  logos-cpp-sdk                   = { deps = [ "logos-nix" "logos-protocol" ]; follows = { "logos-nix" = "logos-nix"; "logos-protocol" = "logos-protocol"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
   logos-view-module-runtime       = { deps = [ "logos-nix" "logos-cpp-sdk" ]; follows = { "logos-cpp-sdk" = "logos-cpp-sdk"; "logos-nix" = "logos-nix"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
   logos-module-client             = { deps = [ "logos-nix" "logos-cpp-sdk" ]; follows = { "logos-cpp-sdk" = "logos-cpp-sdk"; "logos-nix" = "logos-nix"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
   logos-module                    = { deps = [ "logos-nix" ]; follows = { "logos-nix" = "logos-nix"; "nixpkgs" = "nixpkgs"; }; hasTests = true; };
