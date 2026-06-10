@@ -24082,16 +24082,16 @@
       "locked": {
         "lastModified": 1781062412,
         "narHash": "sha256-E3Kdau67t3MNePK+xzuuyFlKW/BWC5WsPrbq3/xp2AE=",
-        "ref": "refs/heads/master",
+        "owner": "logos-co",
+        "repo": "logos-qt-sdk",
         "rev": "b64f91029f36b680c6800f26efcd67ec59603c39",
-        "revCount": 3,
-        "type": "git",
-        "url": "ssh://git@github.com/logos-co/logos-qt-sdk.git"
+        "type": "github"
       },
       "original": {
+        "owner": "logos-co",
+        "repo": "logos-qt-sdk",
         "rev": "b64f91029f36b680c6800f26efcd67ec59603c39",
-        "type": "git",
-        "url": "ssh://git@github.com/logos-co/logos-qt-sdk.git"
+        "type": "github"
       }
     },
     "logos-rust-sdk": {

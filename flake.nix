@@ -41,10 +41,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-qt-sdk = {
-      # TEMPORARY: ssh fetch while logos-qt-sdk is a private repo (github:
-      # tarball fetches 404 without an API token). Flip back to
-      # github:logos-co/logos-qt-sdk/<rev> when the repo goes public.
-      url = "git+ssh://git@github.com/logos-co/logos-qt-sdk.git?rev=b64f91029f36b680c6800f26efcd67ec59603c39";
+      url = "github:logos-co/logos-qt-sdk/b64f91029f36b680c6800f26efcd67ec59603c39";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
