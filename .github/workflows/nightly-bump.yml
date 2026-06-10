@@ -34,9 +34,10 @@ jobs:
 
     outputs:
       changed: ${{ steps.check.outputs.changed }}
-      # JSON array of {name, sha} — one entry per repo in the hub's repos.json.
-      # `sha` is the bumped commit when the repo is a workspace submodule, or ""
-      # (→ run against the repo's default branch) when it is not.
+      # JSON array of {name, sha} — one entry per hub repo that is also a
+      # workspace submodule, pinned to its bumped commit. Hub repos that aren't
+      # workspace submodules are skipped (they aren't bumped or covered by the
+      # nix tests, so there's no workspace commit to pin them to).
       matrix:  ${{ steps.matrix.outputs.matrix }}
 
     steps:
@@ -59,12 +60,13 @@ jobs:
           '
           git submodule update --remote --depth 1 --jobs 4
 
-      # Build the doc-test job matrix from the central hub registry. For every
-      # repo listed in logos-doctest-hub/repos.json, record its bumped SHA (when
-      # it is a workspace submodule) so the doc-test job can pin it to the exact
-      # commit the nix tests run against. Runs right after the bump (before the
-      # nix steps) so the matrix is available even if a later build/test step in
-      # this job fails — the doc-test jobs guard only on `changed`.
+      # Build the doc-test job matrix from the central hub registry, restricted
+      # to repos that are also workspace submodules — those are the ones the bump
+      # pins and the nix tests cover, so the doc-tests can run against the exact
+      # same commit. Hub repos that aren't submodules are skipped (logged in the
+      # step summary). Runs right after the bump (before the nix steps) so the
+      # matrix is available even if a later build/test step in this job fails —
+      # the doc-test jobs guard only on `changed`.
       - name: Build doctest matrix from hub repos.json
         id: matrix
         run: |
@@ -75,25 +77,44 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, subprocess
           hub = json.load(open('/tmp/hub-repos.json'))
-          out = []
+          # Names of workspace submodules (source of truth: .gitmodules).
+          sm = subprocess.run(
+              ['git', 'config', '--file', '.gitmodules', '--get-regexp', 'path'],
+              capture_output=True, text=True,
+          ).stdout
+          submodules = {
+              parts[1][len('repos/'):]
+              for line in sm.splitlines()
+              for parts in [line.split()]
+              if len(parts) == 2 and parts[1].startswith('repos/')
+          }
+          out, skipped = [], []
           for r in hub.get('repos', []):
               name = r['name']
-              sha = ''
               d = os.path.join('repos', name)
-              if os.path.isdir(d):
-                  try:
-                      sha = subprocess.run(
-                          ['git', '-C', d, 'rev-parse', 'HEAD'],
-                          capture_output=True, text=True, check=True,
-                      ).stdout.strip()
-                  except Exception:
-                      sha = ''
+              if name not in submodules or not os.path.isdir(d):
+                  skipped.append(name)
+                  continue
+              try:
+                  sha = subprocess.run(
+                      ['git', '-C', d, 'rev-parse', 'HEAD'],
+                      capture_output=True, text=True, check=True,
+                  ).stdout.strip()
+              except Exception:
+                  skipped.append(name)
+                  continue
               out.append({'name': name, 'sha': sha})
           print('matrix=' + json.dumps(out, separators=(',', ':')))
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              with open(summary, 'a', encoding='utf-8') as s:
+                  s.write('## Doc-test suites (workspace submodules in logos-doctest-hub)\n')
+                  for o in out:
+                      s.write('- `%s` @ `%s`\n' % (o['name'], o['sha'][:7]))
+                  if skipped:
+                      s.write('\nSkipped (in hub but not workspace submodules): %s\n'
+                              % ', '.join('`%s`' % n for n in skipped))
           PY
-          echo "## Doc-test suites (from logos-doctest-hub)" >> "$GITHUB_STEP_SUMMARY"
-          python3 -c "import json;[print('- \`%s\`'%r['name']) for r in json.load(open('/tmp/hub-repos.json'))['repos']]" \
-            >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check for changes
         id: check
@@ -238,9 +259,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      # Check out the repo under test at its bumped commit (empty SHA → the
-      # repo's default branch, used for hub repos that aren't workspace
-      # submodules, e.g. openmetrics-module / logos-doctest).
+      # Check out the repo under test at its bumped commit (every matrix entry
+      # is a workspace submodule, so the SHA is always set).
       - name: Checkout ${{ matrix.repo.name }} at nightly SHA
         uses: actions/checkout@v4
         with:
@@ -318,8 +338,8 @@ jobs:
 
       # --continue-on-fail so the report is complete; the job still exits
       # non-zero if any step failed. --release-for pins this repo's {release}
-      # placeholder to the bumped commit (empty SHA → latest, harmless for
-      # repos whose specs don't reference their own {release}).
+      # placeholder to the bumped commit (harmless for repos whose specs don't
+      # reference their own {release}, e.g. rust-sdk / tutorial).
       - name: Run ${{ matrix.repo.name }} doctests
         run: |
           nix run github:logos-co/logos-doctest -- run \
