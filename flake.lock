@@ -5538,17 +5538,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1780057456,
-        "narHash": "sha256-0UrPezptR2QeB4LOC3LhbN+Uep+Kfi/8Rl4ozIgXDp4=",
+        "lastModified": 1781148507,
+        "narHash": "sha256-w2LJpFRxq5U6nXJEcNHvr11ULRVFp7MAgbQV7LodFv4=",
         "owner": "logos-co",
         "repo": "logos-logoscore-py",
-        "rev": "5842bd32b9b5529abf017a1e9032dee988d8180b",
+        "rev": "bc2c0b5a48dc78756dc2776fead54ddeba8a4131",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-logoscore-py",
-        "rev": "5842bd32b9b5529abf017a1e9032dee988d8180b",
+        "rev": "bc2c0b5a48dc78756dc2776fead54ddeba8a4131",
         "type": "github"
       }
     },

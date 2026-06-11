@@ -293,7 +293,7 @@
     };
     logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/cc8e408ab36f910e62c5e1f440214c40ed5807e0";
     logos-logoscore-py = {
-      url = "github:logos-co/logos-logoscore-py/5842bd32b9b5529abf017a1e9032dee988d8180b";
+      url = "github:logos-co/logos-logoscore-py/bc2c0b5a48dc78756dc2776fead54ddeba8a4131";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-test-modules.follows = "logos-test-modules";
