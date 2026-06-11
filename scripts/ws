@@ -154,11 +154,6 @@ REPOS=(
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
-  # Tutorial (sub-flakes inside logos-tutorial)
-  "logos-calc-module|logos-tutorial/logos-calc-module|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-ui|logos-tutorial/logos-calc-ui|https://github.com/logos-co/logos-tutorial.git|yes"
-  "logos-calc-ui-cpp|logos-tutorial/logos-calc-ui-cpp|https://github.com/logos-co/logos-tutorial.git|yes"
-
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
   "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
@@ -2330,9 +2325,6 @@ get_base_repo_url() {
     logos-blockchain-ui)            echo "github:logos-blockchain/logos-blockchain-ui" ;;
     logos-execution-zone-module)    echo "github:logos-blockchain/logos-execution-zone-module" ;;
     logos-execution-zone-wallet-ui) echo "github:logos-blockchain/logos-execution-zone-wallet-ui" ;;
-    logos-calc-module)              echo "github:logos-co/logos-tutorial?dir=logos-calc-module" ;;
-    logos-calc-ui)                  echo "github:logos-co/logos-tutorial?dir=logos-calc-ui" ;;
-    logos-calc-ui-cpp)              echo "github:logos-co/logos-tutorial?dir=logos-calc-ui-cpp" ;;
     *)                              echo "github:logos-co/$1" ;;
   esac
 }
@@ -2366,6 +2358,22 @@ get_repo_url() {
   case "$base_url" in
     *\?*) echo "${base_url}&rev=${sub_rev}" ;;
     *)    echo "${base_url}/${sub_rev}" ;;
+  esac
+}
+
+# ── Repos that must build from their OWN locked inputs even under
+# --workspace, i.e. sync-graph emits NO workspace `follows` for them.
+# Each entry is a deliberate divergence and must say why.
+follows_exempt() {
+  case "$1" in
+    # logos-rust-sdk's C-FFI codegen needs logos-cpp-sdk's `c_ffi` branch:
+    # the `support c-ffi` commit (d98e2a9) that emits the provider
+    # inter-module API header was never merged to cpp-sdk master. Following
+    # the workspace (master) cpp-sdk breaks the caller module's generated
+    # code (`fatal error: sdk_test_provider_module_api.h: No such file`), so
+    # keep it on its own c_ffi pins. Revisit once c-ffi lands on cpp-sdk master.
+    logos-rust-sdk) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -2530,7 +2538,7 @@ HEADER
     # `follows_pairs` is a single multi-line string (bash 3.2 has no
     # associative arrays).  Lines are sorted alphabetically by iname later.
     local follows_pairs=""
-    if [[ -f "$lock_file" ]]; then
+    if ! follows_exempt "$input_name" && [[ -f "$lock_file" ]]; then
       # jq emits one tab-separated record per root input:
       #   <kind>\t<input_name>\t<repo>\t<dir>
       # where <kind> is "url" (string ref to a node) or "follows" (array ref,
