@@ -29371,6 +29371,31 @@
     "logos-protocol_7": {
       "inputs": {
         "logos-nix": [
+          "logos-standalone-app",
+          "logos-nix"
+        ],
+        "nixpkgs": [
+          "logos-standalone-app",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781065710,
+        "narHash": "sha256-QmNQ7LdrfzyvsZGISGKJKbHqB03F6JExgGF2K1f2WcE=",
+        "owner": "logos-co",
+        "repo": "logos-protocol",
+        "rev": "ca28190272eef2772edf9b3e1df47e121f02a726",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-protocol",
+        "type": "github"
+      }
+    },
+    "logos-protocol_8": {
+      "inputs": {
+        "logos-nix": [
           "logos-view-module-runtime",
           "logos-nix"
         ],
@@ -29669,11 +29694,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774455349,
-        "narHash": "sha256-rebrtH1UxC1hDuwQBwyYbGzNCrnuuqiVL7OvzUhk65k=",
+        "lastModified": 1781077555,
+        "narHash": "sha256-rkqva3DbhhxWrVp6KLyhVxbAK2MLIWfUcPG5HM7wnsQ=",
         "owner": "logos-co",
         "repo": "logos-qt-mcp",
-        "rev": "c5223b4b640add09e461983b8fddbd12c8b31f4f",
+        "rev": "c87f6bd985a07ec2809081c8d0830108aa895819",
         "type": "github"
       },
       "original": {
@@ -30129,6 +30154,39 @@
     "logos-qt-sdk_7": {
       "inputs": {
         "logos-cpp-sdk": [
+          "logos-standalone-app",
+          "logos-cpp-sdk"
+        ],
+        "logos-nix": [
+          "logos-standalone-app",
+          "logos-nix"
+        ],
+        "logos-protocol": [
+          "logos-standalone-app",
+          "logos-protocol"
+        ],
+        "nixpkgs": [
+          "logos-standalone-app",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781066423,
+        "narHash": "sha256-3pVeJ/cK2z4OEi5iLORjoC7YpdrRrHmigl9SyvEapI8=",
+        "owner": "logos-co",
+        "repo": "logos-qt-sdk",
+        "rev": "355774603877637b486ea0aeefbf7828ae321868",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-qt-sdk",
+        "type": "github"
+      }
+    },
+    "logos-qt-sdk_8": {
+      "inputs": {
+        "logos-cpp-sdk": [
           "logos-view-module-runtime",
           "logos-cpp-sdk"
         ],
@@ -30489,7 +30547,9 @@
         "logos-nix": [
           "logos-nix"
         ],
+        "logos-protocol": "logos-protocol_7",
         "logos-qt-mcp": "logos-qt-mcp_18",
+        "logos-qt-sdk": "logos-qt-sdk_7",
         "logos-view-module-runtime": [
           "logos-view-module-runtime"
         ],
@@ -30501,17 +30561,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781127963,
-        "narHash": "sha256-Z7vO0bm1trVctlqsDc+p6lLYEC1K5qEJctgdSkVG2YI=",
+        "lastModified": 1781123265,
+        "narHash": "sha256-4f96AEAr4j/2bp7ra0q4T+vr1G4VcR6PRJxSkjOffPI=",
         "owner": "logos-co",
         "repo": "logos-standalone-app",
-        "rev": "0206e2ea6c43d78d083ba7e4e002fe34a60b77ac",
+        "rev": "72b326d892133a84c06a28583e2d9754b50eda4f",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-standalone-app",
-        "rev": "0206e2ea6c43d78d083ba7e4e002fe34a60b77ac",
+        "rev": "72b326d892133a84c06a28583e2d9754b50eda4f",
         "type": "github"
       }
     },
@@ -31910,24 +31970,24 @@
         "logos-nix": [
           "logos-nix"
         ],
-        "logos-protocol": "logos-protocol_7",
-        "logos-qt-sdk": "logos-qt-sdk_7",
+        "logos-protocol": "logos-protocol_8",
+        "logos-qt-sdk": "logos-qt-sdk_8",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1781145755,
-        "narHash": "sha256-zlhlrSuCvv2YrgHJFaUKAdEJH7Kq1jIMijrPoLnrY8U=",
+        "lastModified": 1781153852,
+        "narHash": "sha256-gN3Hb9QElbaqIL1zTSywPOpqLPpLS7VYeBTP6/6nTD8=",
         "owner": "logos-co",
         "repo": "logos-view-module-runtime",
-        "rev": "08cd820bba505d17ad98b0a94b526a02e76895a1",
+        "rev": "171f1510bca14b5f022212ea1cc3f42ae9595249",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-view-module-runtime",
-        "rev": "08cd820bba505d17ad98b0a94b526a02e76895a1",
+        "rev": "171f1510bca14b5f022212ea1cc3f42ae9595249",
         "type": "github"
       }
     },
