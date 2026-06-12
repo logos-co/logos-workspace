@@ -80,6 +80,7 @@ REPOS=(
   "logos-nix|logos-nix|https://github.com/logos-co/logos-nix.git|yes"
 
   # Foundation
+  "logos-protocol|logos-protocol|https://github.com/logos-co/logos-protocol.git|yes"
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
   "logos-view-module-runtime|logos-view-module-runtime|https://github.com/logos-co/logos-view-module-runtime.git|yes"
   "logos-module-client|logos-module-client|https://github.com/logos-co/logos-module-client.git|yes"
@@ -166,7 +167,7 @@ REPOS=(
 # Members can be repo names or other group names (resolved recursively).
 
 REPO_GROUPS=(
-  "core|logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
+  "core|logos-protocol,logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
   "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
