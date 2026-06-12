@@ -135,7 +135,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/f092a541516069b4ff808f4474b6eeb1d479b298";
+      url = "github:logos-co/logos-basecamp/e8dcc48367a180bfa72437bb506b85a0d8ff40b6";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -228,12 +228,12 @@
       inputs.wallet_module.follows = "logos-wallet-module";
     };
     logos-blockchain-module = {
-      url = "github:logos-blockchain/logos-blockchain-module/0256ed854714c745d60519cbaef3eaad5a84deac";
+      url = "github:logos-blockchain/logos-blockchain-module/f3558372fdffd7925f2c2667aadfe1b208d731f9";
       inputs.logos-blockchain.follows = "logos-blockchain";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-blockchain-ui = {
-      url = "github:logos-blockchain/logos-blockchain-ui/c0079fdd6f659fdf8b9d3e81a166cb5cd3562f5f";
+      url = "github:logos-blockchain/logos-blockchain-ui/2caa5baa1beb8d28e1fc447114039ffc480e3454";
       inputs.liblogos_blockchain_module.follows = "logos-blockchain-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
@@ -250,7 +250,7 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-libp2p-module = {
-      url = "github:logos-co/logos-libp2p-module/de61c2ea7245a45d9cc9017e4c6861bd0ec16b8c";
+      url = "github:logos-co/logos-libp2p-module/739f72c5c0b3eb1feb862f172ce90072f34739c1";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-webview-app = {
