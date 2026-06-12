@@ -375,6 +375,7 @@ jobs:
           REPORT_BASE: ${{ inputs.report-base }}
           REF_NAME: ${{ github.ref_name }}
           NIX_RESULT: ${{ needs.nix-tests.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           BASE="$REPORT_BASE"
@@ -383,6 +384,17 @@ jobs:
             BASE="branch/$safe"
           fi
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
+
+          # Report sets already published on gh-pages, for the ROOT index.
+          # keep_files merges each run's subtree but nothing ever wrote a root
+          # index.html, so the Pages root itself 404'd. The branch may not
+          # exist yet on the very first run.
+          REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          : > existing-bases.txt
+          if git ls-remote --exit-code --heads "$REMOTE" gh-pages >/dev/null 2>&1; then
+            git clone --quiet --depth 1 --branch gh-pages --no-checkout "$REMOTE" .ghp
+            git -C .ghp ls-tree -d --name-only HEAD 'branch/' 'nightly/' > existing-bases.txt || true
+          fi
           python3 - "$BASE" "$NIX_RESULT" <<'PY' >> "$GITHUB_OUTPUT"
           import os, sys, json, glob, html
           base = sys.argv[1]
@@ -441,6 +453,33 @@ jobs:
                           f.write('<td style="color:#9ca3af">not run</td>')
                   f.write("</tr>\n")
               f.write("</table>\n")
+
+          # ROOT index — the Pages root serves nothing otherwise (each run's
+          # own index lives one level down at <base>/index.html). Lists every
+          # published report set: what's already on gh-pages plus this run.
+          existing = set()
+          if os.path.isfile("existing-bases.txt"):
+              with open("existing-bases.txt", encoding="utf-8") as f:
+                  existing = {ln.strip() for ln in f if ln.strip()}
+          if suites:
+              existing.add(base)
+          nightlies = sorted((b for b in existing if b.startswith("nightly/")), reverse=True)
+          branches  = sorted(b for b in existing if b.startswith("branch/"))
+          others    = sorted(b for b in existing if not b.startswith(("nightly/", "branch/")))
+          with open(os.path.join("site", "index.html"), "w", encoding="utf-8") as f:
+              f.write("<!doctype html><meta charset=utf-8>\n")
+              f.write("<title>logos-workspace doc-test reports</title>\n")
+              f.write("<style>body{font:16px system-ui;margin:40px;max-width:640px}"
+                      "a{color:#2563eb}h2{margin-top:32px}</style>\n")
+              f.write("<h1>logos-workspace doc-test reports</h1>\n")
+              for title, items in (("Nightly", nightlies), ("Branches", branches), ("Other", others)):
+                  if not items:
+                      continue
+                  f.write(f"<h2>{title}</h2><ul>\n")
+                  for b in items:
+                      label = b.split("/", 1)[1] if "/" in b else b
+                      f.write(f'<li><a href="./{html.escape(b)}/">{html.escape(label)}</a></li>\n')
+                  f.write("</ul>\n")
 
           print("found=" + ("1" if suites else ""))
           print("suites=" + json.dumps(sorted(suites.keys())))
