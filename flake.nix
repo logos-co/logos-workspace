@@ -35,7 +35,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/066db38a435ccd0eee37652cbe1d5b647558e9a9";
+      url = "github:logos-co/logos-cpp-sdk/066db38d46dcce449ca4156562d260be7878af08";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
