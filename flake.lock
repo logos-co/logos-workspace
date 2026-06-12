@@ -33304,17 +33304,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781221393,
-        "narHash": "sha256-5ijr5n5HLjlijh8+5x6hsY10o4OPZ53TvTgyAPJg7c4=",
+        "lastModified": 1781223088,
+        "narHash": "sha256-awaTxRxn2tTpAtglpA00+T2zrxDxQ7+LJNvfn5sHkto=",
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "d85d49b71d2b1316b70f40ee49644cdf8e84a57f",
+        "rev": "49dec31c7b664a90874e357908d53f9739115458",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "d85d49b71d2b1316b70f40ee49644cdf8e84a57f",
+        "rev": "49dec31c7b664a90874e357908d53f9739115458",
         "type": "github"
       }
     },
