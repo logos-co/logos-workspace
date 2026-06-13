@@ -42,7 +42,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/0d3fa58b7ec6d0e85ad70d0a0c4592b62038e536";
+      url = "github:logos-co/logos-cpp-sdk/1f18c92096de129a8f10e0cc341980527f60c67f";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -110,7 +110,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/6ae4302443fa0977d976323a1c4e62470ccb0264";
+      url = "github:logos-co/logos-module-builder/8d62fe23ef5b98977698ae44d0818fed19d234fc";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
