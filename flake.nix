@@ -63,12 +63,12 @@
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-module = {
-      url = "github:logos-co/logos-module/558a080e8a2fd82bfa0044e61ec81e2ee45bc151";
+      url = "github:logos-co/logos-module/de634ce3d6a1a0fcf840c523534de85751f0bab1";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-liblogos = {
-      url = "github:logos-co/logos-liblogos/7cb5284b79ce41cc1133b256cc3585a735f7388d";
+      url = "github:logos-co/logos-liblogos/65f7b18b0bd90c37a7f63920499467f024ce038f";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
@@ -80,7 +80,7 @@
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-logoscore-cli = {
-      url = "github:logos-co/logos-logoscore-cli/60db2522d99e9d52cbe324e9082dce01a8f0fce0";
+      url = "github:logos-co/logos-logoscore-cli/b66a41fc377348b6e5fc4af87ad53cddee3a8068";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -157,7 +157,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/6fc7172b3133fb5007cc724a9ab0a092e2614efa";
+      url = "github:logos-co/logos-basecamp/508319e14d29fbd1327d6918bf9d04877c57f07e";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -309,7 +309,7 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/503d4d84b2d50670089fcac2774389a8f34bc97e";
+    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/2f211e3141e5cf5a0dc57bd64099dcf64b11e554";
     logos-logoscore-py = {
       url = "github:logos-co/logos-logoscore-py/bc2c0b5a48dc78756dc2776fead54ddeba8a4131";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
