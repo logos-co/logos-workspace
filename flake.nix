@@ -63,12 +63,12 @@
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-module = {
-      url = "github:logos-co/logos-module/de634ce3d6a1a0fcf840c523534de85751f0bab1";
+      url = "github:logos-co/logos-module/b42805dac2874d8f72e1c12f7ac6a92ca7e5452c";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-liblogos = {
-      url = "github:logos-co/logos-liblogos/65f7b18b0bd90c37a7f63920499467f024ce038f";
+      url = "github:logos-co/logos-liblogos/79172511eaa343c46d3612ce8ed5c090777d3e00";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
