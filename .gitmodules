@@ -166,3 +166,9 @@
 [submodule "repos/logos-protocol"]
 	path = repos/logos-protocol
 	url = git@github.com:logos-co/logos-protocol.git
+[submodule "repos/logos-qt-sdk"]
+	path = repos/logos-qt-sdk
+	url = git@github.com:logos-co/logos-qt-sdk.git
+[submodule "repos/logos-lidl"]
+	path = repos/logos-lidl
+	url = git@github.com:logos-co/logos-lidl.git

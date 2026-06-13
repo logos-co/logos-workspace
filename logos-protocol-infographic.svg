@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="3040" viewBox="0 0 1080 3040" font-family="'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B5E5D"/>
+      <stop offset="1" stop-color="#11807E"/>
+    </linearGradient>
+    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#11807E"/>
+      <stop offset="1" stop-color="#E8833A"/>
+    </linearGradient>
+    <marker id="aTeal" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#0E7C7B"/></marker>
+    <marker id="aGray" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#7C828B"/></marker>
+    <marker id="aBlue" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#1D4E89"/></marker>
+    <style>
+      .serif { font-family: Georgia, 'Times New Roman', serif; }
+      .kick  { font-family:'Helvetica Neue',Arial,sans-serif; letter-spacing:3px; font-size:13px; font-weight:700; }
+      .h2    { font-family: Georgia,'Times New Roman',serif; font-size:27px; font-weight:700; fill:#10403F; }
+      .num   { font-family: Georgia, serif; font-size:22px; font-weight:700; fill:#11807E; }
+      .lbl   { font-size:15.5px; font-weight:700; }
+      .bd    { font-size:14px; fill:#2B333B; }
+      .sm    { font-size:12.5px; fill:#525a62; }
+      .mono  { font-family: Menlo, monospace; font-size:12.5px; }
+      .tag   { font-size:11px; font-weight:700; letter-spacing:1px; }
+    </style>
+  </defs>
+
+  <!-- canvas + plate frame -->
+  <rect x="0" y="0" width="1080" height="3040" fill="#FBF9F4"/>
+  <rect x="20" y="20" width="1040" height="3000" fill="none" stroke="#10403F" stroke-width="3"/>
+  <rect x="28" y="28" width="1024" height="2984" fill="none" stroke="#10403F" stroke-width="1"/>
+
+  <!-- ===== HEADER ===== -->
+  <rect x="28" y="28" width="1024" height="196" fill="url(#hdr)"/>
+  <text x="60" y="74" class="kick" fill="#8FD0CE">ARCHITECTURE FIELD GUIDE  ·  PROPOSED REFACTOR</text>
+  <text x="60" y="138" class="serif" font-size="50" font-weight="700" fill="#FFFFFF">LOGOS · PROTOCOL</text>
+  <text x="60" y="178" font-size="18" fill="#D7ECEB">Extracting a shared <tspan font-style="italic">C ABI</tspan> so Logos modules can be written in many languages</text>
+  <text x="60" y="204" class="sm" fill="#9FD6D4">from one entangled Qt/C++ SDK  →  a versioned, language-neutral protocol with Qt confined to the edges</text>
+  <!-- emblem: concentric hub -->
+  <g transform="translate(958,126)">
+    <circle r="58" fill="none" stroke="#2E9A98" stroke-width="2"/>
+    <circle r="42" fill="none" stroke="#5FB9B7" stroke-width="2"/>
+    <circle r="26" fill="none" stroke="#8FD0CE" stroke-width="2"/>
+    <circle r="9" fill="#E8833A"/>
+    <line x1="0" y1="-58" x2="0" y2="-9" stroke="#2E9A98" stroke-width="2"/>
+    <line x1="0" y1="58" x2="0" y2="9" stroke="#2E9A98" stroke-width="2"/>
+    <line x1="-58" y1="0" x2="-9" y2="0" stroke="#2E9A98" stroke-width="2"/>
+    <line x1="58" y1="0" x2="9" y2="0" stroke="#2E9A98" stroke-width="2"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1 — CURRENT STATE                                    -->
+  <!-- ============================================================ -->
+  <text x="60" y="278" class="kick" fill="#B7410E">§ 1</text>
+  <text x="110" y="282" class="h2">The current state — one SDK doing two jobs</text>
+  <line x1="60" y1="298" x2="1020" y2="298" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <!-- entangled cpp-sdk -->
+  <rect x="60" y="318" width="470" height="250" rx="12" fill="#ECE7F6" stroke="#6E4B9E" stroke-width="1.6"/>
+  <text x="84" y="350" class="lbl serif" fill="#4A2F73">logos-cpp-sdk</text>
+  <text x="84" y="370" class="sm" fill="#6E4B9E">two concerns entangled · all C++/Qt · no extern-C</text>
+  <rect x="84" y="384" width="422" height="50" rx="8" fill="#DDD2F0" stroke="#8C6BC0" stroke-width="1"/>
+  <text x="100" y="406" class="bd" font-weight="700" fill="#3c2563">(A) transport · token-exchange · IPC</text>
+  <text x="100" y="424" class="sm" fill="#4A2F73">Qt Remote Objects + plain TCP/TLS · registry · capability flow</text>
+  <rect x="84" y="442" width="422" height="50" rx="8" fill="#DDD2F0" stroke="#8C6BC0" stroke-width="1"/>
+  <text x="100" y="464" class="bd" font-weight="700" fill="#3c2563">(B) the C++/Qt SDK proper</text>
+  <text x="100" y="482" class="sm" fill="#4A2F73">LogosAPI wrappers · LogosModuleContext · code generator · results</text>
+  <rect x="84" y="502" width="422" height="48" rx="8" fill="#F0F0F2" stroke="#8A8F98" stroke-width="1"/>
+  <text x="100" y="522" class="bd" font-weight="700" fill="#3a3f47">No clean transport seam</text>
+  <text x="100" y="540" class="sm" fill="#525a62">other languages can’t reuse (A) · Qt-bound throughout</text>
+
+  <!-- pain points -->
+  <rect x="560" y="318" width="460" height="250" rx="12" fill="#FFFFFF" stroke="#C9A23B" stroke-width="1.6"/>
+  <text x="584" y="350" class="lbl serif" fill="#8a6d18">Why this needs to change</text>
+  <g class="bd">
+    <g transform="translate(584,378)"><path d="M0,-7 L8,0 L0,7 L-8,0 Z" fill="#E8833A"/><text x="22" y="5">Qt <tspan font-weight="700">leaks through every layer</tspan> — it can’t be confined.</text></g>
+    <g transform="translate(584,418)"><path d="M0,-7 L8,0 L0,7 L-8,0 Z" fill="#E8833A"/><text x="22" y="5">No <tspan font-weight="700">provider</tspan> C ABI; no <tspan font-weight="700">protocol version</tspan>.</text></g>
+    <g transform="translate(584,458)"><path d="M0,-7 L8,0 L0,7 L-8,0 Z" fill="#E8833A"/><text x="22" y="5">Other languages <tspan font-weight="700">can’t reuse the transport</tspan>.</text></g>
+    <g transform="translate(584,498)"><path d="M0,-7 L8,0 L0,7 L-8,0 Z" fill="#E8833A"/><text x="22" y="5">Rust is stuck on a Qt-bound, unversioned shim.</text></g>
+    <g transform="translate(584,538)"><path d="M0,-7 L8,0 L0,7 L-8,0 Z" fill="#E8833A"/><text x="22" y="5">Module authoring uses <tspan font-weight="700">bespoke per-language</tspan> seams.</text></g>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- BAND — ALREADY IN FLIGHT (prior art)                         -->
+  <!-- ============================================================ -->
+  <rect x="60" y="596" width="960" height="132" rx="12" fill="#F4F1EA" stroke="#C9A23B" stroke-width="1.6"/>
+  <text x="80" y="624" class="serif" font-size="17" font-weight="700" fill="#8a6d18">Already in flight — the refactor consolidates two existing, bespoke sides</text>
+  <line x1="540" y1="638" x2="540" y2="700" stroke="#DcCB96" stroke-width="1.2"/>
+  <!-- consumer side -->
+  <rect x="80" y="640" width="162" height="20" rx="5" fill="#2E7D52"/><text x="161" y="654" text-anchor="middle" class="tag" fill="#fff" letter-spacing="0.3">CONSUMER · EXISTS</text>
+  <text x="80" y="680" class="bd" fill="#3a3f47"><tspan font-weight="700">logos-module-client</tspan> · logos_sdk_* (async · sync · events)</text>
+  <text x="80" y="700" class="sm" fill="#525a62">← logos-rust-sdk: typed consumer (Param / CallResult / EventData)</text>
+  <!-- provider side -->
+  <rect x="560" y="640" width="162" height="20" rx="5" fill="#6E4B9E"/><text x="641" y="654" text-anchor="middle" class="tag" fill="#fff" letter-spacing="0.3">PROVIDER · EXISTS</text>
+  <text x="560" y="680" class="bd" fill="#3a3f47"><tspan font-weight="700">c-ffi interface</tspan> in logos-module-builder</text>
+  <text x="560" y="700" class="sm" fill="#525a62">Rust staticlib + C header → generated Qt glue → Qt plugin</text>
+  <text x="540" y="719" text-anchor="middle" class="sm" font-style="italic" fill="#8a6d18">Both are bespoke · Qt-bound · unversioned  →  this refactor unifies them onto one versioned C ABI (lp_*) + one cdylib module ABI.</text>
+
+  <!-- shift everything below down by 160 to make room for the band -->
+  <g transform="translate(0,160)">
+  <!-- ============================================================ -->
+  <!-- SECTION 2 — TARGET ARCHITECTURE                              -->
+  <!-- ============================================================ -->
+  <text x="60" y="624" class="kick" fill="#B7410E">§ 2</text>
+  <text x="110" y="628" class="h2">The proposal — a layered, Qt-free C ABI hub</text>
+  <line x1="60" y1="644" x2="1020" y2="644" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <!-- LIDL -->
+  <rect x="350" y="664" width="380" height="56" rx="10" fill="#E6EEF7" stroke="#1D4E89" stroke-width="1.6"/>
+  <text x="540" y="688" text-anchor="middle" class="lbl serif" fill="#143a66">logos-lidl  ·  .lidl interchange</text>
+  <text x="540" y="708" text-anchor="middle" class="sm" fill="#1D4E89">language-neutral IR (de-Qt’d AST) · C++ &amp; Rust backends</text>
+  <!-- LIDL arrows -->
+  <line x1="470" y1="720" x2="470" y2="754" stroke="#1D4E89" stroke-width="1.6" marker-end="url(#aBlue)"/>
+  <line x1="700" y1="720" x2="845" y2="754" stroke="#1D4E89" stroke-width="1.6" marker-end="url(#aBlue)"/>
+  <text x="600" y="742" text-anchor="middle" class="sm" fill="#1D4E89" font-style="italic">generates typed wrappers</text>
+
+  <!-- consumer row -->
+  <rect x="60" y="760" width="300" height="94" rx="10" fill="#FCEBD8" stroke="#E8833A" stroke-width="1.6"/>
+  <rect x="332" y="772" width="34" height="18" rx="4" fill="#E8833A"/><text x="349" y="785" text-anchor="middle" class="tag" fill="#fff">Qt</text>
+  <text x="80" y="790" class="lbl serif" fill="#9A4E12">logos-qt-sdk</text>
+  <text x="80" y="811" class="sm" fill="#9A4E12">Qt types: QVariant/QString</text>
+  <text x="80" y="829" class="sm" fill="#9A4E12">wrappers · QVariant↔JSON</text>
+  <text x="80" y="847" class="sm" fill="#9A4E12">legacy QObject provider · Qt glue</text>
+
+  <rect x="400" y="760" width="280" height="94" rx="10" fill="#EFEAF7" stroke="#6E4B9E" stroke-width="1.6"/>
+  <text x="420" y="790" class="lbl serif" fill="#4A2F73">logos-cpp-sdk</text>
+  <text x="420" y="809" class="sm" fill="#6E4B9E" font-weight="700">Qt-FREE std C++</text>
+  <text x="420" y="827" class="sm" fill="#6E4B9E">std/nlohmann typed wrappers ·</text>
+  <text x="420" y="845" class="sm" fill="#6E4B9E">LogosModuleContext · codegen</text>
+
+  <rect x="720" y="760" width="300" height="94" rx="10" fill="#F6E3D8" stroke="#B7410E" stroke-width="1.6"/>
+  <text x="740" y="790" class="lbl serif" fill="#7E2C09">logos-rust-sdk</text>
+  <text x="740" y="809" class="sm" fill="#A1542A">typed Rust callers/subscribers</text>
+  <text x="740" y="827" class="sm" fill="#A1542A">serde_json ↔ C boundary</text>
+  <text x="740" y="845" class="sm" fill="#A1542A">RustModuleContext (Phase 4)</text>
+
+  <!-- qt-sdk consumes cpp-sdk -->
+  <line x1="366" y1="807" x2="398" y2="807" stroke="#7C828B" stroke-width="1.5" marker-end="url(#aGray)"/>
+
+  <!-- consumers -> hub -->
+  <line x1="540" y1="854" x2="540" y2="892" stroke="#0E7C7B" stroke-width="1.8" marker-end="url(#aTeal)"/>
+  <line x1="870" y1="854" x2="870" y2="892" stroke="#0E7C7B" stroke-width="1.8" marker-end="url(#aTeal)"/>
+  <text x="705" y="878" text-anchor="middle" class="sm" fill="#0B5E5D" font-style="italic">consume lp_* C ABI (JSON)</text>
+
+  <!-- protocol hub -->
+  <rect x="60" y="896" width="960" height="172" rx="12" fill="#E0F0EF" stroke="#0E7C7B" stroke-width="2.2"/>
+  <text x="80" y="926" class="lbl serif" fill="#0B5E5D" font-size="17">logos-protocol</text>
+  <text x="200" y="926" class="sm" fill="#0B5E5D">— the hub · public C ABI <tspan class="mono">logos_protocol.h</tspan> · Qt-free</text>
+  <rect x="942" y="910" width="60" height="20" rx="5" fill="#10403F"/><text x="972" y="924" text-anchor="middle" class="tag" fill="#9FD6D4">NEW</text>
+
+  <rect x="78" y="940" width="222" height="108" rx="8" fill="#FFFFFF" stroke="#5FB9B7"/>
+  <text x="92" y="962" class="bd" font-weight="700" fill="#0B5E5D">CONSUMER</text>
+  <text x="92" y="982" class="mono" fill="#2B333B">lp_client_*</text>
+  <text x="92" y="1000" class="mono" fill="#2B333B">lp_invoke / _async</text>
+  <text x="92" y="1018" class="mono" fill="#2B333B">lp_subscribe</text>
+  <text x="92" y="1036" class="mono" fill="#2B333B">tokens · capability</text>
+
+  <rect x="312" y="940" width="222" height="108" rx="8" fill="#FFFFFF" stroke="#5FB9B7"/>
+  <text x="326" y="962" class="bd" font-weight="700" fill="#0B5E5D">PROVIDER</text>
+  <text x="326" y="982" class="mono" fill="#2B333B">lp_provider_*</text>
+  <text x="326" y="1000" class="sm" fill="#525a62">dispatch · getMethods</text>
+  <text x="326" y="1018" class="sm" fill="#525a62">emit · token cb</text>
+  <text x="326" y="1036" class="sm" fill="#525a62">(groundwork P1 → P4)</text>
+
+  <rect x="546" y="940" width="222" height="108" rx="8" fill="#FFFFFF" stroke="#5FB9B7"/>
+  <text x="560" y="962" class="bd" font-weight="700" fill="#0B5E5D">TRANSPORTS</text>
+  <text x="560" y="982" class="sm" fill="#525a62">plain TCP/TLS · mock</text>
+  <text x="560" y="1000" class="sm" fill="#525a62">qt_local  (Qt-free seams)</text>
+  <g><rect x="560" y="1010" width="34" height="18" rx="4" fill="#E8833A"/><text x="577" y="1023" text-anchor="middle" class="tag" fill="#fff">Qt</text><text x="602" y="1023" class="sm" fill="#9A4E12">QRO — only Qt part</text></g>
+
+  <rect x="780" y="940" width="222" height="108" rx="8" fill="#FFFFFF" stroke="#5FB9B7"/>
+  <text x="794" y="962" class="bd" font-weight="700" fill="#0B5E5D">VERSION</text>
+  <text x="794" y="982" class="mono" fill="#2B333B">lp_protocol_version()</text>
+  <text x="794" y="1000" class="mono" fill="#2B333B">_abi_major()</text>
+  <text x="794" y="1018" class="sm" fill="#525a62">stamped into every</text>
+  <text x="794" y="1036" class="sm" fill="#525a62">compiled module</text>
+
+  <!-- runtime row -->
+  <line x1="360" y1="1100" x2="360" y2="1070" stroke="#0E7C7B" stroke-width="1.8" marker-end="url(#aTeal)"/>
+  <line x1="860" y1="1100" x2="860" y2="1070" stroke="#0E7C7B" stroke-width="1.8" marker-end="url(#aTeal)"/>
+
+  <rect x="60" y="1102" width="600" height="64" rx="10" fill="#E8F0EA" stroke="#2E7D52" stroke-width="1.6"/>
+  <rect x="632" y="1112" width="34" height="18" rx="4" fill="#E8833A"/><text x="649" y="1125" text-anchor="middle" class="tag" fill="#fff">Qt</text>
+  <text x="80" y="1128" class="lbl serif" fill="#1c5235">logos-liblogos host</text>
+  <text x="80" y="1150" class="sm" fill="#2E7D52">Qt-free core (ModuleRuntime / registry) · Qt only in runtime_qt / logos_host</text>
+
+  <rect x="700" y="1102" width="320" height="64" rx="10" fill="#F0F0F2" stroke="#8A8F98" stroke-width="1.6"/>
+  <text x="720" y="1128" class="lbl serif" fill="#3a3f47">logos-module-client</text>
+  <text x="720" y="1150" class="sm" fill="#525a62">consumer of lp_* · logos_sdk_* = back-compat facade</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3 — BEFORE vs AFTER                                  -->
+  <!-- ============================================================ -->
+  <text x="60" y="1224" class="kick" fill="#B7410E">§ 3</text>
+  <text x="110" y="1228" class="h2">What changes — before → after</text>
+  <line x1="60" y1="1244" x2="1020" y2="1244" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <rect x="60" y="1264" width="460" height="286" rx="12" fill="#FBEEEE" stroke="#C0584F" stroke-width="1.6"/>
+  <text x="84" y="1296" class="lbl serif" fill="#8a2f27">BEFORE</text>
+  <g class="bd" fill="#5a2520">
+    <text x="84" y="1330">— Transport tangled <tspan font-weight="700">inside cpp-sdk</tspan></text>
+    <text x="84" y="1366">— Qt <tspan font-weight="700">everywhere</tspan> (SDK, liblogos, modules)</text>
+    <text x="84" y="1402">— C ABI = consumer-only, <tspan font-weight="700">unversioned</tspan></text>
+    <text x="84" y="1438">— Rust = dynamic calls only; no LIDL types</text>
+    <text x="84" y="1474">— Authoring = bespoke per-language seams</text>
+    <text x="84" y="1510">— No way to ask “can I load this module?”</text>
+  </g>
+
+  <rect x="560" y="1264" width="460" height="286" rx="12" fill="#EAF3EE" stroke="#2E7D52" stroke-width="1.6"/>
+  <text x="584" y="1296" class="lbl serif" fill="#1c5235">AFTER</text>
+  <g class="bd" fill="#1f4733">
+    <text x="584" y="1330">+ Transport in <tspan font-weight="700">logos-protocol</tspan> behind one C ABI</text>
+    <text x="584" y="1366">+ Qt confined to <tspan font-weight="700">4 places</tspan>; SDK/modules Qt-free</text>
+    <text x="584" y="1402">+ C ABI = consumer + provider + <tspan font-weight="700">semver</tspan></text>
+    <text x="584" y="1438">+ Rust = LIDL-typed callers/subscribers + context</text>
+    <text x="584" y="1474">+ <tspan font-weight="700">One</tspan> common cdylib module-impl ABI (C++ &amp; Rust)</text>
+    <text x="584" y="1510">+ liblogos load gate decides compatibility</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4 — QT CONFINED                                      -->
+  <!-- ============================================================ -->
+  <text x="60" y="1606" class="kick" fill="#B7410E">§ 4</text>
+  <text x="110" y="1610" class="h2">Qt, confined to exactly four places</text>
+  <line x1="60" y1="1626" x2="1020" y2="1626" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <g>
+    <rect x="60" y="1648" width="225" height="92" rx="10" fill="#FCEBD8" stroke="#E8833A" stroke-width="1.6"/>
+    <text x="172" y="1682" text-anchor="middle" class="num" fill="#E8833A">1</text>
+    <text x="172" y="1708" text-anchor="middle" class="bd" font-weight="700" fill="#9A4E12">QRO transport</text>
+    <text x="172" y="1726" text-anchor="middle" class="sm" fill="#9A4E12">inside logos-protocol</text>
+
+    <rect x="305" y="1648" width="225" height="92" rx="10" fill="#FCEBD8" stroke="#E8833A" stroke-width="1.6"/>
+    <text x="417" y="1682" text-anchor="middle" class="num" fill="#E8833A">2</text>
+    <text x="417" y="1708" text-anchor="middle" class="bd" font-weight="700" fill="#9A4E12">logos-qt-sdk</text>
+    <text x="417" y="1726" text-anchor="middle" class="sm" fill="#9A4E12">Qt type conversions</text>
+
+    <rect x="550" y="1648" width="225" height="92" rx="10" fill="#FCEBD8" stroke="#E8833A" stroke-width="1.6"/>
+    <text x="662" y="1682" text-anchor="middle" class="num" fill="#E8833A">3</text>
+    <text x="662" y="1708" text-anchor="middle" class="bd" font-weight="700" fill="#9A4E12">Generated Qt glue</text>
+    <text x="662" y="1726" text-anchor="middle" class="sm" fill="#9A4E12">the Qt-plugin wrapper</text>
+
+    <rect x="795" y="1648" width="225" height="92" rx="10" fill="#FCEBD8" stroke="#E8833A" stroke-width="1.6"/>
+    <text x="907" y="1682" text-anchor="middle" class="num" fill="#E8833A">4</text>
+    <text x="907" y="1708" text-anchor="middle" class="bd" font-weight="700" fill="#9A4E12">liblogos runtime_qt</text>
+    <text x="907" y="1726" text-anchor="middle" class="sm" fill="#9A4E12">logos_host loader</text>
+  </g>
+  <rect x="60" y="1756" width="960" height="58" rx="10" fill="#F4F1EA" stroke="#C9CCD1"/>
+  <text x="540" y="1782" text-anchor="middle" class="bd">Everything else is <tspan font-weight="700">Qt-free standard C++ / Rust</tspan>:</text>
+  <text x="540" y="1802" text-anchor="middle" class="sm">the protocol C ABI · logos-cpp-sdk · logos-rust-sdk · liblogos core · all module code (C++ universal impls + Rust)</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5 — VERSIONING                                       -->
+  <!-- ============================================================ -->
+  <text x="60" y="1876" class="kick" fill="#B7410E">§ 5</text>
+  <text x="110" y="1880" class="h2">One version, one rule — semantic versioning</text>
+  <line x1="60" y1="1896" x2="1020" y2="1896" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <rect x="60" y="1916" width="960" height="58" rx="10" fill="#0B5E5D"/>
+  <text x="540" y="1953" text-anchor="middle" class="serif" font-size="24" font-weight="700" fill="#FFFFFF">Compatible  ⇔  same logos-protocol MAJOR</text>
+
+  <!-- left: rules -->
+  <rect x="60" y="1990" width="470" height="170" rx="12" fill="#FFFFFF" stroke="#0E7C7B" stroke-width="1.6"/>
+  <g class="bd">
+    <text x="84" y="2022"><tspan font-weight="700">One number.</tspan> The logos-protocol semver, stamped</text>
+    <text x="84" y="2042">into every compiled module’s metadata.</text>
+    <text x="84" y="2076"><tspan font-weight="700">Module ↔ module.</tspan> cpp-sdk X.Y.Z interops with</text>
+    <text x="84" y="2096">rust-sdk A.B.C  ⇔  <tspan class="mono" font-weight="700">X == A</tspan>.</text>
+    <text x="84" y="2130"><tspan font-weight="700">liblogos load gate.</tspan> Loads iff host.major ==</text>
+    <text x="84" y="2150">module.major; missing stamp ⇒ permissive (legacy).</text>
+  </g>
+
+  <!-- right: visual -->
+  <rect x="560" y="1990" width="460" height="170" rx="12" fill="#F4F8F7" stroke="#5FB9B7"/>
+  <rect x="586" y="2018" width="180" height="48" rx="8" fill="#EFEAF7" stroke="#6E4B9E"/>
+  <text x="676" y="2040" text-anchor="middle" class="sm" font-weight="700" fill="#4A2F73">C++ module</text>
+  <text x="676" y="2058" text-anchor="middle" class="mono" fill="#4A2F73">protocol 2.x</text>
+  <rect x="816" y="2018" width="180" height="48" rx="8" fill="#F6E3D8" stroke="#B7410E"/>
+  <text x="906" y="2040" text-anchor="middle" class="sm" font-weight="700" fill="#7E2C09">Rust module</text>
+  <text x="906" y="2058" text-anchor="middle" class="mono" fill="#7E2C09">protocol 2.x</text>
+  <text x="791" y="2046" text-anchor="middle" class="serif" font-size="22" fill="#2E7D52">✓</text>
+  <line x1="676" y1="2066" x2="724" y2="2104" stroke="#2E7D52" stroke-width="1.6" marker-end="url(#aTeal)"/>
+  <line x1="906" y1="2066" x2="858" y2="2104" stroke="#2E7D52" stroke-width="1.6" marker-end="url(#aTeal)"/>
+  <rect x="664" y="2106" width="252" height="40" rx="8" fill="#E8F0EA" stroke="#2E7D52"/>
+  <text x="790" y="2131" text-anchor="middle" class="bd" font-weight="700" fill="#1c5235">liblogos loads both — same major</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6 — ROADMAP                                          -->
+  <!-- ============================================================ -->
+  <text x="60" y="2216" class="kick" fill="#B7410E">§ 6</text>
+  <text x="110" y="2220" class="h2">Roadmap — five phases</text>
+  <line x1="60" y1="2236" x2="1020" y2="2236" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <rect x="60" y="2258" width="700" height="26" rx="6" fill="#E0F0EF" stroke="#0E7C7B"/>
+  <text x="410" y="2276" text-anchor="middle" class="tag" fill="#0B5E5D">NEAR-TERM  ·  PHASES 1–4</text>
+  <rect x="772" y="2258" width="248" height="26" rx="6" fill="#F1F1F1" stroke="#B9BDC4" stroke-dasharray="4 3"/>
+  <text x="896" y="2276" text-anchor="middle" class="tag" fill="#6b7178">DEFERRED  ·  PHASE 5</text>
+
+  <!-- phase cards -->
+  <g>
+    <rect x="60" y="2298" width="180" height="150" rx="10" fill="#FFFFFF" stroke="#0E7C7B" stroke-width="1.5"/>
+    <text x="78" y="2330" class="num">P1</text>
+    <text x="78" y="2356" class="bd" font-weight="700" fill="#10403F">Extract</text>
+    <text x="78" y="2382" class="sm" fill="#2B333B"><tspan x="78" dy="0">logos-protocol +</tspan><tspan x="78" dy="16">C ABI. cpp-sdk</tspan><tspan x="78" dy="16">consumes it.</tspan><tspan x="78" dy="16" font-weight="700">No behavior change.</tspan></text>
+
+    <rect x="256" y="2298" width="180" height="150" rx="10" fill="#FFFFFF" stroke="#0E7C7B" stroke-width="1.5"/>
+    <text x="274" y="2330" class="num">P2</text>
+    <text x="274" y="2356" class="bd" font-weight="700" fill="#10403F">Qt-free split</text>
+    <text x="274" y="2382" class="sm" fill="#2B333B"><tspan x="274" dy="0">Qt-free cpp-sdk +</tspan><tspan x="274" dy="16" font-weight="700">new logos-qt-sdk.</tspan><tspan x="274" dy="16">Version stamp +</tspan><tspan x="274" dy="16">load gate.</tspan></text>
+
+    <rect x="452" y="2298" width="180" height="150" rx="10" fill="#FFFFFF" stroke="#0E7C7B" stroke-width="1.5"/>
+    <text x="470" y="2330" class="num">P3</text>
+    <text x="470" y="2356" class="bd" font-weight="700" fill="#10403F">LIDL + Rust</text>
+    <text x="470" y="2382" class="sm" fill="#2B333B"><tspan x="470" dy="0" font-weight="700">Shared logos-lidl.</tspan><tspan x="470" dy="16">Rust consumer parity:</tspan><tspan x="470" dy="16">retarget to lp_*,</tspan><tspan x="470" dy="16">add LIDL types.</tspan></text>
+
+    <rect x="648" y="2298" width="180" height="150" rx="10" fill="#FFFFFF" stroke="#0E7C7B" stroke-width="1.5"/>
+    <text x="666" y="2330" class="num">P4</text>
+    <text x="666" y="2356" class="bd" font-weight="700" fill="#10403F">Authoring</text>
+    <text x="666" y="2382" class="sm" fill="#2B333B"><tspan x="666" dy="0" font-weight="700">One common cdylib</tspan><tspan x="666" dy="16">module ABI + uniform</tspan><tspan x="666" dy="16">Qt glue (C++ &amp; Rust)</tspan><tspan x="666" dy="16">+ RustModuleContext.</tspan></text>
+
+    <rect x="844" y="2298" width="176" height="150" rx="10" fill="#F4F4F4" stroke="#B9BDC4" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="862" y="2330" class="num" fill="#8A8F98">P5</text>
+    <text x="862" y="2356" class="bd" font-weight="700" fill="#6b7178">Remove glue</text>
+    <text x="862" y="2382" class="sm" fill="#6b7178"><tspan x="862" dy="0">A no-Qt host loads</tspan><tspan x="862" dy="16">the cdylib directly.</tspan><tspan x="862" dy="16">A uniform host swap.</tspan></text>
+  </g>
+  <!-- timeline connectors -->
+  <g stroke="#0E7C7B" stroke-width="1.6">
+    <line x1="240" y1="2373" x2="256" y2="2373" marker-end="url(#aTeal)"/>
+    <line x1="436" y1="2373" x2="452" y2="2373" marker-end="url(#aTeal)"/>
+    <line x1="632" y1="2373" x2="648" y2="2373" marker-end="url(#aTeal)"/>
+  </g>
+  <line x1="828" y1="2373" x2="844" y2="2373" stroke="#B9BDC4" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#aGray)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7 — COMPATIBILITY GUARANTEE                          -->
+  <!-- ============================================================ -->
+  <text x="60" y="2500" class="kick" fill="#B7410E">§ 7</text>
+  <text x="110" y="2504" class="h2">Compatibility guarantee — nothing breaks on the way</text>
+  <line x1="60" y1="2520" x2="1020" y2="2520" stroke="url(#rule)" stroke-width="2.5"/>
+
+  <rect x="60" y="2540" width="300" height="120" rx="12" fill="#E8F0EA" stroke="#2E7D52" stroke-width="1.6"/>
+  <text x="80" y="2570" class="lbl serif" fill="#1c5235">LOAD ABI</text>
+  <text x="80" y="2598" class="sm" fill="#1f4733"><tspan x="80" dy="0">Host loads the module. The Qt-plugin</tspan><tspan x="80" dy="17">format stays the same in every phase;</tspan><tspan x="80" dy="17">P5 only <tspan font-weight="700">adds</tspan> a new format.</tspan></text>
+
+  <rect x="390" y="2540" width="300" height="120" rx="12" fill="#E8F0EA" stroke="#2E7D52" stroke-width="1.6"/>
+  <text x="410" y="2570" class="lbl serif" fill="#1c5235">CALL ABI</text>
+  <text x="410" y="2598" class="sm" fill="#1f4733"><tspan x="410" dy="0">Modules call each other (incl.</tspan><tspan x="410" dy="17">cpp ↔ rust). Same protocol major</tspan><tspan x="410" dy="17">means they keep interoperating.</tspan></text>
+
+  <rect x="720" y="2540" width="300" height="120" rx="12" fill="#F4F1EA" stroke="#C9A23B" stroke-width="1.6"/>
+  <text x="740" y="2570" class="lbl serif" fill="#8a6d18">SOURCE-LEVEL</text>
+  <text x="740" y="2598" class="sm" fill="#5a4a14"><tspan x="740" dy="0">Builder-based modules need only a</tspan><tspan x="740" dy="17" font-weight="700">flake.lock bump</tspan><tspan x="740" dy="17">— the builder + logos-plugin-qt</tspan><tspan x="740" dy="17">absorb the SDK split.</tspan></text>
+
+  <text x="540" y="2700" text-anchor="middle" class="sm" fill="#525a62">Out of scope: the cpp-sdk link-level binary ABI (everything rebuilds from source in this Nix workspace).</text>
+
+  <!-- ===== FOOTER ===== -->
+  <line x1="60" y1="2740" x2="1020" y2="2740" stroke="#C9CCD1" stroke-width="1"/>
+  <g transform="translate(60,2772)">
+    <rect x="0" y="-13" width="34" height="18" rx="4" fill="#E8833A"/><text x="17" y="0" text-anchor="middle" class="tag" fill="#fff">Qt</text>
+    <text x="46" y="0" class="sm">= component that links Qt (kept to the edges)</text>
+  </g>
+  <text x="1020" y="2772" text-anchor="end" class="sm" fill="#525a62">Logos modular platform · proposal overview · one rule governs all: same protocol MAJOR</text>
+  <text x="540" y="2812" text-anchor="middle" class="serif" font-size="13" fill="#8a8f98" font-style="italic">Generalizes work already underway: logos-module-client + logos-rust-sdk (consumer) and the c-ffi interface of logos-module-builder (provider/authoring).</text>
+  </g>
+</svg>
