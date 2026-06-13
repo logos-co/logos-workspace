@@ -32120,31 +32120,6 @@
         "type": "github"
       }
     },
-    "logos-protocol_10": {
-      "inputs": {
-        "logos-nix": [
-          "logos-view-module-runtime",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-view-module-runtime",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781065710,
-        "narHash": "sha256-QmNQ7LdrfzyvsZGISGKJKbHqB03F6JExgGF2K1f2WcE=",
-        "owner": "logos-co",
-        "repo": "logos-protocol",
-        "rev": "ca28190272eef2772edf9b3e1df47e121f02a726",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-protocol",
-        "type": "github"
-      }
-    },
     "logos-protocol_2": {
       "inputs": {
         "logos-nix": [
@@ -32326,31 +32301,6 @@
         "owner": "logos-co",
         "repo": "logos-protocol",
         "rev": "9de4165ab68ece4071647026cb2596bed8a8d7e2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-protocol",
-        "type": "github"
-      }
-    },
-    "logos-protocol_9": {
-      "inputs": {
-        "logos-nix": [
-          "logos-standalone-app",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-standalone-app",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781065710,
-        "narHash": "sha256-QmNQ7LdrfzyvsZGISGKJKbHqB03F6JExgGF2K1f2WcE=",
-        "owner": "logos-co",
-        "repo": "logos-protocol",
-        "rev": "ca28190272eef2772edf9b3e1df47e121f02a726",
         "type": "github"
       },
       "original": {
@@ -32965,39 +32915,6 @@
         "type": "github"
       }
     },
-    "logos-qt-sdk_10": {
-      "inputs": {
-        "logos-cpp-sdk": [
-          "logos-view-module-runtime",
-          "logos-cpp-sdk"
-        ],
-        "logos-nix": [
-          "logos-view-module-runtime",
-          "logos-nix"
-        ],
-        "logos-protocol": [
-          "logos-view-module-runtime",
-          "logos-protocol"
-        ],
-        "nixpkgs": [
-          "logos-view-module-runtime",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781066423,
-        "narHash": "sha256-3pVeJ/cK2z4OEi5iLORjoC7YpdrRrHmigl9SyvEapI8=",
-        "owner": "logos-co",
-        "repo": "logos-qt-sdk",
-        "rev": "355774603877637b486ea0aeefbf7828ae321868",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-qt-sdk",
-        "type": "github"
-      }
-    },
     "logos-qt-sdk_2": {
       "inputs": {
         "logos-cpp-sdk": [
@@ -33251,39 +33168,6 @@
         "owner": "logos-co",
         "repo": "logos-qt-sdk",
         "rev": "8d0e5d98990261407b50600d886158a1f78e1b1c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-qt-sdk",
-        "type": "github"
-      }
-    },
-    "logos-qt-sdk_9": {
-      "inputs": {
-        "logos-cpp-sdk": [
-          "logos-standalone-app",
-          "logos-cpp-sdk"
-        ],
-        "logos-nix": [
-          "logos-standalone-app",
-          "logos-nix"
-        ],
-        "logos-protocol": [
-          "logos-standalone-app",
-          "logos-protocol"
-        ],
-        "nixpkgs": [
-          "logos-standalone-app",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781066423,
-        "narHash": "sha256-3pVeJ/cK2z4OEi5iLORjoC7YpdrRrHmigl9SyvEapI8=",
-        "owner": "logos-co",
-        "repo": "logos-qt-sdk",
-        "rev": "355774603877637b486ea0aeefbf7828ae321868",
         "type": "github"
       },
       "original": {
@@ -33693,9 +33577,13 @@
         "logos-nix": [
           "logos-nix"
         ],
-        "logos-protocol": "logos-protocol_9",
+        "logos-protocol": [
+          "logos-protocol"
+        ],
         "logos-qt-mcp": "logos-qt-mcp_20",
-        "logos-qt-sdk": "logos-qt-sdk_9",
+        "logos-qt-sdk": [
+          "logos-qt-sdk"
+        ],
         "logos-view-module-runtime": [
           "logos-view-module-runtime"
         ],
@@ -35264,8 +35152,12 @@
         "logos-nix": [
           "logos-nix"
         ],
-        "logos-protocol": "logos-protocol_10",
-        "logos-qt-sdk": "logos-qt-sdk_10",
+        "logos-protocol": [
+          "logos-protocol"
+        ],
+        "logos-qt-sdk": [
+          "logos-qt-sdk"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]

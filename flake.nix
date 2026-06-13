@@ -34,33 +34,34 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    logos-qt-sdk = {
+      url = "github:logos-co/logos-qt-sdk/8d0e5d98990261407b50600d886158a1f78e1b1c";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     logos-cpp-sdk = {
       url = "github:logos-co/logos-cpp-sdk/87abcd804422cbd733c2e658ae2f42c20162115c";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-qt-sdk = {
-      url = "github:logos-co/logos-qt-sdk/8d0e5d98990261407b50600d886158a1f78e1b1c";
-      inputs.logos-nix.follows = "logos-nix";
-      inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     logos-view-module-runtime = {
       url = "github:logos-co/logos-view-module-runtime/171f1510bca14b5f022212ea1cc3f42ae9595249";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-client = {
       url = "github:logos-co/logos-module-client/7abdc8b5eb62af51b7336310df70ec52c8bef4fb";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module = {
       url = "github:logos-co/logos-module/a3e288a71d6f79445db598b0ffcca2ee435596b9";
@@ -74,10 +75,10 @@
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package-manager.follows = "logos-package-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.process-stats.follows = "process-stats";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.process-stats.follows = "process-stats";
     };
     logos-logoscore-cli = {
       url = "github:logos-co/logos-logoscore-cli/519e7d391191fcbfe53d1e794236d750d738c5b2";
@@ -86,12 +87,12 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-module-client.follows = "logos-module-client";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-capability-module = {
       url = "github:logos-co/logos-capability-module/13441afc8e8af8cfd22d6e007c6f46874eac97d9";
@@ -115,11 +116,11 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-plugin-core.follows = "logos-plugin-qt";
       inputs.logos-plugin-qt.follows = "logos-plugin-qt";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-standalone-app.follows = "logos-standalone-app";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     nix-bundle-dir = {
       url = "github:logos-co/nix-bundle-dir/4937262f55cf8be942263255dd0801e3e3878bc9";
@@ -152,6 +153,8 @@
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -169,13 +172,13 @@
       inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-macos-app.follows = "nix-bundle-macos-app";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-accounts-module = {
       url = "github:logos-co/logos-accounts-module/f847190ffb8aedd0244104b3e3d218c1fde21138";
