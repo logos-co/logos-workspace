@@ -35,7 +35,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/f065223e618809d077f943848487f5c8a2034035";
+      url = "github:logos-co/logos-cpp-sdk/87abcd804422cbd733c2e658ae2f42c20162115c";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -80,7 +80,7 @@
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
     };
     logos-logoscore-cli = {
-      url = "github:logos-co/logos-logoscore-cli/888791db6b16c72d2bdd9f85857f1b54008b9572";
+      url = "github:logos-co/logos-logoscore-cli/519e7d391191fcbfe53d1e794236d750d738c5b2";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -109,7 +109,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/5fe8ef485dd7780da1ec0fe58c3321866001af87";
+      url = "github:logos-co/logos-module-builder/1aa76952a412bc5da06444b091ae5155c2ab6898";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -157,7 +157,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/fbcacc57dd7a436cbd9c5a4ba7c6437b3d46f923";
+      url = "github:logos-co/logos-basecamp/a143267354cca48a44a5e1e0f1c84de930732371";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -309,7 +309,7 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/fabdb174ce98d35b69ee2a0f5a32130a12853186";
+    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/7ce12b9a9586f307a375ef646fbc5c9d14a0968e";
     logos-logoscore-py = {
       url = "github:logos-co/logos-logoscore-py/bc2c0b5a48dc78756dc2776fead54ddeba8a4131";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
