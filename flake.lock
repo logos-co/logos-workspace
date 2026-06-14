@@ -1962,17 +1962,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781317409,
-        "narHash": "sha256-qkYY45SqA5ieLaceBmLzXPg2ebWDyOhpqU8YRFSLw5U=",
+        "lastModified": 1781408829,
+        "narHash": "sha256-yuxttnpB8dZpKPHw7yf93kk2e5rJkx13KwogOJIxSTI=",
         "owner": "logos-co",
         "repo": "logos-cpp-sdk",
-        "rev": "d1d341fdcfac25bd00c62525a14f7354deefd150",
+        "rev": "676154070c7997337712be5401ae1268f2bce4cb",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-cpp-sdk",
-        "rev": "d1d341fdcfac25bd00c62525a14f7354deefd150",
+        "rev": "676154070c7997337712be5401ae1268f2bce4cb",
         "type": "github"
       }
     },
@@ -6647,17 +6647,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781314327,
-        "narHash": "sha256-2b2UdqiCOVeA9ia77MGK6zXKkJ2z/X56e6CM21U7u70=",
+        "lastModified": 1781439922,
+        "narHash": "sha256-WFiJfRPUvalfay8efgCxF8Q8/xw2S4ZNx0ilATtIUzo=",
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "24cec3569b6dbf83f80c913c3e369633b452d48e",
+        "rev": "a6467250668e09137f72bb220b3631583b6089b4",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "24cec3569b6dbf83f80c913c3e369633b452d48e",
+        "rev": "a6467250668e09137f72bb220b3631583b6089b4",
         "type": "github"
       }
     },
@@ -31931,17 +31931,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781308769,
-        "narHash": "sha256-ZhGcsWK99OPORW75eBTZsmp1YlL/GkjAGIKum/oZXEY=",
+        "lastModified": 1781409313,
+        "narHash": "sha256-2FXFInN5vgnjIhg1hI+S7eE4yFdEJMCoJXYrTQq42qY=",
         "owner": "logos-co",
         "repo": "logos-plugin-qt",
-        "rev": "650ecfa06390444e0c7264960bcbeb06768205a1",
+        "rev": "3aefbc55b59488c04efa18cb2335af855bc19f7e",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-plugin-qt",
-        "rev": "650ecfa06390444e0c7264960bcbeb06768205a1",
+        "rev": "3aefbc55b59488c04efa18cb2335af855bc19f7e",
         "type": "github"
       }
     },
