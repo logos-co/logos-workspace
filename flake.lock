@@ -6634,6 +6634,7 @@
         "logos-qt-sdk": [
           "logos-qt-sdk"
         ],
+        "logos-rust-sdk": "logos-rust-sdk",
         "logos-standalone-app": [
           "logos-standalone-app"
         ],
@@ -6647,17 +6648,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781458088,
-        "narHash": "sha256-oqwlXJaCVh5e/ljSxljnUfL74rrC5XJcQPcHdyThLjE=",
+        "lastModified": 1781564375,
+        "narHash": "sha256-9KGl52BUjO9rjRAuopbMjpcywTYSaialrgWNlQlk3RE=",
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "233a9b6e3ab61c83ba4eebea3b2f83ae76efd744",
+        "rev": "03ad946f1928cff35373a21838f89d6fd7c8eadc",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "233a9b6e3ab61c83ba4eebea3b2f83ae76efd744",
+        "rev": "03ad946f1928cff35373a21838f89d6fd7c8eadc",
         "type": "github"
       }
     },
@@ -33178,6 +33179,46 @@
     },
     "logos-rust-sdk": {
       "inputs": {
+        "logos-logoscore-cli": [
+          "logos-module-builder",
+          "logos-cpp-sdk"
+        ],
+        "logos-module-builder": [
+          "logos-module-builder",
+          "logos-cpp-sdk"
+        ],
+        "logos-module-client": [
+          "logos-module-builder",
+          "logos-cpp-sdk"
+        ],
+        "logos-nix": [
+          "logos-module-builder",
+          "logos-nix"
+        ],
+        "nixpkgs": [
+          "logos-module-builder",
+          "logos-rust-sdk",
+          "logos-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781550278,
+        "narHash": "sha256-j3CZSeGvvw+X5qRLlaHh1UfUNFc2hNs756hSN04J/XQ=",
+        "owner": "logos-co",
+        "repo": "logos-rust-sdk",
+        "rev": "340f42d41008488d912257e7836789795adbaeb7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-rust-sdk",
+        "rev": "340f42d41008488d912257e7836789795adbaeb7",
+        "type": "github"
+      }
+    },
+    "logos-rust-sdk_2": {
+      "inputs": {
         "logos-logoscore-cli": "logos-logoscore-cli_2",
         "logos-module-builder": "logos-module-builder_17",
         "logos-module-client": "logos-module-client_5",
@@ -33189,17 +33230,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781317431,
-        "narHash": "sha256-IPJRk8889nx+C/yk9A0TSXFtRCaZlZfC+yw94uMbehk=",
+        "lastModified": 1781564554,
+        "narHash": "sha256-wmSlcDrGAzkZfXEcLR5kM2cXIRogoN16yz6CBOB9Hlk=",
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "55e0694889448fc0787357b4d8f9794490943b92",
+        "rev": "012c46ad7d70b1614ec5623f5e2f042a2c4b23c1",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "55e0694889448fc0787357b4d8f9794490943b92",
+        "rev": "012c46ad7d70b1614ec5623f5e2f042a2c4b23c1",
         "type": "github"
       }
     },
@@ -59498,7 +59539,7 @@
         "logos-plugin-qt": "logos-plugin-qt_4",
         "logos-protocol": "logos-protocol_2",
         "logos-qt-sdk": "logos-qt-sdk_2",
-        "logos-rust-sdk": "logos-rust-sdk",
+        "logos-rust-sdk": "logos-rust-sdk_2",
         "logos-standalone-app": "logos-standalone-app_19",
         "logos-storage-module": "logos-storage-module",
         "logos-storage-ui": "logos-storage-ui",
