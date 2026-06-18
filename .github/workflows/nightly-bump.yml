@@ -15,10 +15,16 @@ permissions:
   issues: write
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Nightly: bump every submodule to its latest upstream default branch, push the
-# result to `nightly/bump`, open/update its PR, then hand off to the reusable
-# `tests-and-doctests` pipeline which runs the nix tests + doc-tests against that
-# bumped workspace state and publishes the reports.
+# Nightly: bump every submodule to its latest upstream default branch and push
+# the result to the throwaway `nightly/bump-candidate` branch. The reusable
+# `tests-and-doctests` pipeline then runs the nix tests + doc-tests against that
+# candidate state. ONLY when every test passes is the candidate promoted to
+# `nightly/bump` and its PR opened/refreshed — so `nightly/bump` and its PR
+# always point at a bumped state that is known-green.
+#
+# On failure: the candidate branch is left for inspection, `nightly/bump` and its
+# PR are untouched, and the logos-core team is pinged via the failure tracking
+# issue (notify-team) from the test pipeline.
 #
 # The exact same pipeline can be run manually against any branch — see
 # .github/workflows/tests-and-doctests.yml (Actions tab → "Tests and Doc-tests"
@@ -28,16 +34,16 @@ permissions:
 
 jobs:
   bump:
-    name: Bump submodules and open PR
+    name: Bump submodules and stage candidate
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: write
-      pull-requests: write
     outputs:
       changed: ${{ steps.check.outputs.changed }}
       date:    ${{ steps.meta.outputs.date }}
-      pr:      ${{ steps.pr.outputs.number }}
+      repos:   ${{ steps.check.outputs.repos }}
+      sha:     ${{ steps.stage.outputs.sha }}
 
     steps:
       - name: Checkout
@@ -126,16 +132,15 @@ jobs:
             echo "No matching flake inputs to update." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # Push the bumped workspace to `nightly/bump` and open/refresh its PR. The
-      # tests + doc-tests run afterwards in the reusable pipeline (against this
-      # pushed state) and post their results back as a comment.
-      - name: Create or update pull request
-        id: pr
+      # Push the bumped workspace to the throwaway `nightly/bump-candidate` branch
+      # so the reusable test pipeline can check it out. Nothing consumes this
+      # branch except that pipeline; `nightly/bump` and its PR are only advanced
+      # to this state after every test passes (see the promote job).
+      - name: Stage candidate branch
+        id: stage
         if: steps.check.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          branch="nightly/bump"
+          branch="nightly/bump-candidate"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -146,43 +151,85 @@ jobs:
             "Updated: ${{ steps.check.outputs.repos }}")"
 
           git push --force -u origin "$branch"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-          title="chore: nightly submodule bump ${{ steps.meta.outputs.date }}"
+  # Run the nix tests + doc-tests against the staged candidate state, publish the
+  # reports under nightly/<date>/, and notify the logos-core team on any failure.
+  # No PR comment here: the PR is created/refreshed only after this passes, in the
+  # promote job below.
+  tests-and-doctests:
+    needs: bump
+    if: ${{ needs.bump.outputs.changed == 'true' }}
+    uses: ./.github/workflows/tests-and-doctests.yml
+    with:
+      ref: nightly/bump-candidate
+      report-base: nightly/${{ needs.bump.outputs.date }}
+      notify-team: true
+    secrets: inherit
+
+  # Promote the tested-green candidate to `nightly/bump` and open/refresh its PR.
+  # Gated on the WHOLE test pipeline succeeding (result == 'success'), so
+  # `nightly/bump` and its PR never advance to a state that failed tests. If any
+  # test fails this job is skipped and `nightly/bump`/its PR stay as they were.
+  promote:
+    name: Promote candidate to nightly/bump
+    needs:
+      - bump
+      - tests-and-doctests
+    if: ${{ needs.bump.outputs.changed == 'true' && needs.tests-and-doctests.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Promote candidate and open/refresh PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATE: ${{ needs.bump.outputs.date }}
+          REPOS: ${{ needs.bump.outputs.repos }}
+          SHA: ${{ needs.bump.outputs.sha }}
+        run: |
+          branch="nightly/bump"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fast-forward `nightly/bump` to the exact commit that passed tests.
+          git fetch origin nightly/bump-candidate
+          git push --force origin "$SHA:refs/heads/$branch"
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          report="https://${owner}.github.io/${repo}/nightly/${DATE}/"
+
+          title="chore: nightly submodule bump ${DATE}"
           body="$(printf '%s\n' \
             '## Nightly Submodule Bump' \
             '' \
             'Bumped all submodules to their latest upstream default branch.' \
             '' \
             '### Updated repos' \
-            "$(for r in ${{ steps.check.outputs.repos }}; do echo "- \`$r\`"; done)" \
+            "$(for r in ${REPOS}; do echo "- \`$r\`"; done)" \
             '' \
             '### Checks' \
-            'Tests + doc-tests run in the linked **Tests and Doc-tests** pipeline' \
-            'against this bumped state; results are posted as a comment below.' \
+            '✅ All nix tests + doc-tests passed against this state in the linked' \
+            '**Tests and Doc-tests** pipeline before this branch/PR was updated.' \
+            '' \
+            "Full doc-test report index: ${report}" \
             '' \
             'Auto-generated by the nightly bump workflow.')"
 
           existing=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number' 2>/dev/null || true)
           if [[ -n "$existing" ]]; then
             gh pr edit "$existing" --title "$title" --body "$body"
-            number="$existing"
             echo "Updated PR #$existing"
           else
-            gh pr create --title "$title" --body "$body"
-            number=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
+            gh pr create --head "$branch" --title "$title" --body "$body"
+            echo "Created PR for $branch"
           fi
-          echo "number=$number" >> "$GITHUB_OUTPUT"
-
-  # Run the nix tests + doc-tests against the just-pushed bumped state, publish
-  # the reports under nightly/<date>/, comment on the nightly PR, and notify the
-  # logos-core team on any failure.
-  tests-and-doctests:
-    needs: bump
-    if: ${{ needs.bump.outputs.changed == 'true' }}
-    uses: ./.github/workflows/tests-and-doctests.yml
-    with:
-      ref: nightly/bump
-      report-base: nightly/${{ needs.bump.outputs.date }}
-      pr-number: ${{ needs.bump.outputs.pr }}
-      notify-team: true
-    secrets: inherit
