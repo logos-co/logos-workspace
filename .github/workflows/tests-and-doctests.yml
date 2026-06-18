@@ -88,7 +88,7 @@ jobs:
             https://raw.githubusercontent.com/logos-co/logos-doctest-hub/master/repos.json \
             -o /tmp/hub-repos.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os, subprocess
+          import json, os, re, subprocess
           hub = json.load(open('/tmp/hub-repos.json'))
           # Names of workspace submodules (source of truth: .gitmodules).
           sm = subprocess.run(
@@ -101,6 +101,27 @@ jobs:
               for parts in [line.split()]
               if len(parts) == 2 and parts[1].startswith('repos/')
           }
+          # Each submodule's GitHub owner, from its .gitmodules URL — most live
+          # under logos-co, but some (e.g. logos-execution-zone-module) are in a
+          # different org. The doctest leg checks out only the suite repo, so it
+          # can't read .gitmodules itself; carry the owner through the matrix.
+          urls = subprocess.run(
+              ['git', 'config', '--file', '.gitmodules', '--get-regexp', 'url'],
+              capture_output=True, text=True,
+          ).stdout
+          owners = {}
+          for line in urls.splitlines():
+              parts = line.split(None, 1)
+              if len(parts) != 2:
+                  continue
+              key, url = parts
+              km = re.match(r'submodule\.repos/(.+)\.url$', key)
+              if not km:
+                  continue
+              # owner/repo are the last two path segments of either an
+              # scp-style (git@host:owner/repo.git) or https URL.
+              om = re.search(r'[/:]([^/:]+)/([^/]+?)(?:\.git)?/?$', url)
+              owners[km.group(1)] = om.group(1) if om else 'logos-co'
           out, skipped = [], []
           for r in hub.get('repos', []):
               name = r['name']
@@ -116,7 +137,8 @@ jobs:
               except Exception:
                   skipped.append(name)
                   continue
-              out.append({'name': name, 'sha': sha})
+              out.append({'name': name, 'sha': sha,
+                          'owner': owners.get(name, 'logos-co')})
           print('matrix=' + json.dumps(out, separators=(',', ':')))
 
           # Override flags for the WHOLE workspace, not just the suites: pin
@@ -232,7 +254,7 @@ jobs:
       - name: Checkout ${{ matrix.repo.name }} at pinned SHA
         uses: actions/checkout@v4
         with:
-          repository: logos-co/${{ matrix.repo.name }}
+          repository: ${{ matrix.repo.owner }}/${{ matrix.repo.name }}
           ref: ${{ matrix.repo.sha }}
           fetch-depth: 1
 
@@ -259,16 +281,26 @@ jobs:
           if not text:
               sys.stderr.write('no doctest publish workflow found\n')
               sys.exit(1)
+          # Bash array assignments anywhere in the workflow: NAME=( a b c ).
+          # Some repos pass specs as "${NAME[@]}" (portable to the macOS runner's
+          # stock bash 3.2) instead of inlining the glob on the `-- run` line, so
+          # resolve such a reference back to the array's tokens before matching.
+          arrays = {n: body.split()
+                    for n, body in re.findall(r'(\w+)=\(([^)]*)\)', text)}
+          def expand(tk):
+              m = re.fullmatch(r'\$\{?(\w+)(?:\[[@*]\])?\}?', tk)
+              return arrays[m.group(1)] if m and m.group(1) in arrays else [tk]
           best = []
           for b in re.findall(r'--\s+run\s+(.*?)\s+--report', text, re.DOTALL):
               bb = re.sub(r'\\\s*\n', ' ', b)
               bb = re.sub(r'\$\{\{[^}]+\}\}', '', bb)
               res = []
-              for tk in bb.split():
-                  tk = tk.strip().strip('"').strip("'")
-                  if not tk or tk.startswith('-') or '.test.yaml' not in tk:
-                      continue
-                  res += sorted(glob.glob(tk)) if '*' in tk else [tk]
+              for raw in bb.split():
+                  for tk in expand(raw.strip().strip('"').strip("'")):
+                      tk = tk.strip().strip('"').strip("'")
+                      if not tk or tk.startswith('-') or '.test.yaml' not in tk:
+                          continue
+                      res += sorted(glob.glob(tk)) if '*' in tk else [tk]
               if len(res) > len(best):
                   best = res
           seen = set()
