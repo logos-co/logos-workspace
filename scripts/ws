@@ -151,6 +151,10 @@ REPOS=(
 
   # Other
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
+  "logos-container|logos-container|https://github.com/logos-co/logos-container.git|yes"
+  "logos-container-subprocess|logos-container-subprocess|https://github.com/logos-co/logos-container-subprocess.git|yes"
+  "logos-module-loader|logos-module-loader|https://github.com/logos-co/logos-module-loader.git|yes"
+  "logos-module-loader-qt|logos-module-loader-qt|https://github.com/logos-co/logos-module-loader-qt.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
   # Tutorial (sub-flakes inside logos-tutorial)
