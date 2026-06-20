@@ -179,7 +179,7 @@
     },
     "libp2p": {
       "inputs": {
-        "nixpkgs": "nixpkgs_150"
+        "nixpkgs": "nixpkgs_151"
       },
       "locked": {
         "lastModified": 1778508233,
@@ -360,7 +360,7 @@
     },
     "logos-blockchain-circuits_2": {
       "inputs": {
-        "nixpkgs": "nixpkgs_135"
+        "nixpkgs": "nixpkgs_136"
       },
       "locked": {
         "lastModified": 1775835011,
@@ -5155,11 +5155,186 @@
         "type": "github"
       }
     },
+    "logos-evm-eth-rpc-module": {
+      "inputs": {
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781917977,
+        "narHash": "sha256-w6K8QSjHT0tm8zCcJyXTrsJv0aRq2amkgDRMQP+tQyg=",
+        "owner": "logos-co",
+        "repo": "logos-evm-eth-rpc-module",
+        "rev": "de295ef3d0d2c80854683c999f62d0296b1ca897",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-eth-rpc-module",
+        "rev": "de295ef3d0d2c80854683c999f62d0296b1ca897",
+        "type": "github"
+      }
+    },
+    "logos-evm-keystore-module": {
+      "inputs": {
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781974792,
+        "narHash": "sha256-lI2/TXcTvQIN2jP/AjDxNTybuanMRCw4QQuI0c3XcyA=",
+        "owner": "logos-co",
+        "repo": "logos-evm-keystore-module",
+        "rev": "0419b7382b6fdc0d64a9b00f5929fd3d031b81c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-keystore-module",
+        "rev": "0419b7382b6fdc0d64a9b00f5929fd3d031b81c3",
+        "type": "github"
+      }
+    },
+    "logos-evm-net-proxy": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_135"
+      },
+      "locked": {
+        "lastModified": 1781974849,
+        "narHash": "sha256-hy05msQbhlw/w8TgVmD6qDLhmNBh1PodYg4yoL0XJJo=",
+        "owner": "logos-co",
+        "repo": "logos-evm-net-proxy",
+        "rev": "f1a5564afc070257c63d3072db6c24760d6911c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-net-proxy",
+        "rev": "f1a5564afc070257c63d3072db6c24760d6911c9",
+        "type": "github"
+      }
+    },
+    "logos-evm-token-list-module": {
+      "inputs": {
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781974811,
+        "narHash": "sha256-JB7iet1zagRydw2+ez+pOIAi8fUQ8oQDljNh8VH9sck=",
+        "owner": "logos-co",
+        "repo": "logos-evm-token-list-module",
+        "rev": "283e71163929974740983733b860211295982161",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-token-list-module",
+        "rev": "283e71163929974740983733b860211295982161",
+        "type": "github"
+      }
+    },
+    "logos-evm-uniswap-module": {
+      "inputs": {
+        "eth_rpc_module": [
+          "logos-evm-eth-rpc-module"
+        ],
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781963945,
+        "narHash": "sha256-+ENfPPaf534F/eIjwiwPun03DBFfG2IKOl0hzGVFwhQ=",
+        "owner": "logos-co",
+        "repo": "logos-evm-uniswap-module",
+        "rev": "e06d7774379f86117578504a577bc2f31fdc8081",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-uniswap-module",
+        "rev": "e06d7774379f86117578504a577bc2f31fdc8081",
+        "type": "github"
+      }
+    },
+    "logos-evm-wallet-backend-module": {
+      "inputs": {
+        "eth_rpc_module": [
+          "logos-evm-eth-rpc-module"
+        ],
+        "keystore_module": [
+          "logos-evm-keystore-module"
+        ],
+        "logos-module-builder": [
+          "logos-module-builder"
+        ],
+        "token_list_module": [
+          "logos-evm-token-list-module"
+        ],
+        "uniswap_module": [
+          "logos-evm-uniswap-module"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781989809,
+        "narHash": "sha256-XE0Y66nKQztUlZBa9elPLNB4+Jhrpe9gBb/7NnhofDY=",
+        "owner": "logos-co",
+        "repo": "logos-evm-wallet-backend-module",
+        "rev": "209ca88029cf11e1f9dd3a87f755228596a48551",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-wallet-backend-module",
+        "rev": "209ca88029cf11e1f9dd3a87f755228596a48551",
+        "type": "github"
+      }
+    },
+    "logos-evm-wallet-ui": {
+      "inputs": {
+        "eth_rpc_module": [
+          "logos-evm-eth-rpc-module"
+        ],
+        "keystore_module": [
+          "logos-evm-keystore-module"
+        ],
+        "logos-module-builder": [
+          "logos-module-builder"
+        ],
+        "token_list_module": [
+          "logos-evm-token-list-module"
+        ],
+        "uniswap_module": [
+          "logos-evm-uniswap-module"
+        ],
+        "wallet_backend_module": [
+          "logos-evm-wallet-backend-module"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781972054,
+        "narHash": "sha256-iRNXKG+l0tnhtuMyy5BX8dgGqQR0ZhIjpf/kELFHKMo=",
+        "owner": "logos-co",
+        "repo": "logos-evm-wallet-ui",
+        "rev": "033e74ef0fd93912c08cb13b1bf42b631cb1b0ec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-wallet-ui",
+        "rev": "033e74ef0fd93912c08cb13b1bf42b631cb1b0ec",
+        "type": "github"
+      }
+    },
     "logos-execution-zone": {
       "inputs": {
         "crane": "crane_2",
         "logos-blockchain-circuits": "logos-blockchain-circuits_2",
-        "nixpkgs": "nixpkgs_136",
+        "nixpkgs": "nixpkgs_137",
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
@@ -11389,7 +11564,7 @@
     },
     "logos-nix_132": {
       "inputs": {
-        "nixpkgs": "nixpkgs_137"
+        "nixpkgs": "nixpkgs_138"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11407,7 +11582,7 @@
     },
     "logos-nix_133": {
       "inputs": {
-        "nixpkgs": "nixpkgs_138"
+        "nixpkgs": "nixpkgs_139"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11425,7 +11600,7 @@
     },
     "logos-nix_134": {
       "inputs": {
-        "nixpkgs": "nixpkgs_139"
+        "nixpkgs": "nixpkgs_140"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11443,7 +11618,7 @@
     },
     "logos-nix_135": {
       "inputs": {
-        "nixpkgs": "nixpkgs_140"
+        "nixpkgs": "nixpkgs_141"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11461,7 +11636,7 @@
     },
     "logos-nix_136": {
       "inputs": {
-        "nixpkgs": "nixpkgs_141"
+        "nixpkgs": "nixpkgs_142"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11479,7 +11654,7 @@
     },
     "logos-nix_137": {
       "inputs": {
-        "nixpkgs": "nixpkgs_142"
+        "nixpkgs": "nixpkgs_143"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11497,7 +11672,7 @@
     },
     "logos-nix_138": {
       "inputs": {
-        "nixpkgs": "nixpkgs_143"
+        "nixpkgs": "nixpkgs_144"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11515,7 +11690,7 @@
     },
     "logos-nix_139": {
       "inputs": {
-        "nixpkgs": "nixpkgs_144"
+        "nixpkgs": "nixpkgs_145"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11551,7 +11726,7 @@
     },
     "logos-nix_140": {
       "inputs": {
-        "nixpkgs": "nixpkgs_145"
+        "nixpkgs": "nixpkgs_146"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11569,7 +11744,7 @@
     },
     "logos-nix_141": {
       "inputs": {
-        "nixpkgs": "nixpkgs_146"
+        "nixpkgs": "nixpkgs_147"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11587,7 +11762,7 @@
     },
     "logos-nix_142": {
       "inputs": {
-        "nixpkgs": "nixpkgs_147"
+        "nixpkgs": "nixpkgs_148"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11605,7 +11780,7 @@
     },
     "logos-nix_143": {
       "inputs": {
-        "nixpkgs": "nixpkgs_148"
+        "nixpkgs": "nixpkgs_149"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11623,7 +11798,7 @@
     },
     "logos-nix_144": {
       "inputs": {
-        "nixpkgs": "nixpkgs_149"
+        "nixpkgs": "nixpkgs_150"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11641,7 +11816,7 @@
     },
     "logos-nix_145": {
       "inputs": {
-        "nixpkgs": "nixpkgs_151"
+        "nixpkgs": "nixpkgs_152"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11659,7 +11834,7 @@
     },
     "logos-nix_146": {
       "inputs": {
-        "nixpkgs": "nixpkgs_152"
+        "nixpkgs": "nixpkgs_153"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11677,7 +11852,7 @@
     },
     "logos-nix_147": {
       "inputs": {
-        "nixpkgs": "nixpkgs_153"
+        "nixpkgs": "nixpkgs_154"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11695,7 +11870,7 @@
     },
     "logos-nix_148": {
       "inputs": {
-        "nixpkgs": "nixpkgs_154"
+        "nixpkgs": "nixpkgs_155"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11713,7 +11888,7 @@
     },
     "logos-nix_149": {
       "inputs": {
-        "nixpkgs": "nixpkgs_155"
+        "nixpkgs": "nixpkgs_156"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11749,7 +11924,7 @@
     },
     "logos-nix_150": {
       "inputs": {
-        "nixpkgs": "nixpkgs_156"
+        "nixpkgs": "nixpkgs_157"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11767,7 +11942,7 @@
     },
     "logos-nix_151": {
       "inputs": {
-        "nixpkgs": "nixpkgs_157"
+        "nixpkgs": "nixpkgs_158"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11785,7 +11960,7 @@
     },
     "logos-nix_152": {
       "inputs": {
-        "nixpkgs": "nixpkgs_158"
+        "nixpkgs": "nixpkgs_159"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11803,7 +11978,7 @@
     },
     "logos-nix_153": {
       "inputs": {
-        "nixpkgs": "nixpkgs_159"
+        "nixpkgs": "nixpkgs_160"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11821,7 +11996,7 @@
     },
     "logos-nix_154": {
       "inputs": {
-        "nixpkgs": "nixpkgs_160"
+        "nixpkgs": "nixpkgs_161"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11839,7 +12014,7 @@
     },
     "logos-nix_155": {
       "inputs": {
-        "nixpkgs": "nixpkgs_161"
+        "nixpkgs": "nixpkgs_162"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11857,7 +12032,7 @@
     },
     "logos-nix_156": {
       "inputs": {
-        "nixpkgs": "nixpkgs_162"
+        "nixpkgs": "nixpkgs_163"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11875,7 +12050,7 @@
     },
     "logos-nix_157": {
       "inputs": {
-        "nixpkgs": "nixpkgs_163"
+        "nixpkgs": "nixpkgs_164"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11893,7 +12068,7 @@
     },
     "logos-nix_158": {
       "inputs": {
-        "nixpkgs": "nixpkgs_164"
+        "nixpkgs": "nixpkgs_165"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11911,7 +12086,7 @@
     },
     "logos-nix_159": {
       "inputs": {
-        "nixpkgs": "nixpkgs_165"
+        "nixpkgs": "nixpkgs_166"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11947,7 +12122,7 @@
     },
     "logos-nix_160": {
       "inputs": {
-        "nixpkgs": "nixpkgs_166"
+        "nixpkgs": "nixpkgs_167"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -11965,7 +12140,7 @@
     },
     "logos-nix_161": {
       "inputs": {
-        "nixpkgs": "nixpkgs_167"
+        "nixpkgs": "nixpkgs_168"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -11983,7 +12158,7 @@
     },
     "logos-nix_162": {
       "inputs": {
-        "nixpkgs": "nixpkgs_168"
+        "nixpkgs": "nixpkgs_169"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12001,7 +12176,7 @@
     },
     "logos-nix_163": {
       "inputs": {
-        "nixpkgs": "nixpkgs_169"
+        "nixpkgs": "nixpkgs_170"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12019,7 +12194,7 @@
     },
     "logos-nix_164": {
       "inputs": {
-        "nixpkgs": "nixpkgs_170"
+        "nixpkgs": "nixpkgs_171"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12037,7 +12212,7 @@
     },
     "logos-nix_165": {
       "inputs": {
-        "nixpkgs": "nixpkgs_171"
+        "nixpkgs": "nixpkgs_172"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12055,7 +12230,7 @@
     },
     "logos-nix_166": {
       "inputs": {
-        "nixpkgs": "nixpkgs_172"
+        "nixpkgs": "nixpkgs_173"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12073,7 +12248,7 @@
     },
     "logos-nix_167": {
       "inputs": {
-        "nixpkgs": "nixpkgs_173"
+        "nixpkgs": "nixpkgs_174"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12091,7 +12266,7 @@
     },
     "logos-nix_168": {
       "inputs": {
-        "nixpkgs": "nixpkgs_174"
+        "nixpkgs": "nixpkgs_175"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12109,7 +12284,7 @@
     },
     "logos-nix_169": {
       "inputs": {
-        "nixpkgs": "nixpkgs_175"
+        "nixpkgs": "nixpkgs_176"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12145,7 +12320,7 @@
     },
     "logos-nix_170": {
       "inputs": {
-        "nixpkgs": "nixpkgs_176"
+        "nixpkgs": "nixpkgs_177"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12163,7 +12338,7 @@
     },
     "logos-nix_171": {
       "inputs": {
-        "nixpkgs": "nixpkgs_177"
+        "nixpkgs": "nixpkgs_178"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12181,7 +12356,7 @@
     },
     "logos-nix_172": {
       "inputs": {
-        "nixpkgs": "nixpkgs_178"
+        "nixpkgs": "nixpkgs_179"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12199,7 +12374,7 @@
     },
     "logos-nix_173": {
       "inputs": {
-        "nixpkgs": "nixpkgs_179"
+        "nixpkgs": "nixpkgs_180"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12217,7 +12392,7 @@
     },
     "logos-nix_174": {
       "inputs": {
-        "nixpkgs": "nixpkgs_180"
+        "nixpkgs": "nixpkgs_181"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12235,7 +12410,7 @@
     },
     "logos-nix_175": {
       "inputs": {
-        "nixpkgs": "nixpkgs_181"
+        "nixpkgs": "nixpkgs_182"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12253,7 +12428,7 @@
     },
     "logos-nix_176": {
       "inputs": {
-        "nixpkgs": "nixpkgs_182"
+        "nixpkgs": "nixpkgs_183"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12271,7 +12446,7 @@
     },
     "logos-nix_177": {
       "inputs": {
-        "nixpkgs": "nixpkgs_183"
+        "nixpkgs": "nixpkgs_184"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12289,7 +12464,7 @@
     },
     "logos-nix_178": {
       "inputs": {
-        "nixpkgs": "nixpkgs_184"
+        "nixpkgs": "nixpkgs_185"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12307,7 +12482,7 @@
     },
     "logos-nix_179": {
       "inputs": {
-        "nixpkgs": "nixpkgs_185"
+        "nixpkgs": "nixpkgs_186"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12343,7 +12518,7 @@
     },
     "logos-nix_180": {
       "inputs": {
-        "nixpkgs": "nixpkgs_186"
+        "nixpkgs": "nixpkgs_187"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12361,7 +12536,7 @@
     },
     "logos-nix_181": {
       "inputs": {
-        "nixpkgs": "nixpkgs_187"
+        "nixpkgs": "nixpkgs_188"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12379,7 +12554,7 @@
     },
     "logos-nix_182": {
       "inputs": {
-        "nixpkgs": "nixpkgs_188"
+        "nixpkgs": "nixpkgs_189"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12397,7 +12572,7 @@
     },
     "logos-nix_183": {
       "inputs": {
-        "nixpkgs": "nixpkgs_189"
+        "nixpkgs": "nixpkgs_190"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12415,7 +12590,7 @@
     },
     "logos-nix_184": {
       "inputs": {
-        "nixpkgs": "nixpkgs_190"
+        "nixpkgs": "nixpkgs_191"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12433,7 +12608,7 @@
     },
     "logos-nix_185": {
       "inputs": {
-        "nixpkgs": "nixpkgs_191"
+        "nixpkgs": "nixpkgs_192"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12451,7 +12626,7 @@
     },
     "logos-nix_186": {
       "inputs": {
-        "nixpkgs": "nixpkgs_192"
+        "nixpkgs": "nixpkgs_193"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12469,7 +12644,7 @@
     },
     "logos-nix_187": {
       "inputs": {
-        "nixpkgs": "nixpkgs_193"
+        "nixpkgs": "nixpkgs_194"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12487,7 +12662,7 @@
     },
     "logos-nix_188": {
       "inputs": {
-        "nixpkgs": "nixpkgs_194"
+        "nixpkgs": "nixpkgs_195"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12505,7 +12680,7 @@
     },
     "logos-nix_189": {
       "inputs": {
-        "nixpkgs": "nixpkgs_195"
+        "nixpkgs": "nixpkgs_196"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12541,7 +12716,7 @@
     },
     "logos-nix_190": {
       "inputs": {
-        "nixpkgs": "nixpkgs_196"
+        "nixpkgs": "nixpkgs_197"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12559,7 +12734,7 @@
     },
     "logos-nix_191": {
       "inputs": {
-        "nixpkgs": "nixpkgs_197"
+        "nixpkgs": "nixpkgs_198"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12577,7 +12752,7 @@
     },
     "logos-nix_192": {
       "inputs": {
-        "nixpkgs": "nixpkgs_198"
+        "nixpkgs": "nixpkgs_199"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12595,7 +12770,7 @@
     },
     "logos-nix_193": {
       "inputs": {
-        "nixpkgs": "nixpkgs_199"
+        "nixpkgs": "nixpkgs_200"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12613,7 +12788,7 @@
     },
     "logos-nix_194": {
       "inputs": {
-        "nixpkgs": "nixpkgs_200"
+        "nixpkgs": "nixpkgs_201"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12631,7 +12806,7 @@
     },
     "logos-nix_195": {
       "inputs": {
-        "nixpkgs": "nixpkgs_201"
+        "nixpkgs": "nixpkgs_202"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12649,7 +12824,7 @@
     },
     "logos-nix_196": {
       "inputs": {
-        "nixpkgs": "nixpkgs_202"
+        "nixpkgs": "nixpkgs_203"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12667,7 +12842,7 @@
     },
     "logos-nix_197": {
       "inputs": {
-        "nixpkgs": "nixpkgs_203"
+        "nixpkgs": "nixpkgs_204"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12685,7 +12860,7 @@
     },
     "logos-nix_198": {
       "inputs": {
-        "nixpkgs": "nixpkgs_204"
+        "nixpkgs": "nixpkgs_205"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12703,7 +12878,7 @@
     },
     "logos-nix_199": {
       "inputs": {
-        "nixpkgs": "nixpkgs_205"
+        "nixpkgs": "nixpkgs_206"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12757,7 +12932,7 @@
     },
     "logos-nix_200": {
       "inputs": {
-        "nixpkgs": "nixpkgs_206"
+        "nixpkgs": "nixpkgs_207"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12775,7 +12950,7 @@
     },
     "logos-nix_201": {
       "inputs": {
-        "nixpkgs": "nixpkgs_207"
+        "nixpkgs": "nixpkgs_208"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12793,7 +12968,7 @@
     },
     "logos-nix_202": {
       "inputs": {
-        "nixpkgs": "nixpkgs_208"
+        "nixpkgs": "nixpkgs_209"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12811,7 +12986,7 @@
     },
     "logos-nix_203": {
       "inputs": {
-        "nixpkgs": "nixpkgs_209"
+        "nixpkgs": "nixpkgs_210"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12829,7 +13004,7 @@
     },
     "logos-nix_204": {
       "inputs": {
-        "nixpkgs": "nixpkgs_210"
+        "nixpkgs": "nixpkgs_211"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12847,7 +13022,7 @@
     },
     "logos-nix_205": {
       "inputs": {
-        "nixpkgs": "nixpkgs_211"
+        "nixpkgs": "nixpkgs_212"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12865,7 +13040,7 @@
     },
     "logos-nix_206": {
       "inputs": {
-        "nixpkgs": "nixpkgs_212"
+        "nixpkgs": "nixpkgs_213"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12883,7 +13058,7 @@
     },
     "logos-nix_207": {
       "inputs": {
-        "nixpkgs": "nixpkgs_213"
+        "nixpkgs": "nixpkgs_214"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12901,7 +13076,7 @@
     },
     "logos-nix_208": {
       "inputs": {
-        "nixpkgs": "nixpkgs_214"
+        "nixpkgs": "nixpkgs_215"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12919,7 +13094,7 @@
     },
     "logos-nix_209": {
       "inputs": {
-        "nixpkgs": "nixpkgs_215"
+        "nixpkgs": "nixpkgs_216"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12955,7 +13130,7 @@
     },
     "logos-nix_210": {
       "inputs": {
-        "nixpkgs": "nixpkgs_216"
+        "nixpkgs": "nixpkgs_217"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -12973,7 +13148,7 @@
     },
     "logos-nix_211": {
       "inputs": {
-        "nixpkgs": "nixpkgs_217"
+        "nixpkgs": "nixpkgs_218"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -12991,7 +13166,7 @@
     },
     "logos-nix_212": {
       "inputs": {
-        "nixpkgs": "nixpkgs_218"
+        "nixpkgs": "nixpkgs_219"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13009,7 +13184,7 @@
     },
     "logos-nix_213": {
       "inputs": {
-        "nixpkgs": "nixpkgs_219"
+        "nixpkgs": "nixpkgs_220"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13027,7 +13202,7 @@
     },
     "logos-nix_214": {
       "inputs": {
-        "nixpkgs": "nixpkgs_220"
+        "nixpkgs": "nixpkgs_221"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13045,7 +13220,7 @@
     },
     "logos-nix_215": {
       "inputs": {
-        "nixpkgs": "nixpkgs_221"
+        "nixpkgs": "nixpkgs_222"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13063,7 +13238,7 @@
     },
     "logos-nix_216": {
       "inputs": {
-        "nixpkgs": "nixpkgs_222"
+        "nixpkgs": "nixpkgs_223"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13081,7 +13256,7 @@
     },
     "logos-nix_217": {
       "inputs": {
-        "nixpkgs": "nixpkgs_223"
+        "nixpkgs": "nixpkgs_224"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13099,7 +13274,7 @@
     },
     "logos-nix_218": {
       "inputs": {
-        "nixpkgs": "nixpkgs_224"
+        "nixpkgs": "nixpkgs_225"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13117,7 +13292,7 @@
     },
     "logos-nix_219": {
       "inputs": {
-        "nixpkgs": "nixpkgs_225"
+        "nixpkgs": "nixpkgs_226"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13153,7 +13328,7 @@
     },
     "logos-nix_220": {
       "inputs": {
-        "nixpkgs": "nixpkgs_226"
+        "nixpkgs": "nixpkgs_227"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13171,7 +13346,7 @@
     },
     "logos-nix_221": {
       "inputs": {
-        "nixpkgs": "nixpkgs_227"
+        "nixpkgs": "nixpkgs_228"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13189,7 +13364,7 @@
     },
     "logos-nix_222": {
       "inputs": {
-        "nixpkgs": "nixpkgs_228"
+        "nixpkgs": "nixpkgs_229"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13207,7 +13382,7 @@
     },
     "logos-nix_223": {
       "inputs": {
-        "nixpkgs": "nixpkgs_229"
+        "nixpkgs": "nixpkgs_230"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13225,7 +13400,7 @@
     },
     "logos-nix_224": {
       "inputs": {
-        "nixpkgs": "nixpkgs_230"
+        "nixpkgs": "nixpkgs_231"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13243,7 +13418,7 @@
     },
     "logos-nix_225": {
       "inputs": {
-        "nixpkgs": "nixpkgs_231"
+        "nixpkgs": "nixpkgs_232"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13261,7 +13436,7 @@
     },
     "logos-nix_226": {
       "inputs": {
-        "nixpkgs": "nixpkgs_232"
+        "nixpkgs": "nixpkgs_233"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13279,7 +13454,7 @@
     },
     "logos-nix_227": {
       "inputs": {
-        "nixpkgs": "nixpkgs_233"
+        "nixpkgs": "nixpkgs_234"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13297,7 +13472,7 @@
     },
     "logos-nix_228": {
       "inputs": {
-        "nixpkgs": "nixpkgs_234"
+        "nixpkgs": "nixpkgs_235"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13315,7 +13490,7 @@
     },
     "logos-nix_229": {
       "inputs": {
-        "nixpkgs": "nixpkgs_235"
+        "nixpkgs": "nixpkgs_236"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13351,7 +13526,7 @@
     },
     "logos-nix_230": {
       "inputs": {
-        "nixpkgs": "nixpkgs_236"
+        "nixpkgs": "nixpkgs_237"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13369,7 +13544,7 @@
     },
     "logos-nix_231": {
       "inputs": {
-        "nixpkgs": "nixpkgs_237"
+        "nixpkgs": "nixpkgs_238"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13387,7 +13562,7 @@
     },
     "logos-nix_232": {
       "inputs": {
-        "nixpkgs": "nixpkgs_238"
+        "nixpkgs": "nixpkgs_239"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13405,7 +13580,7 @@
     },
     "logos-nix_233": {
       "inputs": {
-        "nixpkgs": "nixpkgs_239"
+        "nixpkgs": "nixpkgs_240"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13423,7 +13598,7 @@
     },
     "logos-nix_234": {
       "inputs": {
-        "nixpkgs": "nixpkgs_240"
+        "nixpkgs": "nixpkgs_241"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13441,7 +13616,7 @@
     },
     "logos-nix_235": {
       "inputs": {
-        "nixpkgs": "nixpkgs_241"
+        "nixpkgs": "nixpkgs_242"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13459,7 +13634,7 @@
     },
     "logos-nix_236": {
       "inputs": {
-        "nixpkgs": "nixpkgs_242"
+        "nixpkgs": "nixpkgs_243"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13477,7 +13652,7 @@
     },
     "logos-nix_237": {
       "inputs": {
-        "nixpkgs": "nixpkgs_243"
+        "nixpkgs": "nixpkgs_244"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13495,7 +13670,7 @@
     },
     "logos-nix_238": {
       "inputs": {
-        "nixpkgs": "nixpkgs_244"
+        "nixpkgs": "nixpkgs_245"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13513,7 +13688,7 @@
     },
     "logos-nix_239": {
       "inputs": {
-        "nixpkgs": "nixpkgs_245"
+        "nixpkgs": "nixpkgs_246"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13549,7 +13724,7 @@
     },
     "logos-nix_240": {
       "inputs": {
-        "nixpkgs": "nixpkgs_246"
+        "nixpkgs": "nixpkgs_247"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13567,7 +13742,7 @@
     },
     "logos-nix_241": {
       "inputs": {
-        "nixpkgs": "nixpkgs_247"
+        "nixpkgs": "nixpkgs_248"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13585,7 +13760,7 @@
     },
     "logos-nix_242": {
       "inputs": {
-        "nixpkgs": "nixpkgs_248"
+        "nixpkgs": "nixpkgs_249"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13603,7 +13778,7 @@
     },
     "logos-nix_243": {
       "inputs": {
-        "nixpkgs": "nixpkgs_249"
+        "nixpkgs": "nixpkgs_250"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13621,7 +13796,7 @@
     },
     "logos-nix_244": {
       "inputs": {
-        "nixpkgs": "nixpkgs_250"
+        "nixpkgs": "nixpkgs_251"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13639,7 +13814,7 @@
     },
     "logos-nix_245": {
       "inputs": {
-        "nixpkgs": "nixpkgs_251"
+        "nixpkgs": "nixpkgs_252"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13657,7 +13832,7 @@
     },
     "logos-nix_246": {
       "inputs": {
-        "nixpkgs": "nixpkgs_252"
+        "nixpkgs": "nixpkgs_253"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13675,7 +13850,7 @@
     },
     "logos-nix_247": {
       "inputs": {
-        "nixpkgs": "nixpkgs_253"
+        "nixpkgs": "nixpkgs_254"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13693,7 +13868,7 @@
     },
     "logos-nix_248": {
       "inputs": {
-        "nixpkgs": "nixpkgs_254"
+        "nixpkgs": "nixpkgs_255"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13711,7 +13886,7 @@
     },
     "logos-nix_249": {
       "inputs": {
-        "nixpkgs": "nixpkgs_255"
+        "nixpkgs": "nixpkgs_256"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13747,7 +13922,7 @@
     },
     "logos-nix_250": {
       "inputs": {
-        "nixpkgs": "nixpkgs_256"
+        "nixpkgs": "nixpkgs_257"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13765,7 +13940,7 @@
     },
     "logos-nix_251": {
       "inputs": {
-        "nixpkgs": "nixpkgs_257"
+        "nixpkgs": "nixpkgs_258"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13783,7 +13958,7 @@
     },
     "logos-nix_252": {
       "inputs": {
-        "nixpkgs": "nixpkgs_258"
+        "nixpkgs": "nixpkgs_259"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13801,7 +13976,7 @@
     },
     "logos-nix_253": {
       "inputs": {
-        "nixpkgs": "nixpkgs_259"
+        "nixpkgs": "nixpkgs_260"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13819,7 +13994,7 @@
     },
     "logos-nix_254": {
       "inputs": {
-        "nixpkgs": "nixpkgs_260"
+        "nixpkgs": "nixpkgs_261"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13837,7 +14012,7 @@
     },
     "logos-nix_255": {
       "inputs": {
-        "nixpkgs": "nixpkgs_261"
+        "nixpkgs": "nixpkgs_262"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13855,7 +14030,7 @@
     },
     "logos-nix_256": {
       "inputs": {
-        "nixpkgs": "nixpkgs_262"
+        "nixpkgs": "nixpkgs_263"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13873,7 +14048,7 @@
     },
     "logos-nix_257": {
       "inputs": {
-        "nixpkgs": "nixpkgs_263"
+        "nixpkgs": "nixpkgs_264"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13891,7 +14066,7 @@
     },
     "logos-nix_258": {
       "inputs": {
-        "nixpkgs": "nixpkgs_264"
+        "nixpkgs": "nixpkgs_265"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13909,7 +14084,7 @@
     },
     "logos-nix_259": {
       "inputs": {
-        "nixpkgs": "nixpkgs_265"
+        "nixpkgs": "nixpkgs_266"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13945,7 +14120,7 @@
     },
     "logos-nix_260": {
       "inputs": {
-        "nixpkgs": "nixpkgs_266"
+        "nixpkgs": "nixpkgs_267"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -13963,7 +14138,7 @@
     },
     "logos-nix_261": {
       "inputs": {
-        "nixpkgs": "nixpkgs_267"
+        "nixpkgs": "nixpkgs_268"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13981,7 +14156,7 @@
     },
     "logos-nix_262": {
       "inputs": {
-        "nixpkgs": "nixpkgs_268"
+        "nixpkgs": "nixpkgs_269"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -13999,7 +14174,7 @@
     },
     "logos-nix_263": {
       "inputs": {
-        "nixpkgs": "nixpkgs_269"
+        "nixpkgs": "nixpkgs_270"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14017,7 +14192,7 @@
     },
     "logos-nix_264": {
       "inputs": {
-        "nixpkgs": "nixpkgs_270"
+        "nixpkgs": "nixpkgs_271"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14035,7 +14210,7 @@
     },
     "logos-nix_265": {
       "inputs": {
-        "nixpkgs": "nixpkgs_271"
+        "nixpkgs": "nixpkgs_272"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14053,7 +14228,7 @@
     },
     "logos-nix_266": {
       "inputs": {
-        "nixpkgs": "nixpkgs_272"
+        "nixpkgs": "nixpkgs_273"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14071,7 +14246,7 @@
     },
     "logos-nix_267": {
       "inputs": {
-        "nixpkgs": "nixpkgs_273"
+        "nixpkgs": "nixpkgs_274"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14089,7 +14264,7 @@
     },
     "logos-nix_268": {
       "inputs": {
-        "nixpkgs": "nixpkgs_274"
+        "nixpkgs": "nixpkgs_275"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14107,7 +14282,7 @@
     },
     "logos-nix_269": {
       "inputs": {
-        "nixpkgs": "nixpkgs_275"
+        "nixpkgs": "nixpkgs_276"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14143,7 +14318,7 @@
     },
     "logos-nix_270": {
       "inputs": {
-        "nixpkgs": "nixpkgs_276"
+        "nixpkgs": "nixpkgs_277"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14161,7 +14336,7 @@
     },
     "logos-nix_271": {
       "inputs": {
-        "nixpkgs": "nixpkgs_277"
+        "nixpkgs": "nixpkgs_278"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14179,7 +14354,7 @@
     },
     "logos-nix_272": {
       "inputs": {
-        "nixpkgs": "nixpkgs_278"
+        "nixpkgs": "nixpkgs_279"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14197,7 +14372,7 @@
     },
     "logos-nix_273": {
       "inputs": {
-        "nixpkgs": "nixpkgs_279"
+        "nixpkgs": "nixpkgs_280"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14215,7 +14390,7 @@
     },
     "logos-nix_274": {
       "inputs": {
-        "nixpkgs": "nixpkgs_280"
+        "nixpkgs": "nixpkgs_281"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14233,7 +14408,7 @@
     },
     "logos-nix_275": {
       "inputs": {
-        "nixpkgs": "nixpkgs_281"
+        "nixpkgs": "nixpkgs_282"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14251,7 +14426,7 @@
     },
     "logos-nix_276": {
       "inputs": {
-        "nixpkgs": "nixpkgs_282"
+        "nixpkgs": "nixpkgs_283"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14269,7 +14444,7 @@
     },
     "logos-nix_277": {
       "inputs": {
-        "nixpkgs": "nixpkgs_283"
+        "nixpkgs": "nixpkgs_284"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14287,7 +14462,7 @@
     },
     "logos-nix_278": {
       "inputs": {
-        "nixpkgs": "nixpkgs_284"
+        "nixpkgs": "nixpkgs_285"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14305,7 +14480,7 @@
     },
     "logos-nix_279": {
       "inputs": {
-        "nixpkgs": "nixpkgs_285"
+        "nixpkgs": "nixpkgs_286"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14341,7 +14516,7 @@
     },
     "logos-nix_280": {
       "inputs": {
-        "nixpkgs": "nixpkgs_286"
+        "nixpkgs": "nixpkgs_287"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14359,7 +14534,7 @@
     },
     "logos-nix_281": {
       "inputs": {
-        "nixpkgs": "nixpkgs_287"
+        "nixpkgs": "nixpkgs_288"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14377,7 +14552,7 @@
     },
     "logos-nix_282": {
       "inputs": {
-        "nixpkgs": "nixpkgs_288"
+        "nixpkgs": "nixpkgs_289"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14395,7 +14570,7 @@
     },
     "logos-nix_283": {
       "inputs": {
-        "nixpkgs": "nixpkgs_289"
+        "nixpkgs": "nixpkgs_290"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14413,7 +14588,7 @@
     },
     "logos-nix_284": {
       "inputs": {
-        "nixpkgs": "nixpkgs_290"
+        "nixpkgs": "nixpkgs_291"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14431,7 +14606,7 @@
     },
     "logos-nix_285": {
       "inputs": {
-        "nixpkgs": "nixpkgs_291"
+        "nixpkgs": "nixpkgs_292"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14449,7 +14624,7 @@
     },
     "logos-nix_286": {
       "inputs": {
-        "nixpkgs": "nixpkgs_292"
+        "nixpkgs": "nixpkgs_293"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14467,7 +14642,7 @@
     },
     "logos-nix_287": {
       "inputs": {
-        "nixpkgs": "nixpkgs_293"
+        "nixpkgs": "nixpkgs_294"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14485,7 +14660,7 @@
     },
     "logos-nix_288": {
       "inputs": {
-        "nixpkgs": "nixpkgs_294"
+        "nixpkgs": "nixpkgs_295"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14503,7 +14678,7 @@
     },
     "logos-nix_289": {
       "inputs": {
-        "nixpkgs": "nixpkgs_295"
+        "nixpkgs": "nixpkgs_296"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14539,7 +14714,7 @@
     },
     "logos-nix_290": {
       "inputs": {
-        "nixpkgs": "nixpkgs_296"
+        "nixpkgs": "nixpkgs_297"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14557,7 +14732,7 @@
     },
     "logos-nix_291": {
       "inputs": {
-        "nixpkgs": "nixpkgs_297"
+        "nixpkgs": "nixpkgs_298"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14575,7 +14750,7 @@
     },
     "logos-nix_292": {
       "inputs": {
-        "nixpkgs": "nixpkgs_298"
+        "nixpkgs": "nixpkgs_299"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14593,7 +14768,7 @@
     },
     "logos-nix_293": {
       "inputs": {
-        "nixpkgs": "nixpkgs_299"
+        "nixpkgs": "nixpkgs_300"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14611,7 +14786,7 @@
     },
     "logos-nix_294": {
       "inputs": {
-        "nixpkgs": "nixpkgs_300"
+        "nixpkgs": "nixpkgs_301"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14629,7 +14804,7 @@
     },
     "logos-nix_295": {
       "inputs": {
-        "nixpkgs": "nixpkgs_301"
+        "nixpkgs": "nixpkgs_302"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14647,7 +14822,7 @@
     },
     "logos-nix_296": {
       "inputs": {
-        "nixpkgs": "nixpkgs_302"
+        "nixpkgs": "nixpkgs_303"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14665,7 +14840,7 @@
     },
     "logos-nix_297": {
       "inputs": {
-        "nixpkgs": "nixpkgs_303"
+        "nixpkgs": "nixpkgs_304"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14683,7 +14858,7 @@
     },
     "logos-nix_298": {
       "inputs": {
-        "nixpkgs": "nixpkgs_304"
+        "nixpkgs": "nixpkgs_305"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14701,7 +14876,7 @@
     },
     "logos-nix_299": {
       "inputs": {
-        "nixpkgs": "nixpkgs_305"
+        "nixpkgs": "nixpkgs_306"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14755,7 +14930,7 @@
     },
     "logos-nix_300": {
       "inputs": {
-        "nixpkgs": "nixpkgs_306"
+        "nixpkgs": "nixpkgs_307"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14773,7 +14948,7 @@
     },
     "logos-nix_301": {
       "inputs": {
-        "nixpkgs": "nixpkgs_307"
+        "nixpkgs": "nixpkgs_308"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14791,7 +14966,7 @@
     },
     "logos-nix_302": {
       "inputs": {
-        "nixpkgs": "nixpkgs_308"
+        "nixpkgs": "nixpkgs_309"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14809,7 +14984,7 @@
     },
     "logos-nix_303": {
       "inputs": {
-        "nixpkgs": "nixpkgs_309"
+        "nixpkgs": "nixpkgs_310"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14827,7 +15002,7 @@
     },
     "logos-nix_304": {
       "inputs": {
-        "nixpkgs": "nixpkgs_310"
+        "nixpkgs": "nixpkgs_311"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14845,7 +15020,7 @@
     },
     "logos-nix_305": {
       "inputs": {
-        "nixpkgs": "nixpkgs_311"
+        "nixpkgs": "nixpkgs_312"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14863,7 +15038,7 @@
     },
     "logos-nix_306": {
       "inputs": {
-        "nixpkgs": "nixpkgs_312"
+        "nixpkgs": "nixpkgs_313"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14881,7 +15056,7 @@
     },
     "logos-nix_307": {
       "inputs": {
-        "nixpkgs": "nixpkgs_313"
+        "nixpkgs": "nixpkgs_314"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14899,7 +15074,7 @@
     },
     "logos-nix_308": {
       "inputs": {
-        "nixpkgs": "nixpkgs_314"
+        "nixpkgs": "nixpkgs_315"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14917,7 +15092,7 @@
     },
     "logos-nix_309": {
       "inputs": {
-        "nixpkgs": "nixpkgs_315"
+        "nixpkgs": "nixpkgs_316"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -14953,7 +15128,7 @@
     },
     "logos-nix_310": {
       "inputs": {
-        "nixpkgs": "nixpkgs_316"
+        "nixpkgs": "nixpkgs_317"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14971,7 +15146,7 @@
     },
     "logos-nix_311": {
       "inputs": {
-        "nixpkgs": "nixpkgs_317"
+        "nixpkgs": "nixpkgs_318"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -14989,7 +15164,7 @@
     },
     "logos-nix_312": {
       "inputs": {
-        "nixpkgs": "nixpkgs_318"
+        "nixpkgs": "nixpkgs_319"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15007,7 +15182,7 @@
     },
     "logos-nix_313": {
       "inputs": {
-        "nixpkgs": "nixpkgs_319"
+        "nixpkgs": "nixpkgs_320"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15025,7 +15200,7 @@
     },
     "logos-nix_314": {
       "inputs": {
-        "nixpkgs": "nixpkgs_320"
+        "nixpkgs": "nixpkgs_321"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15043,7 +15218,7 @@
     },
     "logos-nix_315": {
       "inputs": {
-        "nixpkgs": "nixpkgs_321"
+        "nixpkgs": "nixpkgs_322"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15061,7 +15236,7 @@
     },
     "logos-nix_316": {
       "inputs": {
-        "nixpkgs": "nixpkgs_322"
+        "nixpkgs": "nixpkgs_323"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15079,7 +15254,7 @@
     },
     "logos-nix_317": {
       "inputs": {
-        "nixpkgs": "nixpkgs_323"
+        "nixpkgs": "nixpkgs_324"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15097,7 +15272,7 @@
     },
     "logos-nix_318": {
       "inputs": {
-        "nixpkgs": "nixpkgs_324"
+        "nixpkgs": "nixpkgs_325"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15115,7 +15290,7 @@
     },
     "logos-nix_319": {
       "inputs": {
-        "nixpkgs": "nixpkgs_325"
+        "nixpkgs": "nixpkgs_326"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15151,7 +15326,7 @@
     },
     "logos-nix_320": {
       "inputs": {
-        "nixpkgs": "nixpkgs_326"
+        "nixpkgs": "nixpkgs_327"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15169,7 +15344,7 @@
     },
     "logos-nix_321": {
       "inputs": {
-        "nixpkgs": "nixpkgs_327"
+        "nixpkgs": "nixpkgs_328"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15187,7 +15362,7 @@
     },
     "logos-nix_322": {
       "inputs": {
-        "nixpkgs": "nixpkgs_328"
+        "nixpkgs": "nixpkgs_329"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15205,7 +15380,7 @@
     },
     "logos-nix_323": {
       "inputs": {
-        "nixpkgs": "nixpkgs_329"
+        "nixpkgs": "nixpkgs_330"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15223,7 +15398,7 @@
     },
     "logos-nix_324": {
       "inputs": {
-        "nixpkgs": "nixpkgs_330"
+        "nixpkgs": "nixpkgs_331"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15241,7 +15416,7 @@
     },
     "logos-nix_325": {
       "inputs": {
-        "nixpkgs": "nixpkgs_331"
+        "nixpkgs": "nixpkgs_332"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15259,7 +15434,7 @@
     },
     "logos-nix_326": {
       "inputs": {
-        "nixpkgs": "nixpkgs_332"
+        "nixpkgs": "nixpkgs_333"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15277,7 +15452,7 @@
     },
     "logos-nix_327": {
       "inputs": {
-        "nixpkgs": "nixpkgs_333"
+        "nixpkgs": "nixpkgs_334"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15295,7 +15470,7 @@
     },
     "logos-nix_328": {
       "inputs": {
-        "nixpkgs": "nixpkgs_334"
+        "nixpkgs": "nixpkgs_335"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15313,7 +15488,7 @@
     },
     "logos-nix_329": {
       "inputs": {
-        "nixpkgs": "nixpkgs_335"
+        "nixpkgs": "nixpkgs_336"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15349,7 +15524,7 @@
     },
     "logos-nix_330": {
       "inputs": {
-        "nixpkgs": "nixpkgs_336"
+        "nixpkgs": "nixpkgs_337"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15367,7 +15542,7 @@
     },
     "logos-nix_331": {
       "inputs": {
-        "nixpkgs": "nixpkgs_337"
+        "nixpkgs": "nixpkgs_338"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15385,7 +15560,7 @@
     },
     "logos-nix_332": {
       "inputs": {
-        "nixpkgs": "nixpkgs_338"
+        "nixpkgs": "nixpkgs_339"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15403,7 +15578,7 @@
     },
     "logos-nix_333": {
       "inputs": {
-        "nixpkgs": "nixpkgs_339"
+        "nixpkgs": "nixpkgs_340"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15421,7 +15596,7 @@
     },
     "logos-nix_334": {
       "inputs": {
-        "nixpkgs": "nixpkgs_340"
+        "nixpkgs": "nixpkgs_341"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15439,7 +15614,7 @@
     },
     "logos-nix_335": {
       "inputs": {
-        "nixpkgs": "nixpkgs_341"
+        "nixpkgs": "nixpkgs_342"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15457,7 +15632,7 @@
     },
     "logos-nix_336": {
       "inputs": {
-        "nixpkgs": "nixpkgs_342"
+        "nixpkgs": "nixpkgs_343"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15475,7 +15650,7 @@
     },
     "logos-nix_337": {
       "inputs": {
-        "nixpkgs": "nixpkgs_343"
+        "nixpkgs": "nixpkgs_344"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15493,7 +15668,7 @@
     },
     "logos-nix_338": {
       "inputs": {
-        "nixpkgs": "nixpkgs_344"
+        "nixpkgs": "nixpkgs_345"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15511,7 +15686,7 @@
     },
     "logos-nix_339": {
       "inputs": {
-        "nixpkgs": "nixpkgs_345"
+        "nixpkgs": "nixpkgs_346"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15547,7 +15722,7 @@
     },
     "logos-nix_340": {
       "inputs": {
-        "nixpkgs": "nixpkgs_346"
+        "nixpkgs": "nixpkgs_347"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15565,7 +15740,7 @@
     },
     "logos-nix_341": {
       "inputs": {
-        "nixpkgs": "nixpkgs_347"
+        "nixpkgs": "nixpkgs_348"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15583,7 +15758,7 @@
     },
     "logos-nix_342": {
       "inputs": {
-        "nixpkgs": "nixpkgs_348"
+        "nixpkgs": "nixpkgs_349"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15601,7 +15776,7 @@
     },
     "logos-nix_343": {
       "inputs": {
-        "nixpkgs": "nixpkgs_349"
+        "nixpkgs": "nixpkgs_350"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15619,7 +15794,7 @@
     },
     "logos-nix_344": {
       "inputs": {
-        "nixpkgs": "nixpkgs_350"
+        "nixpkgs": "nixpkgs_351"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15637,7 +15812,7 @@
     },
     "logos-nix_345": {
       "inputs": {
-        "nixpkgs": "nixpkgs_351"
+        "nixpkgs": "nixpkgs_352"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15655,7 +15830,7 @@
     },
     "logos-nix_346": {
       "inputs": {
-        "nixpkgs": "nixpkgs_352"
+        "nixpkgs": "nixpkgs_353"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15673,7 +15848,7 @@
     },
     "logos-nix_347": {
       "inputs": {
-        "nixpkgs": "nixpkgs_353"
+        "nixpkgs": "nixpkgs_354"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15691,7 +15866,7 @@
     },
     "logos-nix_348": {
       "inputs": {
-        "nixpkgs": "nixpkgs_354"
+        "nixpkgs": "nixpkgs_355"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15709,7 +15884,7 @@
     },
     "logos-nix_349": {
       "inputs": {
-        "nixpkgs": "nixpkgs_355"
+        "nixpkgs": "nixpkgs_356"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15745,7 +15920,7 @@
     },
     "logos-nix_350": {
       "inputs": {
-        "nixpkgs": "nixpkgs_356"
+        "nixpkgs": "nixpkgs_357"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15763,7 +15938,7 @@
     },
     "logos-nix_351": {
       "inputs": {
-        "nixpkgs": "nixpkgs_357"
+        "nixpkgs": "nixpkgs_358"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15781,7 +15956,7 @@
     },
     "logos-nix_352": {
       "inputs": {
-        "nixpkgs": "nixpkgs_358"
+        "nixpkgs": "nixpkgs_359"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15799,7 +15974,7 @@
     },
     "logos-nix_353": {
       "inputs": {
-        "nixpkgs": "nixpkgs_359"
+        "nixpkgs": "nixpkgs_360"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15817,7 +15992,7 @@
     },
     "logos-nix_354": {
       "inputs": {
-        "nixpkgs": "nixpkgs_360"
+        "nixpkgs": "nixpkgs_361"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15835,7 +16010,7 @@
     },
     "logos-nix_355": {
       "inputs": {
-        "nixpkgs": "nixpkgs_361"
+        "nixpkgs": "nixpkgs_362"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15853,7 +16028,7 @@
     },
     "logos-nix_356": {
       "inputs": {
-        "nixpkgs": "nixpkgs_362"
+        "nixpkgs": "nixpkgs_363"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15871,7 +16046,7 @@
     },
     "logos-nix_357": {
       "inputs": {
-        "nixpkgs": "nixpkgs_363"
+        "nixpkgs": "nixpkgs_364"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15889,7 +16064,7 @@
     },
     "logos-nix_358": {
       "inputs": {
-        "nixpkgs": "nixpkgs_364"
+        "nixpkgs": "nixpkgs_365"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15907,7 +16082,7 @@
     },
     "logos-nix_359": {
       "inputs": {
-        "nixpkgs": "nixpkgs_365"
+        "nixpkgs": "nixpkgs_366"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15943,7 +16118,7 @@
     },
     "logos-nix_360": {
       "inputs": {
-        "nixpkgs": "nixpkgs_366"
+        "nixpkgs": "nixpkgs_367"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15961,7 +16136,7 @@
     },
     "logos-nix_361": {
       "inputs": {
-        "nixpkgs": "nixpkgs_367"
+        "nixpkgs": "nixpkgs_368"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -15979,7 +16154,7 @@
     },
     "logos-nix_362": {
       "inputs": {
-        "nixpkgs": "nixpkgs_368"
+        "nixpkgs": "nixpkgs_369"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -15997,7 +16172,7 @@
     },
     "logos-nix_363": {
       "inputs": {
-        "nixpkgs": "nixpkgs_369"
+        "nixpkgs": "nixpkgs_370"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16015,7 +16190,7 @@
     },
     "logos-nix_364": {
       "inputs": {
-        "nixpkgs": "nixpkgs_370"
+        "nixpkgs": "nixpkgs_371"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16033,7 +16208,7 @@
     },
     "logos-nix_365": {
       "inputs": {
-        "nixpkgs": "nixpkgs_371"
+        "nixpkgs": "nixpkgs_372"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16051,7 +16226,7 @@
     },
     "logos-nix_366": {
       "inputs": {
-        "nixpkgs": "nixpkgs_372"
+        "nixpkgs": "nixpkgs_373"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16069,7 +16244,7 @@
     },
     "logos-nix_367": {
       "inputs": {
-        "nixpkgs": "nixpkgs_373"
+        "nixpkgs": "nixpkgs_374"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16087,7 +16262,7 @@
     },
     "logos-nix_368": {
       "inputs": {
-        "nixpkgs": "nixpkgs_374"
+        "nixpkgs": "nixpkgs_375"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16105,7 +16280,7 @@
     },
     "logos-nix_369": {
       "inputs": {
-        "nixpkgs": "nixpkgs_375"
+        "nixpkgs": "nixpkgs_376"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16141,7 +16316,7 @@
     },
     "logos-nix_370": {
       "inputs": {
-        "nixpkgs": "nixpkgs_376"
+        "nixpkgs": "nixpkgs_377"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16159,7 +16334,7 @@
     },
     "logos-nix_371": {
       "inputs": {
-        "nixpkgs": "nixpkgs_377"
+        "nixpkgs": "nixpkgs_378"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16177,7 +16352,7 @@
     },
     "logos-nix_372": {
       "inputs": {
-        "nixpkgs": "nixpkgs_378"
+        "nixpkgs": "nixpkgs_379"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16195,7 +16370,7 @@
     },
     "logos-nix_373": {
       "inputs": {
-        "nixpkgs": "nixpkgs_379"
+        "nixpkgs": "nixpkgs_380"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16213,7 +16388,7 @@
     },
     "logos-nix_374": {
       "inputs": {
-        "nixpkgs": "nixpkgs_380"
+        "nixpkgs": "nixpkgs_381"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16231,7 +16406,7 @@
     },
     "logos-nix_375": {
       "inputs": {
-        "nixpkgs": "nixpkgs_381"
+        "nixpkgs": "nixpkgs_382"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16249,7 +16424,7 @@
     },
     "logos-nix_376": {
       "inputs": {
-        "nixpkgs": "nixpkgs_382"
+        "nixpkgs": "nixpkgs_383"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16267,7 +16442,7 @@
     },
     "logos-nix_377": {
       "inputs": {
-        "nixpkgs": "nixpkgs_383"
+        "nixpkgs": "nixpkgs_384"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16285,7 +16460,7 @@
     },
     "logos-nix_378": {
       "inputs": {
-        "nixpkgs": "nixpkgs_384"
+        "nixpkgs": "nixpkgs_385"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16303,7 +16478,7 @@
     },
     "logos-nix_379": {
       "inputs": {
-        "nixpkgs": "nixpkgs_385"
+        "nixpkgs": "nixpkgs_386"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16339,7 +16514,7 @@
     },
     "logos-nix_380": {
       "inputs": {
-        "nixpkgs": "nixpkgs_386"
+        "nixpkgs": "nixpkgs_387"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16357,7 +16532,7 @@
     },
     "logos-nix_381": {
       "inputs": {
-        "nixpkgs": "nixpkgs_387"
+        "nixpkgs": "nixpkgs_388"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16375,7 +16550,7 @@
     },
     "logos-nix_382": {
       "inputs": {
-        "nixpkgs": "nixpkgs_388"
+        "nixpkgs": "nixpkgs_389"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16393,7 +16568,7 @@
     },
     "logos-nix_383": {
       "inputs": {
-        "nixpkgs": "nixpkgs_389"
+        "nixpkgs": "nixpkgs_390"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16411,7 +16586,7 @@
     },
     "logos-nix_384": {
       "inputs": {
-        "nixpkgs": "nixpkgs_390"
+        "nixpkgs": "nixpkgs_391"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16429,7 +16604,7 @@
     },
     "logos-nix_385": {
       "inputs": {
-        "nixpkgs": "nixpkgs_391"
+        "nixpkgs": "nixpkgs_392"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16447,7 +16622,7 @@
     },
     "logos-nix_386": {
       "inputs": {
-        "nixpkgs": "nixpkgs_392"
+        "nixpkgs": "nixpkgs_393"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16465,7 +16640,7 @@
     },
     "logos-nix_387": {
       "inputs": {
-        "nixpkgs": "nixpkgs_393"
+        "nixpkgs": "nixpkgs_394"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16483,7 +16658,7 @@
     },
     "logos-nix_388": {
       "inputs": {
-        "nixpkgs": "nixpkgs_394"
+        "nixpkgs": "nixpkgs_395"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16501,7 +16676,7 @@
     },
     "logos-nix_389": {
       "inputs": {
-        "nixpkgs": "nixpkgs_395"
+        "nixpkgs": "nixpkgs_396"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16537,7 +16712,7 @@
     },
     "logos-nix_390": {
       "inputs": {
-        "nixpkgs": "nixpkgs_396"
+        "nixpkgs": "nixpkgs_397"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16555,7 +16730,7 @@
     },
     "logos-nix_391": {
       "inputs": {
-        "nixpkgs": "nixpkgs_397"
+        "nixpkgs": "nixpkgs_398"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16573,7 +16748,7 @@
     },
     "logos-nix_392": {
       "inputs": {
-        "nixpkgs": "nixpkgs_398"
+        "nixpkgs": "nixpkgs_399"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16591,7 +16766,7 @@
     },
     "logos-nix_393": {
       "inputs": {
-        "nixpkgs": "nixpkgs_399"
+        "nixpkgs": "nixpkgs_400"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16609,7 +16784,7 @@
     },
     "logos-nix_394": {
       "inputs": {
-        "nixpkgs": "nixpkgs_400"
+        "nixpkgs": "nixpkgs_401"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16627,7 +16802,7 @@
     },
     "logos-nix_395": {
       "inputs": {
-        "nixpkgs": "nixpkgs_401"
+        "nixpkgs": "nixpkgs_402"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16645,7 +16820,7 @@
     },
     "logos-nix_396": {
       "inputs": {
-        "nixpkgs": "nixpkgs_402"
+        "nixpkgs": "nixpkgs_403"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16663,7 +16838,7 @@
     },
     "logos-nix_397": {
       "inputs": {
-        "nixpkgs": "nixpkgs_403"
+        "nixpkgs": "nixpkgs_404"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16681,7 +16856,7 @@
     },
     "logos-nix_398": {
       "inputs": {
-        "nixpkgs": "nixpkgs_404"
+        "nixpkgs": "nixpkgs_405"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16699,7 +16874,7 @@
     },
     "logos-nix_399": {
       "inputs": {
-        "nixpkgs": "nixpkgs_405"
+        "nixpkgs": "nixpkgs_406"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16753,7 +16928,7 @@
     },
     "logos-nix_400": {
       "inputs": {
-        "nixpkgs": "nixpkgs_406"
+        "nixpkgs": "nixpkgs_407"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16771,7 +16946,7 @@
     },
     "logos-nix_401": {
       "inputs": {
-        "nixpkgs": "nixpkgs_407"
+        "nixpkgs": "nixpkgs_408"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16789,7 +16964,7 @@
     },
     "logos-nix_402": {
       "inputs": {
-        "nixpkgs": "nixpkgs_408"
+        "nixpkgs": "nixpkgs_409"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16807,7 +16982,7 @@
     },
     "logos-nix_403": {
       "inputs": {
-        "nixpkgs": "nixpkgs_409"
+        "nixpkgs": "nixpkgs_410"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16825,7 +17000,7 @@
     },
     "logos-nix_404": {
       "inputs": {
-        "nixpkgs": "nixpkgs_410"
+        "nixpkgs": "nixpkgs_411"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16843,7 +17018,7 @@
     },
     "logos-nix_405": {
       "inputs": {
-        "nixpkgs": "nixpkgs_411"
+        "nixpkgs": "nixpkgs_412"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16861,7 +17036,7 @@
     },
     "logos-nix_406": {
       "inputs": {
-        "nixpkgs": "nixpkgs_412"
+        "nixpkgs": "nixpkgs_413"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16879,7 +17054,7 @@
     },
     "logos-nix_407": {
       "inputs": {
-        "nixpkgs": "nixpkgs_413"
+        "nixpkgs": "nixpkgs_414"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16897,7 +17072,7 @@
     },
     "logos-nix_408": {
       "inputs": {
-        "nixpkgs": "nixpkgs_414"
+        "nixpkgs": "nixpkgs_415"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -16915,7 +17090,7 @@
     },
     "logos-nix_409": {
       "inputs": {
-        "nixpkgs": "nixpkgs_415"
+        "nixpkgs": "nixpkgs_416"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16951,7 +17126,7 @@
     },
     "logos-nix_410": {
       "inputs": {
-        "nixpkgs": "nixpkgs_416"
+        "nixpkgs": "nixpkgs_417"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16969,7 +17144,7 @@
     },
     "logos-nix_411": {
       "inputs": {
-        "nixpkgs": "nixpkgs_417"
+        "nixpkgs": "nixpkgs_418"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -16987,7 +17162,7 @@
     },
     "logos-nix_412": {
       "inputs": {
-        "nixpkgs": "nixpkgs_418"
+        "nixpkgs": "nixpkgs_419"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17005,7 +17180,7 @@
     },
     "logos-nix_413": {
       "inputs": {
-        "nixpkgs": "nixpkgs_419"
+        "nixpkgs": "nixpkgs_420"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17023,7 +17198,7 @@
     },
     "logos-nix_414": {
       "inputs": {
-        "nixpkgs": "nixpkgs_420"
+        "nixpkgs": "nixpkgs_421"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17041,7 +17216,7 @@
     },
     "logos-nix_415": {
       "inputs": {
-        "nixpkgs": "nixpkgs_421"
+        "nixpkgs": "nixpkgs_422"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17059,7 +17234,7 @@
     },
     "logos-nix_416": {
       "inputs": {
-        "nixpkgs": "nixpkgs_422"
+        "nixpkgs": "nixpkgs_423"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17077,7 +17252,7 @@
     },
     "logos-nix_417": {
       "inputs": {
-        "nixpkgs": "nixpkgs_423"
+        "nixpkgs": "nixpkgs_424"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17095,7 +17270,7 @@
     },
     "logos-nix_418": {
       "inputs": {
-        "nixpkgs": "nixpkgs_424"
+        "nixpkgs": "nixpkgs_425"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17113,7 +17288,7 @@
     },
     "logos-nix_419": {
       "inputs": {
-        "nixpkgs": "nixpkgs_425"
+        "nixpkgs": "nixpkgs_426"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17149,7 +17324,7 @@
     },
     "logos-nix_420": {
       "inputs": {
-        "nixpkgs": "nixpkgs_426"
+        "nixpkgs": "nixpkgs_427"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17167,7 +17342,7 @@
     },
     "logos-nix_421": {
       "inputs": {
-        "nixpkgs": "nixpkgs_427"
+        "nixpkgs": "nixpkgs_428"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17185,7 +17360,7 @@
     },
     "logos-nix_422": {
       "inputs": {
-        "nixpkgs": "nixpkgs_428"
+        "nixpkgs": "nixpkgs_429"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17203,7 +17378,7 @@
     },
     "logos-nix_423": {
       "inputs": {
-        "nixpkgs": "nixpkgs_429"
+        "nixpkgs": "nixpkgs_430"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17221,7 +17396,7 @@
     },
     "logos-nix_424": {
       "inputs": {
-        "nixpkgs": "nixpkgs_430"
+        "nixpkgs": "nixpkgs_431"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17239,7 +17414,7 @@
     },
     "logos-nix_425": {
       "inputs": {
-        "nixpkgs": "nixpkgs_431"
+        "nixpkgs": "nixpkgs_432"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17257,7 +17432,7 @@
     },
     "logos-nix_426": {
       "inputs": {
-        "nixpkgs": "nixpkgs_432"
+        "nixpkgs": "nixpkgs_433"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17275,7 +17450,7 @@
     },
     "logos-nix_427": {
       "inputs": {
-        "nixpkgs": "nixpkgs_433"
+        "nixpkgs": "nixpkgs_434"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17293,7 +17468,7 @@
     },
     "logos-nix_428": {
       "inputs": {
-        "nixpkgs": "nixpkgs_434"
+        "nixpkgs": "nixpkgs_435"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17311,7 +17486,7 @@
     },
     "logos-nix_429": {
       "inputs": {
-        "nixpkgs": "nixpkgs_435"
+        "nixpkgs": "nixpkgs_436"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17347,7 +17522,7 @@
     },
     "logos-nix_430": {
       "inputs": {
-        "nixpkgs": "nixpkgs_436"
+        "nixpkgs": "nixpkgs_437"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17365,7 +17540,7 @@
     },
     "logos-nix_431": {
       "inputs": {
-        "nixpkgs": "nixpkgs_437"
+        "nixpkgs": "nixpkgs_438"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17383,7 +17558,7 @@
     },
     "logos-nix_432": {
       "inputs": {
-        "nixpkgs": "nixpkgs_438"
+        "nixpkgs": "nixpkgs_439"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17401,7 +17576,7 @@
     },
     "logos-nix_433": {
       "inputs": {
-        "nixpkgs": "nixpkgs_439"
+        "nixpkgs": "nixpkgs_440"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17419,7 +17594,7 @@
     },
     "logos-nix_434": {
       "inputs": {
-        "nixpkgs": "nixpkgs_440"
+        "nixpkgs": "nixpkgs_441"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17437,7 +17612,7 @@
     },
     "logos-nix_435": {
       "inputs": {
-        "nixpkgs": "nixpkgs_441"
+        "nixpkgs": "nixpkgs_442"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17455,7 +17630,7 @@
     },
     "logos-nix_436": {
       "inputs": {
-        "nixpkgs": "nixpkgs_442"
+        "nixpkgs": "nixpkgs_443"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17473,7 +17648,7 @@
     },
     "logos-nix_437": {
       "inputs": {
-        "nixpkgs": "nixpkgs_443"
+        "nixpkgs": "nixpkgs_444"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17491,7 +17666,7 @@
     },
     "logos-nix_438": {
       "inputs": {
-        "nixpkgs": "nixpkgs_444"
+        "nixpkgs": "nixpkgs_445"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17509,7 +17684,7 @@
     },
     "logos-nix_439": {
       "inputs": {
-        "nixpkgs": "nixpkgs_445"
+        "nixpkgs": "nixpkgs_446"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17545,7 +17720,7 @@
     },
     "logos-nix_440": {
       "inputs": {
-        "nixpkgs": "nixpkgs_446"
+        "nixpkgs": "nixpkgs_447"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17563,7 +17738,7 @@
     },
     "logos-nix_441": {
       "inputs": {
-        "nixpkgs": "nixpkgs_447"
+        "nixpkgs": "nixpkgs_448"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17581,7 +17756,7 @@
     },
     "logos-nix_442": {
       "inputs": {
-        "nixpkgs": "nixpkgs_448"
+        "nixpkgs": "nixpkgs_449"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17599,7 +17774,7 @@
     },
     "logos-nix_443": {
       "inputs": {
-        "nixpkgs": "nixpkgs_449"
+        "nixpkgs": "nixpkgs_450"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17617,7 +17792,7 @@
     },
     "logos-nix_444": {
       "inputs": {
-        "nixpkgs": "nixpkgs_450"
+        "nixpkgs": "nixpkgs_451"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17635,7 +17810,7 @@
     },
     "logos-nix_445": {
       "inputs": {
-        "nixpkgs": "nixpkgs_451"
+        "nixpkgs": "nixpkgs_452"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17653,7 +17828,7 @@
     },
     "logos-nix_446": {
       "inputs": {
-        "nixpkgs": "nixpkgs_452"
+        "nixpkgs": "nixpkgs_453"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17671,7 +17846,7 @@
     },
     "logos-nix_447": {
       "inputs": {
-        "nixpkgs": "nixpkgs_453"
+        "nixpkgs": "nixpkgs_454"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17689,7 +17864,7 @@
     },
     "logos-nix_448": {
       "inputs": {
-        "nixpkgs": "nixpkgs_454"
+        "nixpkgs": "nixpkgs_455"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17707,7 +17882,7 @@
     },
     "logos-nix_449": {
       "inputs": {
-        "nixpkgs": "nixpkgs_455"
+        "nixpkgs": "nixpkgs_456"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17743,7 +17918,7 @@
     },
     "logos-nix_450": {
       "inputs": {
-        "nixpkgs": "nixpkgs_456"
+        "nixpkgs": "nixpkgs_457"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17761,7 +17936,7 @@
     },
     "logos-nix_451": {
       "inputs": {
-        "nixpkgs": "nixpkgs_457"
+        "nixpkgs": "nixpkgs_458"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17779,7 +17954,7 @@
     },
     "logos-nix_452": {
       "inputs": {
-        "nixpkgs": "nixpkgs_458"
+        "nixpkgs": "nixpkgs_459"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17797,7 +17972,7 @@
     },
     "logos-nix_453": {
       "inputs": {
-        "nixpkgs": "nixpkgs_459"
+        "nixpkgs": "nixpkgs_460"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17815,7 +17990,7 @@
     },
     "logos-nix_454": {
       "inputs": {
-        "nixpkgs": "nixpkgs_460"
+        "nixpkgs": "nixpkgs_461"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17833,7 +18008,7 @@
     },
     "logos-nix_455": {
       "inputs": {
-        "nixpkgs": "nixpkgs_461"
+        "nixpkgs": "nixpkgs_462"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17851,7 +18026,7 @@
     },
     "logos-nix_456": {
       "inputs": {
-        "nixpkgs": "nixpkgs_462"
+        "nixpkgs": "nixpkgs_463"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17869,7 +18044,7 @@
     },
     "logos-nix_457": {
       "inputs": {
-        "nixpkgs": "nixpkgs_463"
+        "nixpkgs": "nixpkgs_464"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -17887,7 +18062,7 @@
     },
     "logos-nix_458": {
       "inputs": {
-        "nixpkgs": "nixpkgs_464"
+        "nixpkgs": "nixpkgs_465"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17905,7 +18080,7 @@
     },
     "logos-nix_459": {
       "inputs": {
-        "nixpkgs": "nixpkgs_465"
+        "nixpkgs": "nixpkgs_466"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17941,7 +18116,7 @@
     },
     "logos-nix_460": {
       "inputs": {
-        "nixpkgs": "nixpkgs_466"
+        "nixpkgs": "nixpkgs_467"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17959,7 +18134,7 @@
     },
     "logos-nix_461": {
       "inputs": {
-        "nixpkgs": "nixpkgs_467"
+        "nixpkgs": "nixpkgs_468"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17977,7 +18152,7 @@
     },
     "logos-nix_462": {
       "inputs": {
-        "nixpkgs": "nixpkgs_468"
+        "nixpkgs": "nixpkgs_469"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -17995,7 +18170,7 @@
     },
     "logos-nix_463": {
       "inputs": {
-        "nixpkgs": "nixpkgs_469"
+        "nixpkgs": "nixpkgs_470"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18013,7 +18188,7 @@
     },
     "logos-nix_464": {
       "inputs": {
-        "nixpkgs": "nixpkgs_470"
+        "nixpkgs": "nixpkgs_471"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18031,7 +18206,7 @@
     },
     "logos-nix_465": {
       "inputs": {
-        "nixpkgs": "nixpkgs_471"
+        "nixpkgs": "nixpkgs_472"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18049,7 +18224,7 @@
     },
     "logos-nix_466": {
       "inputs": {
-        "nixpkgs": "nixpkgs_472"
+        "nixpkgs": "nixpkgs_473"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18067,7 +18242,7 @@
     },
     "logos-nix_467": {
       "inputs": {
-        "nixpkgs": "nixpkgs_473"
+        "nixpkgs": "nixpkgs_474"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18085,7 +18260,7 @@
     },
     "logos-nix_468": {
       "inputs": {
-        "nixpkgs": "nixpkgs_474"
+        "nixpkgs": "nixpkgs_475"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18103,7 +18278,7 @@
     },
     "logos-nix_469": {
       "inputs": {
-        "nixpkgs": "nixpkgs_475"
+        "nixpkgs": "nixpkgs_476"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18139,7 +18314,7 @@
     },
     "logos-nix_470": {
       "inputs": {
-        "nixpkgs": "nixpkgs_476"
+        "nixpkgs": "nixpkgs_477"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18157,7 +18332,7 @@
     },
     "logos-nix_471": {
       "inputs": {
-        "nixpkgs": "nixpkgs_477"
+        "nixpkgs": "nixpkgs_478"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18175,7 +18350,7 @@
     },
     "logos-nix_472": {
       "inputs": {
-        "nixpkgs": "nixpkgs_478"
+        "nixpkgs": "nixpkgs_479"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18193,7 +18368,7 @@
     },
     "logos-nix_473": {
       "inputs": {
-        "nixpkgs": "nixpkgs_479"
+        "nixpkgs": "nixpkgs_480"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18211,7 +18386,7 @@
     },
     "logos-nix_474": {
       "inputs": {
-        "nixpkgs": "nixpkgs_480"
+        "nixpkgs": "nixpkgs_481"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18229,7 +18404,7 @@
     },
     "logos-nix_475": {
       "inputs": {
-        "nixpkgs": "nixpkgs_481"
+        "nixpkgs": "nixpkgs_482"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18247,7 +18422,7 @@
     },
     "logos-nix_476": {
       "inputs": {
-        "nixpkgs": "nixpkgs_482"
+        "nixpkgs": "nixpkgs_483"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18265,7 +18440,7 @@
     },
     "logos-nix_477": {
       "inputs": {
-        "nixpkgs": "nixpkgs_483"
+        "nixpkgs": "nixpkgs_484"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18283,7 +18458,7 @@
     },
     "logos-nix_478": {
       "inputs": {
-        "nixpkgs": "nixpkgs_484"
+        "nixpkgs": "nixpkgs_485"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18301,7 +18476,7 @@
     },
     "logos-nix_479": {
       "inputs": {
-        "nixpkgs": "nixpkgs_485"
+        "nixpkgs": "nixpkgs_486"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18337,7 +18512,7 @@
     },
     "logos-nix_480": {
       "inputs": {
-        "nixpkgs": "nixpkgs_486"
+        "nixpkgs": "nixpkgs_487"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18355,7 +18530,7 @@
     },
     "logos-nix_481": {
       "inputs": {
-        "nixpkgs": "nixpkgs_487"
+        "nixpkgs": "nixpkgs_488"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18373,7 +18548,7 @@
     },
     "logos-nix_482": {
       "inputs": {
-        "nixpkgs": "nixpkgs_488"
+        "nixpkgs": "nixpkgs_489"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18391,7 +18566,7 @@
     },
     "logos-nix_483": {
       "inputs": {
-        "nixpkgs": "nixpkgs_489"
+        "nixpkgs": "nixpkgs_490"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18409,7 +18584,7 @@
     },
     "logos-nix_484": {
       "inputs": {
-        "nixpkgs": "nixpkgs_490"
+        "nixpkgs": "nixpkgs_491"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18427,7 +18602,7 @@
     },
     "logos-nix_485": {
       "inputs": {
-        "nixpkgs": "nixpkgs_491"
+        "nixpkgs": "nixpkgs_492"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18445,7 +18620,7 @@
     },
     "logos-nix_486": {
       "inputs": {
-        "nixpkgs": "nixpkgs_492"
+        "nixpkgs": "nixpkgs_493"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18463,7 +18638,7 @@
     },
     "logos-nix_487": {
       "inputs": {
-        "nixpkgs": "nixpkgs_493"
+        "nixpkgs": "nixpkgs_494"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18481,7 +18656,7 @@
     },
     "logos-nix_488": {
       "inputs": {
-        "nixpkgs": "nixpkgs_494"
+        "nixpkgs": "nixpkgs_495"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18499,7 +18674,7 @@
     },
     "logos-nix_489": {
       "inputs": {
-        "nixpkgs": "nixpkgs_495"
+        "nixpkgs": "nixpkgs_496"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18535,7 +18710,7 @@
     },
     "logos-nix_490": {
       "inputs": {
-        "nixpkgs": "nixpkgs_496"
+        "nixpkgs": "nixpkgs_497"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18553,7 +18728,7 @@
     },
     "logos-nix_491": {
       "inputs": {
-        "nixpkgs": "nixpkgs_497"
+        "nixpkgs": "nixpkgs_498"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18571,7 +18746,7 @@
     },
     "logos-nix_492": {
       "inputs": {
-        "nixpkgs": "nixpkgs_498"
+        "nixpkgs": "nixpkgs_499"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18589,7 +18764,7 @@
     },
     "logos-nix_493": {
       "inputs": {
-        "nixpkgs": "nixpkgs_499"
+        "nixpkgs": "nixpkgs_500"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18607,7 +18782,7 @@
     },
     "logos-nix_494": {
       "inputs": {
-        "nixpkgs": "nixpkgs_500"
+        "nixpkgs": "nixpkgs_501"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18625,7 +18800,7 @@
     },
     "logos-nix_495": {
       "inputs": {
-        "nixpkgs": "nixpkgs_501"
+        "nixpkgs": "nixpkgs_502"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18643,7 +18818,7 @@
     },
     "logos-nix_496": {
       "inputs": {
-        "nixpkgs": "nixpkgs_502"
+        "nixpkgs": "nixpkgs_503"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18661,7 +18836,7 @@
     },
     "logos-nix_497": {
       "inputs": {
-        "nixpkgs": "nixpkgs_503"
+        "nixpkgs": "nixpkgs_504"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18679,7 +18854,7 @@
     },
     "logos-nix_498": {
       "inputs": {
-        "nixpkgs": "nixpkgs_504"
+        "nixpkgs": "nixpkgs_505"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18697,7 +18872,7 @@
     },
     "logos-nix_499": {
       "inputs": {
-        "nixpkgs": "nixpkgs_505"
+        "nixpkgs": "nixpkgs_506"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18751,7 +18926,7 @@
     },
     "logos-nix_500": {
       "inputs": {
-        "nixpkgs": "nixpkgs_506"
+        "nixpkgs": "nixpkgs_507"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18769,7 +18944,7 @@
     },
     "logos-nix_501": {
       "inputs": {
-        "nixpkgs": "nixpkgs_507"
+        "nixpkgs": "nixpkgs_508"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18787,7 +18962,7 @@
     },
     "logos-nix_502": {
       "inputs": {
-        "nixpkgs": "nixpkgs_508"
+        "nixpkgs": "nixpkgs_509"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18805,7 +18980,7 @@
     },
     "logos-nix_503": {
       "inputs": {
-        "nixpkgs": "nixpkgs_509"
+        "nixpkgs": "nixpkgs_510"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18823,7 +18998,7 @@
     },
     "logos-nix_504": {
       "inputs": {
-        "nixpkgs": "nixpkgs_510"
+        "nixpkgs": "nixpkgs_511"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18841,7 +19016,7 @@
     },
     "logos-nix_505": {
       "inputs": {
-        "nixpkgs": "nixpkgs_511"
+        "nixpkgs": "nixpkgs_512"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18859,7 +19034,7 @@
     },
     "logos-nix_506": {
       "inputs": {
-        "nixpkgs": "nixpkgs_512"
+        "nixpkgs": "nixpkgs_513"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18877,7 +19052,7 @@
     },
     "logos-nix_507": {
       "inputs": {
-        "nixpkgs": "nixpkgs_513"
+        "nixpkgs": "nixpkgs_514"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18895,7 +19070,7 @@
     },
     "logos-nix_508": {
       "inputs": {
-        "nixpkgs": "nixpkgs_514"
+        "nixpkgs": "nixpkgs_515"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18913,7 +19088,7 @@
     },
     "logos-nix_509": {
       "inputs": {
-        "nixpkgs": "nixpkgs_515"
+        "nixpkgs": "nixpkgs_516"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18949,7 +19124,7 @@
     },
     "logos-nix_510": {
       "inputs": {
-        "nixpkgs": "nixpkgs_516"
+        "nixpkgs": "nixpkgs_517"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -18967,7 +19142,7 @@
     },
     "logos-nix_511": {
       "inputs": {
-        "nixpkgs": "nixpkgs_517"
+        "nixpkgs": "nixpkgs_518"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -18985,7 +19160,7 @@
     },
     "logos-nix_512": {
       "inputs": {
-        "nixpkgs": "nixpkgs_518"
+        "nixpkgs": "nixpkgs_519"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19003,7 +19178,7 @@
     },
     "logos-nix_513": {
       "inputs": {
-        "nixpkgs": "nixpkgs_519"
+        "nixpkgs": "nixpkgs_520"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19021,7 +19196,7 @@
     },
     "logos-nix_514": {
       "inputs": {
-        "nixpkgs": "nixpkgs_520"
+        "nixpkgs": "nixpkgs_521"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19039,7 +19214,7 @@
     },
     "logos-nix_515": {
       "inputs": {
-        "nixpkgs": "nixpkgs_521"
+        "nixpkgs": "nixpkgs_522"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19057,7 +19232,7 @@
     },
     "logos-nix_516": {
       "inputs": {
-        "nixpkgs": "nixpkgs_522"
+        "nixpkgs": "nixpkgs_523"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19075,7 +19250,7 @@
     },
     "logos-nix_517": {
       "inputs": {
-        "nixpkgs": "nixpkgs_523"
+        "nixpkgs": "nixpkgs_524"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19093,7 +19268,7 @@
     },
     "logos-nix_518": {
       "inputs": {
-        "nixpkgs": "nixpkgs_524"
+        "nixpkgs": "nixpkgs_525"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19111,7 +19286,7 @@
     },
     "logos-nix_519": {
       "inputs": {
-        "nixpkgs": "nixpkgs_525"
+        "nixpkgs": "nixpkgs_526"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19147,7 +19322,7 @@
     },
     "logos-nix_520": {
       "inputs": {
-        "nixpkgs": "nixpkgs_526"
+        "nixpkgs": "nixpkgs_527"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19165,7 +19340,7 @@
     },
     "logos-nix_521": {
       "inputs": {
-        "nixpkgs": "nixpkgs_527"
+        "nixpkgs": "nixpkgs_528"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19183,7 +19358,7 @@
     },
     "logos-nix_522": {
       "inputs": {
-        "nixpkgs": "nixpkgs_528"
+        "nixpkgs": "nixpkgs_529"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19201,7 +19376,7 @@
     },
     "logos-nix_523": {
       "inputs": {
-        "nixpkgs": "nixpkgs_529"
+        "nixpkgs": "nixpkgs_530"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19219,7 +19394,7 @@
     },
     "logos-nix_524": {
       "inputs": {
-        "nixpkgs": "nixpkgs_530"
+        "nixpkgs": "nixpkgs_531"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19237,7 +19412,7 @@
     },
     "logos-nix_525": {
       "inputs": {
-        "nixpkgs": "nixpkgs_531"
+        "nixpkgs": "nixpkgs_532"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19255,7 +19430,7 @@
     },
     "logos-nix_526": {
       "inputs": {
-        "nixpkgs": "nixpkgs_532"
+        "nixpkgs": "nixpkgs_533"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19273,7 +19448,7 @@
     },
     "logos-nix_527": {
       "inputs": {
-        "nixpkgs": "nixpkgs_533"
+        "nixpkgs": "nixpkgs_534"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19291,7 +19466,7 @@
     },
     "logos-nix_528": {
       "inputs": {
-        "nixpkgs": "nixpkgs_534"
+        "nixpkgs": "nixpkgs_535"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19309,7 +19484,7 @@
     },
     "logos-nix_529": {
       "inputs": {
-        "nixpkgs": "nixpkgs_535"
+        "nixpkgs": "nixpkgs_536"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19345,7 +19520,7 @@
     },
     "logos-nix_530": {
       "inputs": {
-        "nixpkgs": "nixpkgs_536"
+        "nixpkgs": "nixpkgs_537"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19363,7 +19538,7 @@
     },
     "logos-nix_531": {
       "inputs": {
-        "nixpkgs": "nixpkgs_537"
+        "nixpkgs": "nixpkgs_538"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19381,7 +19556,7 @@
     },
     "logos-nix_532": {
       "inputs": {
-        "nixpkgs": "nixpkgs_538"
+        "nixpkgs": "nixpkgs_539"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19399,7 +19574,7 @@
     },
     "logos-nix_533": {
       "inputs": {
-        "nixpkgs": "nixpkgs_539"
+        "nixpkgs": "nixpkgs_540"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19417,7 +19592,7 @@
     },
     "logos-nix_534": {
       "inputs": {
-        "nixpkgs": "nixpkgs_540"
+        "nixpkgs": "nixpkgs_541"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19435,7 +19610,7 @@
     },
     "logos-nix_535": {
       "inputs": {
-        "nixpkgs": "nixpkgs_541"
+        "nixpkgs": "nixpkgs_542"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19453,7 +19628,7 @@
     },
     "logos-nix_536": {
       "inputs": {
-        "nixpkgs": "nixpkgs_542"
+        "nixpkgs": "nixpkgs_543"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19471,7 +19646,7 @@
     },
     "logos-nix_537": {
       "inputs": {
-        "nixpkgs": "nixpkgs_543"
+        "nixpkgs": "nixpkgs_544"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19489,7 +19664,7 @@
     },
     "logos-nix_538": {
       "inputs": {
-        "nixpkgs": "nixpkgs_544"
+        "nixpkgs": "nixpkgs_545"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19507,7 +19682,7 @@
     },
     "logos-nix_539": {
       "inputs": {
-        "nixpkgs": "nixpkgs_545"
+        "nixpkgs": "nixpkgs_546"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19543,7 +19718,7 @@
     },
     "logos-nix_540": {
       "inputs": {
-        "nixpkgs": "nixpkgs_546"
+        "nixpkgs": "nixpkgs_547"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19561,7 +19736,7 @@
     },
     "logos-nix_541": {
       "inputs": {
-        "nixpkgs": "nixpkgs_547"
+        "nixpkgs": "nixpkgs_548"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19579,7 +19754,7 @@
     },
     "logos-nix_542": {
       "inputs": {
-        "nixpkgs": "nixpkgs_548"
+        "nixpkgs": "nixpkgs_549"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19597,7 +19772,7 @@
     },
     "logos-nix_543": {
       "inputs": {
-        "nixpkgs": "nixpkgs_549"
+        "nixpkgs": "nixpkgs_550"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19615,7 +19790,7 @@
     },
     "logos-nix_544": {
       "inputs": {
-        "nixpkgs": "nixpkgs_550"
+        "nixpkgs": "nixpkgs_551"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19633,7 +19808,7 @@
     },
     "logos-nix_545": {
       "inputs": {
-        "nixpkgs": "nixpkgs_551"
+        "nixpkgs": "nixpkgs_552"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19651,7 +19826,7 @@
     },
     "logos-nix_546": {
       "inputs": {
-        "nixpkgs": "nixpkgs_552"
+        "nixpkgs": "nixpkgs_553"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19669,7 +19844,7 @@
     },
     "logos-nix_547": {
       "inputs": {
-        "nixpkgs": "nixpkgs_553"
+        "nixpkgs": "nixpkgs_554"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19687,7 +19862,7 @@
     },
     "logos-nix_548": {
       "inputs": {
-        "nixpkgs": "nixpkgs_554"
+        "nixpkgs": "nixpkgs_555"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19705,7 +19880,7 @@
     },
     "logos-nix_549": {
       "inputs": {
-        "nixpkgs": "nixpkgs_555"
+        "nixpkgs": "nixpkgs_556"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19741,7 +19916,7 @@
     },
     "logos-nix_550": {
       "inputs": {
-        "nixpkgs": "nixpkgs_556"
+        "nixpkgs": "nixpkgs_557"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19759,7 +19934,7 @@
     },
     "logos-nix_551": {
       "inputs": {
-        "nixpkgs": "nixpkgs_557"
+        "nixpkgs": "nixpkgs_558"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19777,7 +19952,7 @@
     },
     "logos-nix_552": {
       "inputs": {
-        "nixpkgs": "nixpkgs_558"
+        "nixpkgs": "nixpkgs_559"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19795,7 +19970,7 @@
     },
     "logos-nix_553": {
       "inputs": {
-        "nixpkgs": "nixpkgs_559"
+        "nixpkgs": "nixpkgs_560"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19813,7 +19988,7 @@
     },
     "logos-nix_554": {
       "inputs": {
-        "nixpkgs": "nixpkgs_560"
+        "nixpkgs": "nixpkgs_561"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19831,7 +20006,7 @@
     },
     "logos-nix_555": {
       "inputs": {
-        "nixpkgs": "nixpkgs_561"
+        "nixpkgs": "nixpkgs_562"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19849,7 +20024,7 @@
     },
     "logos-nix_556": {
       "inputs": {
-        "nixpkgs": "nixpkgs_562"
+        "nixpkgs": "nixpkgs_563"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19867,7 +20042,7 @@
     },
     "logos-nix_557": {
       "inputs": {
-        "nixpkgs": "nixpkgs_563"
+        "nixpkgs": "nixpkgs_564"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19885,7 +20060,7 @@
     },
     "logos-nix_558": {
       "inputs": {
-        "nixpkgs": "nixpkgs_564"
+        "nixpkgs": "nixpkgs_565"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19903,7 +20078,7 @@
     },
     "logos-nix_559": {
       "inputs": {
-        "nixpkgs": "nixpkgs_565"
+        "nixpkgs": "nixpkgs_566"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19939,7 +20114,7 @@
     },
     "logos-nix_560": {
       "inputs": {
-        "nixpkgs": "nixpkgs_566"
+        "nixpkgs": "nixpkgs_567"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -19957,7 +20132,7 @@
     },
     "logos-nix_561": {
       "inputs": {
-        "nixpkgs": "nixpkgs_567"
+        "nixpkgs": "nixpkgs_568"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19975,7 +20150,7 @@
     },
     "logos-nix_562": {
       "inputs": {
-        "nixpkgs": "nixpkgs_568"
+        "nixpkgs": "nixpkgs_569"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -19993,7 +20168,7 @@
     },
     "logos-nix_563": {
       "inputs": {
-        "nixpkgs": "nixpkgs_569"
+        "nixpkgs": "nixpkgs_570"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20011,7 +20186,7 @@
     },
     "logos-nix_564": {
       "inputs": {
-        "nixpkgs": "nixpkgs_570"
+        "nixpkgs": "nixpkgs_571"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20029,7 +20204,7 @@
     },
     "logos-nix_565": {
       "inputs": {
-        "nixpkgs": "nixpkgs_571"
+        "nixpkgs": "nixpkgs_572"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20047,7 +20222,7 @@
     },
     "logos-nix_566": {
       "inputs": {
-        "nixpkgs": "nixpkgs_572"
+        "nixpkgs": "nixpkgs_573"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20065,7 +20240,7 @@
     },
     "logos-nix_567": {
       "inputs": {
-        "nixpkgs": "nixpkgs_573"
+        "nixpkgs": "nixpkgs_574"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20083,7 +20258,7 @@
     },
     "logos-nix_568": {
       "inputs": {
-        "nixpkgs": "nixpkgs_574"
+        "nixpkgs": "nixpkgs_575"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20101,7 +20276,7 @@
     },
     "logos-nix_569": {
       "inputs": {
-        "nixpkgs": "nixpkgs_575"
+        "nixpkgs": "nixpkgs_576"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20137,7 +20312,7 @@
     },
     "logos-nix_570": {
       "inputs": {
-        "nixpkgs": "nixpkgs_576"
+        "nixpkgs": "nixpkgs_577"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20155,7 +20330,7 @@
     },
     "logos-nix_571": {
       "inputs": {
-        "nixpkgs": "nixpkgs_577"
+        "nixpkgs": "nixpkgs_578"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20173,7 +20348,7 @@
     },
     "logos-nix_572": {
       "inputs": {
-        "nixpkgs": "nixpkgs_578"
+        "nixpkgs": "nixpkgs_579"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20191,7 +20366,7 @@
     },
     "logos-nix_573": {
       "inputs": {
-        "nixpkgs": "nixpkgs_579"
+        "nixpkgs": "nixpkgs_580"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20209,7 +20384,7 @@
     },
     "logos-nix_574": {
       "inputs": {
-        "nixpkgs": "nixpkgs_580"
+        "nixpkgs": "nixpkgs_581"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20227,7 +20402,7 @@
     },
     "logos-nix_575": {
       "inputs": {
-        "nixpkgs": "nixpkgs_581"
+        "nixpkgs": "nixpkgs_582"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20245,7 +20420,7 @@
     },
     "logos-nix_576": {
       "inputs": {
-        "nixpkgs": "nixpkgs_582"
+        "nixpkgs": "nixpkgs_583"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20263,7 +20438,7 @@
     },
     "logos-nix_577": {
       "inputs": {
-        "nixpkgs": "nixpkgs_583"
+        "nixpkgs": "nixpkgs_584"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20281,7 +20456,7 @@
     },
     "logos-nix_578": {
       "inputs": {
-        "nixpkgs": "nixpkgs_584"
+        "nixpkgs": "nixpkgs_585"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20299,7 +20474,7 @@
     },
     "logos-nix_579": {
       "inputs": {
-        "nixpkgs": "nixpkgs_585"
+        "nixpkgs": "nixpkgs_586"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20335,7 +20510,7 @@
     },
     "logos-nix_580": {
       "inputs": {
-        "nixpkgs": "nixpkgs_586"
+        "nixpkgs": "nixpkgs_587"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20353,7 +20528,7 @@
     },
     "logos-nix_581": {
       "inputs": {
-        "nixpkgs": "nixpkgs_587"
+        "nixpkgs": "nixpkgs_588"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20371,7 +20546,7 @@
     },
     "logos-nix_582": {
       "inputs": {
-        "nixpkgs": "nixpkgs_588"
+        "nixpkgs": "nixpkgs_589"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20389,7 +20564,7 @@
     },
     "logos-nix_583": {
       "inputs": {
-        "nixpkgs": "nixpkgs_589"
+        "nixpkgs": "nixpkgs_590"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20407,7 +20582,7 @@
     },
     "logos-nix_584": {
       "inputs": {
-        "nixpkgs": "nixpkgs_590"
+        "nixpkgs": "nixpkgs_591"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20425,7 +20600,7 @@
     },
     "logos-nix_585": {
       "inputs": {
-        "nixpkgs": "nixpkgs_591"
+        "nixpkgs": "nixpkgs_592"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20443,7 +20618,7 @@
     },
     "logos-nix_586": {
       "inputs": {
-        "nixpkgs": "nixpkgs_592"
+        "nixpkgs": "nixpkgs_593"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20461,7 +20636,7 @@
     },
     "logos-nix_587": {
       "inputs": {
-        "nixpkgs": "nixpkgs_593"
+        "nixpkgs": "nixpkgs_594"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20479,7 +20654,7 @@
     },
     "logos-nix_588": {
       "inputs": {
-        "nixpkgs": "nixpkgs_594"
+        "nixpkgs": "nixpkgs_595"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20497,7 +20672,7 @@
     },
     "logos-nix_589": {
       "inputs": {
-        "nixpkgs": "nixpkgs_595"
+        "nixpkgs": "nixpkgs_596"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20533,7 +20708,7 @@
     },
     "logos-nix_590": {
       "inputs": {
-        "nixpkgs": "nixpkgs_596"
+        "nixpkgs": "nixpkgs_597"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20551,7 +20726,7 @@
     },
     "logos-nix_591": {
       "inputs": {
-        "nixpkgs": "nixpkgs_597"
+        "nixpkgs": "nixpkgs_598"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20569,7 +20744,7 @@
     },
     "logos-nix_592": {
       "inputs": {
-        "nixpkgs": "nixpkgs_598"
+        "nixpkgs": "nixpkgs_599"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20587,7 +20762,7 @@
     },
     "logos-nix_593": {
       "inputs": {
-        "nixpkgs": "nixpkgs_599"
+        "nixpkgs": "nixpkgs_600"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20605,7 +20780,7 @@
     },
     "logos-nix_594": {
       "inputs": {
-        "nixpkgs": "nixpkgs_600"
+        "nixpkgs": "nixpkgs_601"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20623,7 +20798,7 @@
     },
     "logos-nix_595": {
       "inputs": {
-        "nixpkgs": "nixpkgs_601"
+        "nixpkgs": "nixpkgs_602"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20641,7 +20816,7 @@
     },
     "logos-nix_596": {
       "inputs": {
-        "nixpkgs": "nixpkgs_602"
+        "nixpkgs": "nixpkgs_603"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20659,7 +20834,7 @@
     },
     "logos-nix_597": {
       "inputs": {
-        "nixpkgs": "nixpkgs_603"
+        "nixpkgs": "nixpkgs_604"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20677,7 +20852,7 @@
     },
     "logos-nix_598": {
       "inputs": {
-        "nixpkgs": "nixpkgs_604"
+        "nixpkgs": "nixpkgs_605"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20695,7 +20870,7 @@
     },
     "logos-nix_599": {
       "inputs": {
-        "nixpkgs": "nixpkgs_605"
+        "nixpkgs": "nixpkgs_606"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20749,7 +20924,7 @@
     },
     "logos-nix_600": {
       "inputs": {
-        "nixpkgs": "nixpkgs_606"
+        "nixpkgs": "nixpkgs_607"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20767,7 +20942,7 @@
     },
     "logos-nix_601": {
       "inputs": {
-        "nixpkgs": "nixpkgs_607"
+        "nixpkgs": "nixpkgs_608"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20785,7 +20960,7 @@
     },
     "logos-nix_602": {
       "inputs": {
-        "nixpkgs": "nixpkgs_608"
+        "nixpkgs": "nixpkgs_609"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20803,7 +20978,7 @@
     },
     "logos-nix_603": {
       "inputs": {
-        "nixpkgs": "nixpkgs_609"
+        "nixpkgs": "nixpkgs_610"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20821,7 +20996,7 @@
     },
     "logos-nix_604": {
       "inputs": {
-        "nixpkgs": "nixpkgs_610"
+        "nixpkgs": "nixpkgs_611"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20839,7 +21014,7 @@
     },
     "logos-nix_605": {
       "inputs": {
-        "nixpkgs": "nixpkgs_611"
+        "nixpkgs": "nixpkgs_612"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20857,7 +21032,7 @@
     },
     "logos-nix_606": {
       "inputs": {
-        "nixpkgs": "nixpkgs_612"
+        "nixpkgs": "nixpkgs_613"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20875,7 +21050,7 @@
     },
     "logos-nix_607": {
       "inputs": {
-        "nixpkgs": "nixpkgs_613"
+        "nixpkgs": "nixpkgs_614"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20893,7 +21068,7 @@
     },
     "logos-nix_608": {
       "inputs": {
-        "nixpkgs": "nixpkgs_614"
+        "nixpkgs": "nixpkgs_615"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20911,7 +21086,7 @@
     },
     "logos-nix_609": {
       "inputs": {
-        "nixpkgs": "nixpkgs_615"
+        "nixpkgs": "nixpkgs_616"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20947,7 +21122,7 @@
     },
     "logos-nix_610": {
       "inputs": {
-        "nixpkgs": "nixpkgs_616"
+        "nixpkgs": "nixpkgs_617"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -20965,7 +21140,7 @@
     },
     "logos-nix_611": {
       "inputs": {
-        "nixpkgs": "nixpkgs_617"
+        "nixpkgs": "nixpkgs_618"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -20983,7 +21158,7 @@
     },
     "logos-nix_612": {
       "inputs": {
-        "nixpkgs": "nixpkgs_618"
+        "nixpkgs": "nixpkgs_619"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21001,7 +21176,7 @@
     },
     "logos-nix_613": {
       "inputs": {
-        "nixpkgs": "nixpkgs_619"
+        "nixpkgs": "nixpkgs_620"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21019,7 +21194,7 @@
     },
     "logos-nix_614": {
       "inputs": {
-        "nixpkgs": "nixpkgs_620"
+        "nixpkgs": "nixpkgs_621"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21037,7 +21212,7 @@
     },
     "logos-nix_615": {
       "inputs": {
-        "nixpkgs": "nixpkgs_621"
+        "nixpkgs": "nixpkgs_622"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21055,7 +21230,7 @@
     },
     "logos-nix_616": {
       "inputs": {
-        "nixpkgs": "nixpkgs_622"
+        "nixpkgs": "nixpkgs_623"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21073,7 +21248,7 @@
     },
     "logos-nix_617": {
       "inputs": {
-        "nixpkgs": "nixpkgs_623"
+        "nixpkgs": "nixpkgs_624"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21091,7 +21266,7 @@
     },
     "logos-nix_618": {
       "inputs": {
-        "nixpkgs": "nixpkgs_624"
+        "nixpkgs": "nixpkgs_625"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21109,7 +21284,7 @@
     },
     "logos-nix_619": {
       "inputs": {
-        "nixpkgs": "nixpkgs_625"
+        "nixpkgs": "nixpkgs_626"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21145,7 +21320,7 @@
     },
     "logos-nix_620": {
       "inputs": {
-        "nixpkgs": "nixpkgs_626"
+        "nixpkgs": "nixpkgs_627"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21163,7 +21338,7 @@
     },
     "logos-nix_621": {
       "inputs": {
-        "nixpkgs": "nixpkgs_627"
+        "nixpkgs": "nixpkgs_628"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21181,7 +21356,7 @@
     },
     "logos-nix_622": {
       "inputs": {
-        "nixpkgs": "nixpkgs_628"
+        "nixpkgs": "nixpkgs_629"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21199,7 +21374,7 @@
     },
     "logos-nix_623": {
       "inputs": {
-        "nixpkgs": "nixpkgs_629"
+        "nixpkgs": "nixpkgs_630"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21217,7 +21392,7 @@
     },
     "logos-nix_624": {
       "inputs": {
-        "nixpkgs": "nixpkgs_630"
+        "nixpkgs": "nixpkgs_631"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21235,7 +21410,7 @@
     },
     "logos-nix_625": {
       "inputs": {
-        "nixpkgs": "nixpkgs_631"
+        "nixpkgs": "nixpkgs_632"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21253,7 +21428,7 @@
     },
     "logos-nix_626": {
       "inputs": {
-        "nixpkgs": "nixpkgs_632"
+        "nixpkgs": "nixpkgs_633"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21271,7 +21446,7 @@
     },
     "logos-nix_627": {
       "inputs": {
-        "nixpkgs": "nixpkgs_633"
+        "nixpkgs": "nixpkgs_634"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21289,7 +21464,7 @@
     },
     "logos-nix_628": {
       "inputs": {
-        "nixpkgs": "nixpkgs_634"
+        "nixpkgs": "nixpkgs_635"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21307,7 +21482,7 @@
     },
     "logos-nix_629": {
       "inputs": {
-        "nixpkgs": "nixpkgs_635"
+        "nixpkgs": "nixpkgs_636"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21343,7 +21518,7 @@
     },
     "logos-nix_630": {
       "inputs": {
-        "nixpkgs": "nixpkgs_636"
+        "nixpkgs": "nixpkgs_637"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21361,7 +21536,7 @@
     },
     "logos-nix_631": {
       "inputs": {
-        "nixpkgs": "nixpkgs_637"
+        "nixpkgs": "nixpkgs_638"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21379,7 +21554,7 @@
     },
     "logos-nix_632": {
       "inputs": {
-        "nixpkgs": "nixpkgs_638"
+        "nixpkgs": "nixpkgs_639"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21397,7 +21572,7 @@
     },
     "logos-nix_633": {
       "inputs": {
-        "nixpkgs": "nixpkgs_639"
+        "nixpkgs": "nixpkgs_640"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21415,7 +21590,7 @@
     },
     "logos-nix_634": {
       "inputs": {
-        "nixpkgs": "nixpkgs_640"
+        "nixpkgs": "nixpkgs_641"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21433,7 +21608,7 @@
     },
     "logos-nix_635": {
       "inputs": {
-        "nixpkgs": "nixpkgs_641"
+        "nixpkgs": "nixpkgs_642"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21451,7 +21626,7 @@
     },
     "logos-nix_636": {
       "inputs": {
-        "nixpkgs": "nixpkgs_642"
+        "nixpkgs": "nixpkgs_643"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21469,7 +21644,7 @@
     },
     "logos-nix_637": {
       "inputs": {
-        "nixpkgs": "nixpkgs_643"
+        "nixpkgs": "nixpkgs_644"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21487,7 +21662,7 @@
     },
     "logos-nix_638": {
       "inputs": {
-        "nixpkgs": "nixpkgs_644"
+        "nixpkgs": "nixpkgs_645"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21505,7 +21680,7 @@
     },
     "logos-nix_639": {
       "inputs": {
-        "nixpkgs": "nixpkgs_645"
+        "nixpkgs": "nixpkgs_646"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21541,7 +21716,7 @@
     },
     "logos-nix_640": {
       "inputs": {
-        "nixpkgs": "nixpkgs_646"
+        "nixpkgs": "nixpkgs_647"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21559,7 +21734,7 @@
     },
     "logos-nix_641": {
       "inputs": {
-        "nixpkgs": "nixpkgs_647"
+        "nixpkgs": "nixpkgs_648"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21577,7 +21752,7 @@
     },
     "logos-nix_642": {
       "inputs": {
-        "nixpkgs": "nixpkgs_648"
+        "nixpkgs": "nixpkgs_649"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21595,7 +21770,7 @@
     },
     "logos-nix_643": {
       "inputs": {
-        "nixpkgs": "nixpkgs_649"
+        "nixpkgs": "nixpkgs_650"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21613,7 +21788,7 @@
     },
     "logos-nix_644": {
       "inputs": {
-        "nixpkgs": "nixpkgs_650"
+        "nixpkgs": "nixpkgs_651"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21631,7 +21806,7 @@
     },
     "logos-nix_645": {
       "inputs": {
-        "nixpkgs": "nixpkgs_651"
+        "nixpkgs": "nixpkgs_652"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21649,7 +21824,7 @@
     },
     "logos-nix_646": {
       "inputs": {
-        "nixpkgs": "nixpkgs_652"
+        "nixpkgs": "nixpkgs_653"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21667,7 +21842,7 @@
     },
     "logos-nix_647": {
       "inputs": {
-        "nixpkgs": "nixpkgs_653"
+        "nixpkgs": "nixpkgs_654"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21685,7 +21860,7 @@
     },
     "logos-nix_648": {
       "inputs": {
-        "nixpkgs": "nixpkgs_654"
+        "nixpkgs": "nixpkgs_655"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21703,7 +21878,7 @@
     },
     "logos-nix_649": {
       "inputs": {
-        "nixpkgs": "nixpkgs_655"
+        "nixpkgs": "nixpkgs_656"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21739,7 +21914,7 @@
     },
     "logos-nix_650": {
       "inputs": {
-        "nixpkgs": "nixpkgs_656"
+        "nixpkgs": "nixpkgs_657"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21757,7 +21932,7 @@
     },
     "logos-nix_651": {
       "inputs": {
-        "nixpkgs": "nixpkgs_657"
+        "nixpkgs": "nixpkgs_658"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21775,7 +21950,7 @@
     },
     "logos-nix_652": {
       "inputs": {
-        "nixpkgs": "nixpkgs_658"
+        "nixpkgs": "nixpkgs_659"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21793,7 +21968,7 @@
     },
     "logos-nix_653": {
       "inputs": {
-        "nixpkgs": "nixpkgs_659"
+        "nixpkgs": "nixpkgs_660"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21811,7 +21986,7 @@
     },
     "logos-nix_654": {
       "inputs": {
-        "nixpkgs": "nixpkgs_660"
+        "nixpkgs": "nixpkgs_661"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21829,7 +22004,7 @@
     },
     "logos-nix_655": {
       "inputs": {
-        "nixpkgs": "nixpkgs_661"
+        "nixpkgs": "nixpkgs_662"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21847,7 +22022,7 @@
     },
     "logos-nix_656": {
       "inputs": {
-        "nixpkgs": "nixpkgs_662"
+        "nixpkgs": "nixpkgs_663"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21865,7 +22040,7 @@
     },
     "logos-nix_657": {
       "inputs": {
-        "nixpkgs": "nixpkgs_663"
+        "nixpkgs": "nixpkgs_664"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21883,7 +22058,7 @@
     },
     "logos-nix_658": {
       "inputs": {
-        "nixpkgs": "nixpkgs_664"
+        "nixpkgs": "nixpkgs_665"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21901,7 +22076,7 @@
     },
     "logos-nix_659": {
       "inputs": {
-        "nixpkgs": "nixpkgs_665"
+        "nixpkgs": "nixpkgs_666"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21937,7 +22112,7 @@
     },
     "logos-nix_660": {
       "inputs": {
-        "nixpkgs": "nixpkgs_666"
+        "nixpkgs": "nixpkgs_667"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -21955,7 +22130,7 @@
     },
     "logos-nix_661": {
       "inputs": {
-        "nixpkgs": "nixpkgs_667"
+        "nixpkgs": "nixpkgs_668"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21973,7 +22148,7 @@
     },
     "logos-nix_662": {
       "inputs": {
-        "nixpkgs": "nixpkgs_668"
+        "nixpkgs": "nixpkgs_669"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -21991,7 +22166,7 @@
     },
     "logos-nix_663": {
       "inputs": {
-        "nixpkgs": "nixpkgs_669"
+        "nixpkgs": "nixpkgs_670"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22009,7 +22184,7 @@
     },
     "logos-nix_664": {
       "inputs": {
-        "nixpkgs": "nixpkgs_670"
+        "nixpkgs": "nixpkgs_671"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22027,7 +22202,7 @@
     },
     "logos-nix_665": {
       "inputs": {
-        "nixpkgs": "nixpkgs_671"
+        "nixpkgs": "nixpkgs_672"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22045,7 +22220,7 @@
     },
     "logos-nix_666": {
       "inputs": {
-        "nixpkgs": "nixpkgs_672"
+        "nixpkgs": "nixpkgs_673"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22063,7 +22238,7 @@
     },
     "logos-nix_667": {
       "inputs": {
-        "nixpkgs": "nixpkgs_673"
+        "nixpkgs": "nixpkgs_674"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22081,7 +22256,7 @@
     },
     "logos-nix_668": {
       "inputs": {
-        "nixpkgs": "nixpkgs_674"
+        "nixpkgs": "nixpkgs_675"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22099,7 +22274,7 @@
     },
     "logos-nix_669": {
       "inputs": {
-        "nixpkgs": "nixpkgs_675"
+        "nixpkgs": "nixpkgs_676"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22135,7 +22310,7 @@
     },
     "logos-nix_670": {
       "inputs": {
-        "nixpkgs": "nixpkgs_676"
+        "nixpkgs": "nixpkgs_677"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22153,7 +22328,7 @@
     },
     "logos-nix_671": {
       "inputs": {
-        "nixpkgs": "nixpkgs_677"
+        "nixpkgs": "nixpkgs_678"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22171,7 +22346,7 @@
     },
     "logos-nix_672": {
       "inputs": {
-        "nixpkgs": "nixpkgs_678"
+        "nixpkgs": "nixpkgs_679"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22189,7 +22364,7 @@
     },
     "logos-nix_673": {
       "inputs": {
-        "nixpkgs": "nixpkgs_679"
+        "nixpkgs": "nixpkgs_680"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22207,7 +22382,7 @@
     },
     "logos-nix_674": {
       "inputs": {
-        "nixpkgs": "nixpkgs_680"
+        "nixpkgs": "nixpkgs_681"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22225,7 +22400,7 @@
     },
     "logos-nix_675": {
       "inputs": {
-        "nixpkgs": "nixpkgs_681"
+        "nixpkgs": "nixpkgs_682"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22243,7 +22418,7 @@
     },
     "logos-nix_676": {
       "inputs": {
-        "nixpkgs": "nixpkgs_682"
+        "nixpkgs": "nixpkgs_683"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22261,7 +22436,7 @@
     },
     "logos-nix_677": {
       "inputs": {
-        "nixpkgs": "nixpkgs_683"
+        "nixpkgs": "nixpkgs_684"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22279,7 +22454,7 @@
     },
     "logos-nix_678": {
       "inputs": {
-        "nixpkgs": "nixpkgs_684"
+        "nixpkgs": "nixpkgs_685"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22297,7 +22472,7 @@
     },
     "logos-nix_679": {
       "inputs": {
-        "nixpkgs": "nixpkgs_685"
+        "nixpkgs": "nixpkgs_686"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22333,7 +22508,7 @@
     },
     "logos-nix_680": {
       "inputs": {
-        "nixpkgs": "nixpkgs_686"
+        "nixpkgs": "nixpkgs_687"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22351,7 +22526,7 @@
     },
     "logos-nix_681": {
       "inputs": {
-        "nixpkgs": "nixpkgs_687"
+        "nixpkgs": "nixpkgs_688"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22369,7 +22544,7 @@
     },
     "logos-nix_682": {
       "inputs": {
-        "nixpkgs": "nixpkgs_688"
+        "nixpkgs": "nixpkgs_689"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22387,7 +22562,7 @@
     },
     "logos-nix_683": {
       "inputs": {
-        "nixpkgs": "nixpkgs_689"
+        "nixpkgs": "nixpkgs_690"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22405,7 +22580,7 @@
     },
     "logos-nix_684": {
       "inputs": {
-        "nixpkgs": "nixpkgs_690"
+        "nixpkgs": "nixpkgs_691"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22423,7 +22598,7 @@
     },
     "logos-nix_685": {
       "inputs": {
-        "nixpkgs": "nixpkgs_691"
+        "nixpkgs": "nixpkgs_692"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22441,7 +22616,7 @@
     },
     "logos-nix_686": {
       "inputs": {
-        "nixpkgs": "nixpkgs_692"
+        "nixpkgs": "nixpkgs_693"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22459,7 +22634,7 @@
     },
     "logos-nix_687": {
       "inputs": {
-        "nixpkgs": "nixpkgs_693"
+        "nixpkgs": "nixpkgs_694"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22477,7 +22652,7 @@
     },
     "logos-nix_688": {
       "inputs": {
-        "nixpkgs": "nixpkgs_694"
+        "nixpkgs": "nixpkgs_695"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22495,7 +22670,7 @@
     },
     "logos-nix_689": {
       "inputs": {
-        "nixpkgs": "nixpkgs_695"
+        "nixpkgs": "nixpkgs_696"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22531,7 +22706,7 @@
     },
     "logos-nix_690": {
       "inputs": {
-        "nixpkgs": "nixpkgs_696"
+        "nixpkgs": "nixpkgs_697"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22549,7 +22724,7 @@
     },
     "logos-nix_691": {
       "inputs": {
-        "nixpkgs": "nixpkgs_697"
+        "nixpkgs": "nixpkgs_698"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22567,7 +22742,7 @@
     },
     "logos-nix_692": {
       "inputs": {
-        "nixpkgs": "nixpkgs_698"
+        "nixpkgs": "nixpkgs_699"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22585,7 +22760,7 @@
     },
     "logos-nix_693": {
       "inputs": {
-        "nixpkgs": "nixpkgs_699"
+        "nixpkgs": "nixpkgs_700"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22603,7 +22778,7 @@
     },
     "logos-nix_694": {
       "inputs": {
-        "nixpkgs": "nixpkgs_700"
+        "nixpkgs": "nixpkgs_701"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22621,7 +22796,7 @@
     },
     "logos-nix_695": {
       "inputs": {
-        "nixpkgs": "nixpkgs_701"
+        "nixpkgs": "nixpkgs_702"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22639,7 +22814,7 @@
     },
     "logos-nix_696": {
       "inputs": {
-        "nixpkgs": "nixpkgs_702"
+        "nixpkgs": "nixpkgs_703"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22657,7 +22832,7 @@
     },
     "logos-nix_697": {
       "inputs": {
-        "nixpkgs": "nixpkgs_703"
+        "nixpkgs": "nixpkgs_704"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22675,7 +22850,7 @@
     },
     "logos-nix_698": {
       "inputs": {
-        "nixpkgs": "nixpkgs_704"
+        "nixpkgs": "nixpkgs_705"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22693,7 +22868,7 @@
     },
     "logos-nix_699": {
       "inputs": {
-        "nixpkgs": "nixpkgs_705"
+        "nixpkgs": "nixpkgs_706"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22747,7 +22922,7 @@
     },
     "logos-nix_700": {
       "inputs": {
-        "nixpkgs": "nixpkgs_706"
+        "nixpkgs": "nixpkgs_707"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22765,7 +22940,7 @@
     },
     "logos-nix_701": {
       "inputs": {
-        "nixpkgs": "nixpkgs_707"
+        "nixpkgs": "nixpkgs_708"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22783,7 +22958,7 @@
     },
     "logos-nix_702": {
       "inputs": {
-        "nixpkgs": "nixpkgs_708"
+        "nixpkgs": "nixpkgs_709"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22801,7 +22976,7 @@
     },
     "logos-nix_703": {
       "inputs": {
-        "nixpkgs": "nixpkgs_709"
+        "nixpkgs": "nixpkgs_710"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22819,7 +22994,7 @@
     },
     "logos-nix_704": {
       "inputs": {
-        "nixpkgs": "nixpkgs_710"
+        "nixpkgs": "nixpkgs_711"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22837,7 +23012,7 @@
     },
     "logos-nix_705": {
       "inputs": {
-        "nixpkgs": "nixpkgs_711"
+        "nixpkgs": "nixpkgs_712"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22855,7 +23030,7 @@
     },
     "logos-nix_706": {
       "inputs": {
-        "nixpkgs": "nixpkgs_712"
+        "nixpkgs": "nixpkgs_713"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22873,7 +23048,7 @@
     },
     "logos-nix_707": {
       "inputs": {
-        "nixpkgs": "nixpkgs_713"
+        "nixpkgs": "nixpkgs_714"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22891,7 +23066,7 @@
     },
     "logos-nix_708": {
       "inputs": {
-        "nixpkgs": "nixpkgs_714"
+        "nixpkgs": "nixpkgs_715"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22909,7 +23084,7 @@
     },
     "logos-nix_709": {
       "inputs": {
-        "nixpkgs": "nixpkgs_715"
+        "nixpkgs": "nixpkgs_716"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22945,7 +23120,7 @@
     },
     "logos-nix_710": {
       "inputs": {
-        "nixpkgs": "nixpkgs_716"
+        "nixpkgs": "nixpkgs_717"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -22963,7 +23138,7 @@
     },
     "logos-nix_711": {
       "inputs": {
-        "nixpkgs": "nixpkgs_717"
+        "nixpkgs": "nixpkgs_718"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22981,7 +23156,7 @@
     },
     "logos-nix_712": {
       "inputs": {
-        "nixpkgs": "nixpkgs_718"
+        "nixpkgs": "nixpkgs_719"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -22999,7 +23174,7 @@
     },
     "logos-nix_713": {
       "inputs": {
-        "nixpkgs": "nixpkgs_719"
+        "nixpkgs": "nixpkgs_720"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23017,7 +23192,7 @@
     },
     "logos-nix_714": {
       "inputs": {
-        "nixpkgs": "nixpkgs_720"
+        "nixpkgs": "nixpkgs_721"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23035,7 +23210,7 @@
     },
     "logos-nix_715": {
       "inputs": {
-        "nixpkgs": "nixpkgs_721"
+        "nixpkgs": "nixpkgs_722"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23053,7 +23228,7 @@
     },
     "logos-nix_716": {
       "inputs": {
-        "nixpkgs": "nixpkgs_722"
+        "nixpkgs": "nixpkgs_723"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23071,7 +23246,7 @@
     },
     "logos-nix_717": {
       "inputs": {
-        "nixpkgs": "nixpkgs_723"
+        "nixpkgs": "nixpkgs_724"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23089,7 +23264,7 @@
     },
     "logos-nix_718": {
       "inputs": {
-        "nixpkgs": "nixpkgs_724"
+        "nixpkgs": "nixpkgs_725"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23107,7 +23282,7 @@
     },
     "logos-nix_719": {
       "inputs": {
-        "nixpkgs": "nixpkgs_725"
+        "nixpkgs": "nixpkgs_726"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23143,7 +23318,7 @@
     },
     "logos-nix_720": {
       "inputs": {
-        "nixpkgs": "nixpkgs_726"
+        "nixpkgs": "nixpkgs_727"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23161,7 +23336,7 @@
     },
     "logos-nix_721": {
       "inputs": {
-        "nixpkgs": "nixpkgs_727"
+        "nixpkgs": "nixpkgs_728"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23179,7 +23354,7 @@
     },
     "logos-nix_722": {
       "inputs": {
-        "nixpkgs": "nixpkgs_728"
+        "nixpkgs": "nixpkgs_729"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23197,7 +23372,7 @@
     },
     "logos-nix_723": {
       "inputs": {
-        "nixpkgs": "nixpkgs_729"
+        "nixpkgs": "nixpkgs_730"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23215,7 +23390,7 @@
     },
     "logos-nix_724": {
       "inputs": {
-        "nixpkgs": "nixpkgs_730"
+        "nixpkgs": "nixpkgs_731"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23233,7 +23408,7 @@
     },
     "logos-nix_725": {
       "inputs": {
-        "nixpkgs": "nixpkgs_731"
+        "nixpkgs": "nixpkgs_732"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23251,7 +23426,7 @@
     },
     "logos-nix_726": {
       "inputs": {
-        "nixpkgs": "nixpkgs_732"
+        "nixpkgs": "nixpkgs_733"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23269,7 +23444,7 @@
     },
     "logos-nix_727": {
       "inputs": {
-        "nixpkgs": "nixpkgs_733"
+        "nixpkgs": "nixpkgs_734"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23287,7 +23462,7 @@
     },
     "logos-nix_728": {
       "inputs": {
-        "nixpkgs": "nixpkgs_734"
+        "nixpkgs": "nixpkgs_735"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23305,7 +23480,7 @@
     },
     "logos-nix_729": {
       "inputs": {
-        "nixpkgs": "nixpkgs_735"
+        "nixpkgs": "nixpkgs_736"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23341,7 +23516,7 @@
     },
     "logos-nix_730": {
       "inputs": {
-        "nixpkgs": "nixpkgs_736"
+        "nixpkgs": "nixpkgs_737"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23359,7 +23534,7 @@
     },
     "logos-nix_731": {
       "inputs": {
-        "nixpkgs": "nixpkgs_737"
+        "nixpkgs": "nixpkgs_738"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23377,7 +23552,7 @@
     },
     "logos-nix_732": {
       "inputs": {
-        "nixpkgs": "nixpkgs_738"
+        "nixpkgs": "nixpkgs_739"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23395,7 +23570,7 @@
     },
     "logos-nix_733": {
       "inputs": {
-        "nixpkgs": "nixpkgs_739"
+        "nixpkgs": "nixpkgs_740"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23413,7 +23588,7 @@
     },
     "logos-nix_734": {
       "inputs": {
-        "nixpkgs": "nixpkgs_740"
+        "nixpkgs": "nixpkgs_741"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23431,7 +23606,7 @@
     },
     "logos-nix_735": {
       "inputs": {
-        "nixpkgs": "nixpkgs_741"
+        "nixpkgs": "nixpkgs_742"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23449,7 +23624,7 @@
     },
     "logos-nix_736": {
       "inputs": {
-        "nixpkgs": "nixpkgs_742"
+        "nixpkgs": "nixpkgs_743"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23467,7 +23642,7 @@
     },
     "logos-nix_737": {
       "inputs": {
-        "nixpkgs": "nixpkgs_743"
+        "nixpkgs": "nixpkgs_744"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23485,7 +23660,7 @@
     },
     "logos-nix_738": {
       "inputs": {
-        "nixpkgs": "nixpkgs_744"
+        "nixpkgs": "nixpkgs_745"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23503,7 +23678,7 @@
     },
     "logos-nix_739": {
       "inputs": {
-        "nixpkgs": "nixpkgs_745"
+        "nixpkgs": "nixpkgs_746"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23539,7 +23714,7 @@
     },
     "logos-nix_740": {
       "inputs": {
-        "nixpkgs": "nixpkgs_746"
+        "nixpkgs": "nixpkgs_747"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23557,7 +23732,7 @@
     },
     "logos-nix_741": {
       "inputs": {
-        "nixpkgs": "nixpkgs_747"
+        "nixpkgs": "nixpkgs_748"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23575,7 +23750,7 @@
     },
     "logos-nix_742": {
       "inputs": {
-        "nixpkgs": "nixpkgs_748"
+        "nixpkgs": "nixpkgs_749"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23593,7 +23768,7 @@
     },
     "logos-nix_743": {
       "inputs": {
-        "nixpkgs": "nixpkgs_749"
+        "nixpkgs": "nixpkgs_750"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23611,7 +23786,7 @@
     },
     "logos-nix_744": {
       "inputs": {
-        "nixpkgs": "nixpkgs_750"
+        "nixpkgs": "nixpkgs_751"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23629,7 +23804,7 @@
     },
     "logos-nix_745": {
       "inputs": {
-        "nixpkgs": "nixpkgs_751"
+        "nixpkgs": "nixpkgs_752"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23647,7 +23822,7 @@
     },
     "logos-nix_746": {
       "inputs": {
-        "nixpkgs": "nixpkgs_752"
+        "nixpkgs": "nixpkgs_753"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23665,7 +23840,7 @@
     },
     "logos-nix_747": {
       "inputs": {
-        "nixpkgs": "nixpkgs_753"
+        "nixpkgs": "nixpkgs_754"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23683,7 +23858,7 @@
     },
     "logos-nix_748": {
       "inputs": {
-        "nixpkgs": "nixpkgs_754"
+        "nixpkgs": "nixpkgs_755"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23701,7 +23876,7 @@
     },
     "logos-nix_749": {
       "inputs": {
-        "nixpkgs": "nixpkgs_755"
+        "nixpkgs": "nixpkgs_756"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23737,7 +23912,7 @@
     },
     "logos-nix_750": {
       "inputs": {
-        "nixpkgs": "nixpkgs_756"
+        "nixpkgs": "nixpkgs_757"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23755,7 +23930,7 @@
     },
     "logos-nix_751": {
       "inputs": {
-        "nixpkgs": "nixpkgs_757"
+        "nixpkgs": "nixpkgs_758"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23773,7 +23948,7 @@
     },
     "logos-nix_752": {
       "inputs": {
-        "nixpkgs": "nixpkgs_758"
+        "nixpkgs": "nixpkgs_759"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23791,7 +23966,7 @@
     },
     "logos-nix_753": {
       "inputs": {
-        "nixpkgs": "nixpkgs_759"
+        "nixpkgs": "nixpkgs_760"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23809,7 +23984,7 @@
     },
     "logos-nix_754": {
       "inputs": {
-        "nixpkgs": "nixpkgs_760"
+        "nixpkgs": "nixpkgs_761"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23827,7 +24002,7 @@
     },
     "logos-nix_755": {
       "inputs": {
-        "nixpkgs": "nixpkgs_761"
+        "nixpkgs": "nixpkgs_762"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23845,7 +24020,7 @@
     },
     "logos-nix_756": {
       "inputs": {
-        "nixpkgs": "nixpkgs_762"
+        "nixpkgs": "nixpkgs_763"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23863,7 +24038,7 @@
     },
     "logos-nix_757": {
       "inputs": {
-        "nixpkgs": "nixpkgs_763"
+        "nixpkgs": "nixpkgs_764"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23881,7 +24056,7 @@
     },
     "logos-nix_758": {
       "inputs": {
-        "nixpkgs": "nixpkgs_764"
+        "nixpkgs": "nixpkgs_765"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23899,7 +24074,7 @@
     },
     "logos-nix_759": {
       "inputs": {
-        "nixpkgs": "nixpkgs_765"
+        "nixpkgs": "nixpkgs_766"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23935,7 +24110,7 @@
     },
     "logos-nix_760": {
       "inputs": {
-        "nixpkgs": "nixpkgs_766"
+        "nixpkgs": "nixpkgs_767"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23953,7 +24128,7 @@
     },
     "logos-nix_761": {
       "inputs": {
-        "nixpkgs": "nixpkgs_767"
+        "nixpkgs": "nixpkgs_768"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -23971,7 +24146,7 @@
     },
     "logos-nix_762": {
       "inputs": {
-        "nixpkgs": "nixpkgs_768"
+        "nixpkgs": "nixpkgs_769"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -23989,7 +24164,7 @@
     },
     "logos-nix_763": {
       "inputs": {
-        "nixpkgs": "nixpkgs_769"
+        "nixpkgs": "nixpkgs_770"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24007,7 +24182,7 @@
     },
     "logos-nix_764": {
       "inputs": {
-        "nixpkgs": "nixpkgs_770"
+        "nixpkgs": "nixpkgs_771"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24025,7 +24200,7 @@
     },
     "logos-nix_765": {
       "inputs": {
-        "nixpkgs": "nixpkgs_771"
+        "nixpkgs": "nixpkgs_772"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24043,7 +24218,7 @@
     },
     "logos-nix_766": {
       "inputs": {
-        "nixpkgs": "nixpkgs_772"
+        "nixpkgs": "nixpkgs_773"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24061,7 +24236,7 @@
     },
     "logos-nix_767": {
       "inputs": {
-        "nixpkgs": "nixpkgs_773"
+        "nixpkgs": "nixpkgs_774"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24079,7 +24254,7 @@
     },
     "logos-nix_768": {
       "inputs": {
-        "nixpkgs": "nixpkgs_774"
+        "nixpkgs": "nixpkgs_775"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24097,7 +24272,7 @@
     },
     "logos-nix_769": {
       "inputs": {
-        "nixpkgs": "nixpkgs_775"
+        "nixpkgs": "nixpkgs_776"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24133,7 +24308,7 @@
     },
     "logos-nix_770": {
       "inputs": {
-        "nixpkgs": "nixpkgs_776"
+        "nixpkgs": "nixpkgs_777"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24151,7 +24326,7 @@
     },
     "logos-nix_771": {
       "inputs": {
-        "nixpkgs": "nixpkgs_777"
+        "nixpkgs": "nixpkgs_778"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24169,7 +24344,7 @@
     },
     "logos-nix_772": {
       "inputs": {
-        "nixpkgs": "nixpkgs_778"
+        "nixpkgs": "nixpkgs_779"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24187,7 +24362,7 @@
     },
     "logos-nix_773": {
       "inputs": {
-        "nixpkgs": "nixpkgs_779"
+        "nixpkgs": "nixpkgs_780"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24205,7 +24380,7 @@
     },
     "logos-nix_774": {
       "inputs": {
-        "nixpkgs": "nixpkgs_780"
+        "nixpkgs": "nixpkgs_781"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24223,7 +24398,7 @@
     },
     "logos-nix_775": {
       "inputs": {
-        "nixpkgs": "nixpkgs_781"
+        "nixpkgs": "nixpkgs_782"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24241,7 +24416,7 @@
     },
     "logos-nix_776": {
       "inputs": {
-        "nixpkgs": "nixpkgs_782"
+        "nixpkgs": "nixpkgs_783"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24259,7 +24434,7 @@
     },
     "logos-nix_777": {
       "inputs": {
-        "nixpkgs": "nixpkgs_783"
+        "nixpkgs": "nixpkgs_784"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24277,7 +24452,7 @@
     },
     "logos-nix_778": {
       "inputs": {
-        "nixpkgs": "nixpkgs_784"
+        "nixpkgs": "nixpkgs_785"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24295,7 +24470,7 @@
     },
     "logos-nix_779": {
       "inputs": {
-        "nixpkgs": "nixpkgs_785"
+        "nixpkgs": "nixpkgs_786"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24331,7 +24506,7 @@
     },
     "logos-nix_780": {
       "inputs": {
-        "nixpkgs": "nixpkgs_786"
+        "nixpkgs": "nixpkgs_787"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24349,7 +24524,7 @@
     },
     "logos-nix_781": {
       "inputs": {
-        "nixpkgs": "nixpkgs_787"
+        "nixpkgs": "nixpkgs_788"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24367,7 +24542,7 @@
     },
     "logos-nix_782": {
       "inputs": {
-        "nixpkgs": "nixpkgs_788"
+        "nixpkgs": "nixpkgs_789"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24385,7 +24560,7 @@
     },
     "logos-nix_783": {
       "inputs": {
-        "nixpkgs": "nixpkgs_789"
+        "nixpkgs": "nixpkgs_790"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24403,7 +24578,7 @@
     },
     "logos-nix_784": {
       "inputs": {
-        "nixpkgs": "nixpkgs_790"
+        "nixpkgs": "nixpkgs_791"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24421,7 +24596,7 @@
     },
     "logos-nix_785": {
       "inputs": {
-        "nixpkgs": "nixpkgs_791"
+        "nixpkgs": "nixpkgs_792"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24439,7 +24614,7 @@
     },
     "logos-nix_786": {
       "inputs": {
-        "nixpkgs": "nixpkgs_792"
+        "nixpkgs": "nixpkgs_793"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24457,7 +24632,7 @@
     },
     "logos-nix_787": {
       "inputs": {
-        "nixpkgs": "nixpkgs_793"
+        "nixpkgs": "nixpkgs_794"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24475,7 +24650,7 @@
     },
     "logos-nix_788": {
       "inputs": {
-        "nixpkgs": "nixpkgs_794"
+        "nixpkgs": "nixpkgs_795"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24493,7 +24668,7 @@
     },
     "logos-nix_789": {
       "inputs": {
-        "nixpkgs": "nixpkgs_795"
+        "nixpkgs": "nixpkgs_796"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24529,7 +24704,7 @@
     },
     "logos-nix_790": {
       "inputs": {
-        "nixpkgs": "nixpkgs_796"
+        "nixpkgs": "nixpkgs_797"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24547,7 +24722,7 @@
     },
     "logos-nix_791": {
       "inputs": {
-        "nixpkgs": "nixpkgs_797"
+        "nixpkgs": "nixpkgs_798"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24565,7 +24740,7 @@
     },
     "logos-nix_792": {
       "inputs": {
-        "nixpkgs": "nixpkgs_798"
+        "nixpkgs": "nixpkgs_799"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24583,7 +24758,7 @@
     },
     "logos-nix_793": {
       "inputs": {
-        "nixpkgs": "nixpkgs_799"
+        "nixpkgs": "nixpkgs_800"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24601,7 +24776,7 @@
     },
     "logos-nix_794": {
       "inputs": {
-        "nixpkgs": "nixpkgs_800"
+        "nixpkgs": "nixpkgs_801"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24619,7 +24794,7 @@
     },
     "logos-nix_795": {
       "inputs": {
-        "nixpkgs": "nixpkgs_801"
+        "nixpkgs": "nixpkgs_802"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24637,7 +24812,7 @@
     },
     "logos-nix_796": {
       "inputs": {
-        "nixpkgs": "nixpkgs_802"
+        "nixpkgs": "nixpkgs_803"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24655,7 +24830,7 @@
     },
     "logos-nix_797": {
       "inputs": {
-        "nixpkgs": "nixpkgs_803"
+        "nixpkgs": "nixpkgs_804"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24673,7 +24848,7 @@
     },
     "logos-nix_798": {
       "inputs": {
-        "nixpkgs": "nixpkgs_804"
+        "nixpkgs": "nixpkgs_805"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24691,7 +24866,7 @@
     },
     "logos-nix_799": {
       "inputs": {
-        "nixpkgs": "nixpkgs_805"
+        "nixpkgs": "nixpkgs_806"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24745,7 +24920,7 @@
     },
     "logos-nix_800": {
       "inputs": {
-        "nixpkgs": "nixpkgs_806"
+        "nixpkgs": "nixpkgs_807"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24763,7 +24938,7 @@
     },
     "logos-nix_801": {
       "inputs": {
-        "nixpkgs": "nixpkgs_807"
+        "nixpkgs": "nixpkgs_808"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24781,7 +24956,7 @@
     },
     "logos-nix_802": {
       "inputs": {
-        "nixpkgs": "nixpkgs_808"
+        "nixpkgs": "nixpkgs_809"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24799,7 +24974,7 @@
     },
     "logos-nix_803": {
       "inputs": {
-        "nixpkgs": "nixpkgs_809"
+        "nixpkgs": "nixpkgs_810"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24817,7 +24992,7 @@
     },
     "logos-nix_804": {
       "inputs": {
-        "nixpkgs": "nixpkgs_810"
+        "nixpkgs": "nixpkgs_811"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24835,7 +25010,7 @@
     },
     "logos-nix_805": {
       "inputs": {
-        "nixpkgs": "nixpkgs_811"
+        "nixpkgs": "nixpkgs_812"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24853,7 +25028,7 @@
     },
     "logos-nix_806": {
       "inputs": {
-        "nixpkgs": "nixpkgs_812"
+        "nixpkgs": "nixpkgs_813"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24871,7 +25046,7 @@
     },
     "logos-nix_807": {
       "inputs": {
-        "nixpkgs": "nixpkgs_813"
+        "nixpkgs": "nixpkgs_814"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24889,7 +25064,7 @@
     },
     "logos-nix_808": {
       "inputs": {
-        "nixpkgs": "nixpkgs_814"
+        "nixpkgs": "nixpkgs_815"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24907,7 +25082,7 @@
     },
     "logos-nix_809": {
       "inputs": {
-        "nixpkgs": "nixpkgs_815"
+        "nixpkgs": "nixpkgs_816"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24943,7 +25118,7 @@
     },
     "logos-nix_810": {
       "inputs": {
-        "nixpkgs": "nixpkgs_816"
+        "nixpkgs": "nixpkgs_817"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24961,7 +25136,7 @@
     },
     "logos-nix_811": {
       "inputs": {
-        "nixpkgs": "nixpkgs_817"
+        "nixpkgs": "nixpkgs_818"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -24979,7 +25154,7 @@
     },
     "logos-nix_812": {
       "inputs": {
-        "nixpkgs": "nixpkgs_818"
+        "nixpkgs": "nixpkgs_819"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -24997,7 +25172,7 @@
     },
     "logos-nix_813": {
       "inputs": {
-        "nixpkgs": "nixpkgs_819"
+        "nixpkgs": "nixpkgs_820"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25015,7 +25190,7 @@
     },
     "logos-nix_814": {
       "inputs": {
-        "nixpkgs": "nixpkgs_820"
+        "nixpkgs": "nixpkgs_821"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25033,7 +25208,7 @@
     },
     "logos-nix_815": {
       "inputs": {
-        "nixpkgs": "nixpkgs_821"
+        "nixpkgs": "nixpkgs_822"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25051,7 +25226,7 @@
     },
     "logos-nix_816": {
       "inputs": {
-        "nixpkgs": "nixpkgs_822"
+        "nixpkgs": "nixpkgs_823"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25069,7 +25244,7 @@
     },
     "logos-nix_817": {
       "inputs": {
-        "nixpkgs": "nixpkgs_823"
+        "nixpkgs": "nixpkgs_824"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25087,7 +25262,7 @@
     },
     "logos-nix_818": {
       "inputs": {
-        "nixpkgs": "nixpkgs_824"
+        "nixpkgs": "nixpkgs_825"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25105,7 +25280,7 @@
     },
     "logos-nix_819": {
       "inputs": {
-        "nixpkgs": "nixpkgs_825"
+        "nixpkgs": "nixpkgs_826"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25141,7 +25316,7 @@
     },
     "logos-nix_820": {
       "inputs": {
-        "nixpkgs": "nixpkgs_826"
+        "nixpkgs": "nixpkgs_827"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25159,7 +25334,7 @@
     },
     "logos-nix_821": {
       "inputs": {
-        "nixpkgs": "nixpkgs_827"
+        "nixpkgs": "nixpkgs_828"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25177,7 +25352,7 @@
     },
     "logos-nix_822": {
       "inputs": {
-        "nixpkgs": "nixpkgs_828"
+        "nixpkgs": "nixpkgs_829"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25195,7 +25370,7 @@
     },
     "logos-nix_823": {
       "inputs": {
-        "nixpkgs": "nixpkgs_829"
+        "nixpkgs": "nixpkgs_830"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25213,7 +25388,7 @@
     },
     "logos-nix_824": {
       "inputs": {
-        "nixpkgs": "nixpkgs_830"
+        "nixpkgs": "nixpkgs_831"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25231,7 +25406,7 @@
     },
     "logos-nix_825": {
       "inputs": {
-        "nixpkgs": "nixpkgs_831"
+        "nixpkgs": "nixpkgs_832"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25249,7 +25424,7 @@
     },
     "logos-nix_826": {
       "inputs": {
-        "nixpkgs": "nixpkgs_832"
+        "nixpkgs": "nixpkgs_833"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25267,7 +25442,7 @@
     },
     "logos-nix_827": {
       "inputs": {
-        "nixpkgs": "nixpkgs_833"
+        "nixpkgs": "nixpkgs_834"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25285,7 +25460,7 @@
     },
     "logos-nix_828": {
       "inputs": {
-        "nixpkgs": "nixpkgs_834"
+        "nixpkgs": "nixpkgs_835"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25303,7 +25478,7 @@
     },
     "logos-nix_829": {
       "inputs": {
-        "nixpkgs": "nixpkgs_835"
+        "nixpkgs": "nixpkgs_836"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25339,7 +25514,7 @@
     },
     "logos-nix_830": {
       "inputs": {
-        "nixpkgs": "nixpkgs_836"
+        "nixpkgs": "nixpkgs_837"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25357,7 +25532,7 @@
     },
     "logos-nix_831": {
       "inputs": {
-        "nixpkgs": "nixpkgs_837"
+        "nixpkgs": "nixpkgs_838"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25375,7 +25550,7 @@
     },
     "logos-nix_832": {
       "inputs": {
-        "nixpkgs": "nixpkgs_838"
+        "nixpkgs": "nixpkgs_839"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25393,7 +25568,7 @@
     },
     "logos-nix_833": {
       "inputs": {
-        "nixpkgs": "nixpkgs_839"
+        "nixpkgs": "nixpkgs_840"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25411,7 +25586,7 @@
     },
     "logos-nix_834": {
       "inputs": {
-        "nixpkgs": "nixpkgs_840"
+        "nixpkgs": "nixpkgs_841"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25429,7 +25604,7 @@
     },
     "logos-nix_835": {
       "inputs": {
-        "nixpkgs": "nixpkgs_841"
+        "nixpkgs": "nixpkgs_842"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25447,7 +25622,7 @@
     },
     "logos-nix_836": {
       "inputs": {
-        "nixpkgs": "nixpkgs_842"
+        "nixpkgs": "nixpkgs_843"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25465,7 +25640,7 @@
     },
     "logos-nix_837": {
       "inputs": {
-        "nixpkgs": "nixpkgs_843"
+        "nixpkgs": "nixpkgs_844"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25483,7 +25658,7 @@
     },
     "logos-nix_838": {
       "inputs": {
-        "nixpkgs": "nixpkgs_844"
+        "nixpkgs": "nixpkgs_845"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25501,7 +25676,7 @@
     },
     "logos-nix_839": {
       "inputs": {
-        "nixpkgs": "nixpkgs_845"
+        "nixpkgs": "nixpkgs_846"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25537,7 +25712,7 @@
     },
     "logos-nix_840": {
       "inputs": {
-        "nixpkgs": "nixpkgs_846"
+        "nixpkgs": "nixpkgs_847"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25555,7 +25730,7 @@
     },
     "logos-nix_841": {
       "inputs": {
-        "nixpkgs": "nixpkgs_847"
+        "nixpkgs": "nixpkgs_848"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25573,7 +25748,7 @@
     },
     "logos-nix_842": {
       "inputs": {
-        "nixpkgs": "nixpkgs_848"
+        "nixpkgs": "nixpkgs_849"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25591,7 +25766,7 @@
     },
     "logos-nix_843": {
       "inputs": {
-        "nixpkgs": "nixpkgs_849"
+        "nixpkgs": "nixpkgs_850"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25609,7 +25784,7 @@
     },
     "logos-nix_844": {
       "inputs": {
-        "nixpkgs": "nixpkgs_850"
+        "nixpkgs": "nixpkgs_851"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25627,7 +25802,7 @@
     },
     "logos-nix_845": {
       "inputs": {
-        "nixpkgs": "nixpkgs_851"
+        "nixpkgs": "nixpkgs_852"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25645,7 +25820,7 @@
     },
     "logos-nix_846": {
       "inputs": {
-        "nixpkgs": "nixpkgs_852"
+        "nixpkgs": "nixpkgs_853"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25663,7 +25838,7 @@
     },
     "logos-nix_847": {
       "inputs": {
-        "nixpkgs": "nixpkgs_853"
+        "nixpkgs": "nixpkgs_854"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25681,7 +25856,7 @@
     },
     "logos-nix_848": {
       "inputs": {
-        "nixpkgs": "nixpkgs_854"
+        "nixpkgs": "nixpkgs_855"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25699,7 +25874,7 @@
     },
     "logos-nix_849": {
       "inputs": {
-        "nixpkgs": "nixpkgs_855"
+        "nixpkgs": "nixpkgs_856"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25735,7 +25910,7 @@
     },
     "logos-nix_850": {
       "inputs": {
-        "nixpkgs": "nixpkgs_856"
+        "nixpkgs": "nixpkgs_857"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25753,7 +25928,7 @@
     },
     "logos-nix_851": {
       "inputs": {
-        "nixpkgs": "nixpkgs_857"
+        "nixpkgs": "nixpkgs_858"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25771,7 +25946,7 @@
     },
     "logos-nix_852": {
       "inputs": {
-        "nixpkgs": "nixpkgs_858"
+        "nixpkgs": "nixpkgs_859"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25789,7 +25964,7 @@
     },
     "logos-nix_853": {
       "inputs": {
-        "nixpkgs": "nixpkgs_859"
+        "nixpkgs": "nixpkgs_860"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25807,7 +25982,7 @@
     },
     "logos-nix_854": {
       "inputs": {
-        "nixpkgs": "nixpkgs_860"
+        "nixpkgs": "nixpkgs_861"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25825,7 +26000,7 @@
     },
     "logos-nix_855": {
       "inputs": {
-        "nixpkgs": "nixpkgs_861"
+        "nixpkgs": "nixpkgs_862"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25843,7 +26018,7 @@
     },
     "logos-nix_856": {
       "inputs": {
-        "nixpkgs": "nixpkgs_862"
+        "nixpkgs": "nixpkgs_863"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25861,7 +26036,7 @@
     },
     "logos-nix_857": {
       "inputs": {
-        "nixpkgs": "nixpkgs_863"
+        "nixpkgs": "nixpkgs_864"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25879,7 +26054,7 @@
     },
     "logos-nix_858": {
       "inputs": {
-        "nixpkgs": "nixpkgs_864"
+        "nixpkgs": "nixpkgs_865"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25897,7 +26072,7 @@
     },
     "logos-nix_859": {
       "inputs": {
-        "nixpkgs": "nixpkgs_865"
+        "nixpkgs": "nixpkgs_866"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -25933,7 +26108,7 @@
     },
     "logos-nix_860": {
       "inputs": {
-        "nixpkgs": "nixpkgs_866"
+        "nixpkgs": "nixpkgs_867"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25951,7 +26126,7 @@
     },
     "logos-nix_861": {
       "inputs": {
-        "nixpkgs": "nixpkgs_867"
+        "nixpkgs": "nixpkgs_868"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25969,7 +26144,7 @@
     },
     "logos-nix_862": {
       "inputs": {
-        "nixpkgs": "nixpkgs_868"
+        "nixpkgs": "nixpkgs_869"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -25987,7 +26162,7 @@
     },
     "logos-nix_863": {
       "inputs": {
-        "nixpkgs": "nixpkgs_869"
+        "nixpkgs": "nixpkgs_870"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26005,7 +26180,7 @@
     },
     "logos-nix_864": {
       "inputs": {
-        "nixpkgs": "nixpkgs_870"
+        "nixpkgs": "nixpkgs_871"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26023,7 +26198,7 @@
     },
     "logos-nix_865": {
       "inputs": {
-        "nixpkgs": "nixpkgs_871"
+        "nixpkgs": "nixpkgs_872"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26041,7 +26216,7 @@
     },
     "logos-nix_866": {
       "inputs": {
-        "nixpkgs": "nixpkgs_872"
+        "nixpkgs": "nixpkgs_873"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26059,7 +26234,7 @@
     },
     "logos-nix_867": {
       "inputs": {
-        "nixpkgs": "nixpkgs_873"
+        "nixpkgs": "nixpkgs_874"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26077,7 +26252,7 @@
     },
     "logos-nix_868": {
       "inputs": {
-        "nixpkgs": "nixpkgs_874"
+        "nixpkgs": "nixpkgs_875"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26095,7 +26270,7 @@
     },
     "logos-nix_869": {
       "inputs": {
-        "nixpkgs": "nixpkgs_875"
+        "nixpkgs": "nixpkgs_876"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26131,7 +26306,7 @@
     },
     "logos-nix_870": {
       "inputs": {
-        "nixpkgs": "nixpkgs_876"
+        "nixpkgs": "nixpkgs_877"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26149,7 +26324,7 @@
     },
     "logos-nix_871": {
       "inputs": {
-        "nixpkgs": "nixpkgs_877"
+        "nixpkgs": "nixpkgs_878"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26167,7 +26342,7 @@
     },
     "logos-nix_872": {
       "inputs": {
-        "nixpkgs": "nixpkgs_878"
+        "nixpkgs": "nixpkgs_879"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26185,7 +26360,7 @@
     },
     "logos-nix_873": {
       "inputs": {
-        "nixpkgs": "nixpkgs_879"
+        "nixpkgs": "nixpkgs_880"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26203,7 +26378,7 @@
     },
     "logos-nix_874": {
       "inputs": {
-        "nixpkgs": "nixpkgs_880"
+        "nixpkgs": "nixpkgs_881"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26221,7 +26396,7 @@
     },
     "logos-nix_875": {
       "inputs": {
-        "nixpkgs": "nixpkgs_881"
+        "nixpkgs": "nixpkgs_882"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26239,7 +26414,7 @@
     },
     "logos-nix_876": {
       "inputs": {
-        "nixpkgs": "nixpkgs_882"
+        "nixpkgs": "nixpkgs_883"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26257,7 +26432,7 @@
     },
     "logos-nix_877": {
       "inputs": {
-        "nixpkgs": "nixpkgs_883"
+        "nixpkgs": "nixpkgs_884"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26275,7 +26450,7 @@
     },
     "logos-nix_878": {
       "inputs": {
-        "nixpkgs": "nixpkgs_884"
+        "nixpkgs": "nixpkgs_885"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26293,7 +26468,7 @@
     },
     "logos-nix_879": {
       "inputs": {
-        "nixpkgs": "nixpkgs_885"
+        "nixpkgs": "nixpkgs_886"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26329,7 +26504,7 @@
     },
     "logos-nix_880": {
       "inputs": {
-        "nixpkgs": "nixpkgs_886"
+        "nixpkgs": "nixpkgs_887"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26347,7 +26522,7 @@
     },
     "logos-nix_881": {
       "inputs": {
-        "nixpkgs": "nixpkgs_887"
+        "nixpkgs": "nixpkgs_888"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26365,7 +26540,7 @@
     },
     "logos-nix_882": {
       "inputs": {
-        "nixpkgs": "nixpkgs_888"
+        "nixpkgs": "nixpkgs_889"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26383,7 +26558,7 @@
     },
     "logos-nix_883": {
       "inputs": {
-        "nixpkgs": "nixpkgs_889"
+        "nixpkgs": "nixpkgs_890"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -26401,7 +26576,7 @@
     },
     "logos-nix_884": {
       "inputs": {
-        "nixpkgs": "nixpkgs_890"
+        "nixpkgs": "nixpkgs_891"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26419,7 +26594,7 @@
     },
     "logos-nix_885": {
       "inputs": {
-        "nixpkgs": "nixpkgs_891"
+        "nixpkgs": "nixpkgs_892"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26437,7 +26612,7 @@
     },
     "logos-nix_886": {
       "inputs": {
-        "nixpkgs": "nixpkgs_892"
+        "nixpkgs": "nixpkgs_893"
       },
       "locked": {
         "lastModified": 1774455309,
@@ -26455,7 +26630,7 @@
     },
     "logos-nix_887": {
       "inputs": {
-        "nixpkgs": "nixpkgs_893"
+        "nixpkgs": "nixpkgs_894"
       },
       "locked": {
         "lastModified": 1773955630,
@@ -34566,7 +34741,7 @@
     },
     "logos-storage": {
       "inputs": {
-        "nixpkgs": "nixpkgs_894"
+        "nixpkgs": "nixpkgs_895"
       },
       "locked": {
         "lastModified": 1776069614,
@@ -45904,6 +46079,22 @@
     },
     "nixpkgs_135": {
       "locked": {
+        "lastModified": 1781577229,
+        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_136": {
+      "locked": {
         "lastModified": 1769461804,
         "narHash": "sha256-msG8SU5WsBUfVVa/9RPLaymvi5bI8edTavbIq3vRlhI=",
         "owner": "NixOS",
@@ -45918,29 +46109,13 @@
         "type": "github"
       }
     },
-    "nixpkgs_136": {
+    "nixpkgs_137": {
       "locked": {
         "lastModified": 1776169885,
         "narHash": "sha256-l/iNYDZ4bGOAFQY2q8y5OAfBBtrDAaPuRQqWaFHVRXM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "4bd9165a9165d7b5e33ae57f3eecbcb28fb231c9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_137": {
-      "locked": {
-        "lastModified": 1759036355,
-        "narHash": "sha256-0m27AKv6ka+q270dw48KflE0LwQYrO7Fm4/2//KCVWg=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e9f00bd893984bc8ce46c895c3bf7cac95331127",
         "type": "github"
       },
       "original": {
@@ -46176,22 +46351,6 @@
     },
     "nixpkgs_150": {
       "locked": {
-        "lastModified": 1767313136,
-        "narHash": "sha256-16KkgfdYqjaeRGBaYsNrhPRRENs0qzkQVUooNHtoy2w=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "ac62194c3917d5f474c1a844b6fd6da2db95077d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-25.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_151": {
-      "locked": {
         "lastModified": 1759036355,
         "narHash": "sha256-0m27AKv6ka+q270dw48KflE0LwQYrO7Fm4/2//KCVWg=",
         "owner": "NixOS",
@@ -46202,6 +46361,22 @@
       "original": {
         "owner": "NixOS",
         "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_151": {
+      "locked": {
+        "lastModified": 1767313136,
+        "narHash": "sha256-16KkgfdYqjaeRGBaYsNrhPRRENs0qzkQVUooNHtoy2w=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ac62194c3917d5f474c1a844b6fd6da2db95077d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -59376,6 +59551,22 @@
     },
     "nixpkgs_894": {
       "locked": {
+        "lastModified": 1759036355,
+        "narHash": "sha256-0m27AKv6ka+q270dw48KflE0LwQYrO7Fm4/2//KCVWg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e9f00bd893984bc8ce46c895c3bf7cac95331127",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_895": {
+      "locked": {
         "lastModified": 1751274312,
         "narHash": "sha256-/bVBlRpECLVzjV19t5KMdMFWSwKLtb5RyXdjz3LJT+g=",
         "owner": "NixOS",
@@ -60320,6 +60511,13 @@
         "logos-chat-ui": "logos-chat-ui",
         "logos-cpp-sdk": "logos-cpp-sdk_13",
         "logos-design-system": "logos-design-system_4",
+        "logos-evm-eth-rpc-module": "logos-evm-eth-rpc-module",
+        "logos-evm-keystore-module": "logos-evm-keystore-module",
+        "logos-evm-net-proxy": "logos-evm-net-proxy",
+        "logos-evm-token-list-module": "logos-evm-token-list-module",
+        "logos-evm-uniswap-module": "logos-evm-uniswap-module",
+        "logos-evm-wallet-backend-module": "logos-evm-wallet-backend-module",
+        "logos-evm-wallet-ui": "logos-evm-wallet-ui",
         "logos-execution-zone-module": "logos-execution-zone-module",
         "logos-execution-zone-wallet-ui": "logos-execution-zone-wallet-ui",
         "logos-js-sdk": "logos-js-sdk",

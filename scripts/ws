@@ -155,6 +155,17 @@ REPOS=(
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
   "logos-module-viewer|logos-module-viewer|https://github.com/logos-co/logos-module-viewer.git|yes"
 
+  # EVM wallet (logos-evm-* modules + the fail-closed net-proxy crate).
+  # input_name == dir == GitHub slug (the doctest matrix in logos-doctest-hub
+  # intersects repos.json names against submodule dir names, so they must match).
+  "logos-evm-net-proxy|logos-evm-net-proxy|https://github.com/logos-co/logos-evm-net-proxy.git|yes"
+  "logos-evm-keystore-module|logos-evm-keystore-module|https://github.com/logos-co/logos-evm-keystore-module.git|yes"
+  "logos-evm-eth-rpc-module|logos-evm-eth-rpc-module|https://github.com/logos-co/logos-evm-eth-rpc-module.git|yes"
+  "logos-evm-token-list-module|logos-evm-token-list-module|https://github.com/logos-co/logos-evm-token-list-module.git|yes"
+  "logos-evm-uniswap-module|logos-evm-uniswap-module|https://github.com/logos-co/logos-evm-uniswap-module.git|yes"
+  "logos-evm-wallet-backend-module|logos-evm-wallet-backend-module|https://github.com/logos-co/logos-evm-wallet-backend-module.git|yes"
+  "logos-evm-wallet-ui|logos-evm-wallet-ui|https://github.com/logos-co/logos-evm-wallet-ui.git|yes"
+
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
   "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
@@ -172,6 +183,7 @@ REPO_GROUPS=(
   "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
+  "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui"
 )
 
 # ── Helper functions ─────────────────────────────────────────────────────────
@@ -2396,6 +2408,11 @@ get_manual_follows() {
     # Force it to follow the workspace-level pinned input instead.
     logos-blockchain-module)
       printf 'logos-blockchain\tlogos-blockchain\n' ;;
+    # keystore + token-list ship no committed flake.lock, so sync-graph can't
+    # auto-derive their module-builder dep — declare it manually so the
+    # workspace overrides it (version consistency with the rest of the tree).
+    logos-evm-keystore-module|logos-evm-token-list-module)
+      printf 'logos-module-builder\tlogos-module-builder\n' ;;
   esac
 }
 
