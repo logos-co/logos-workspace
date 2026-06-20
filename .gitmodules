@@ -172,3 +172,24 @@
 [submodule "repos/logos-lidl"]
 	path = repos/logos-lidl
 	url = git@github.com:logos-co/logos-lidl.git
+[submodule "repos/logos-evm-net-proxy"]
+	path = repos/logos-evm-net-proxy
+	url = git@github.com:logos-co/logos-evm-net-proxy.git
+[submodule "repos/logos-evm-keystore-module"]
+	path = repos/logos-evm-keystore-module
+	url = git@github.com:logos-co/logos-evm-keystore-module.git
+[submodule "repos/logos-evm-eth-rpc-module"]
+	path = repos/logos-evm-eth-rpc-module
+	url = git@github.com:logos-co/logos-evm-eth-rpc-module.git
+[submodule "repos/logos-evm-token-list-module"]
+	path = repos/logos-evm-token-list-module
+	url = git@github.com:logos-co/logos-evm-token-list-module.git
+[submodule "repos/logos-evm-uniswap-module"]
+	path = repos/logos-evm-uniswap-module
+	url = git@github.com:logos-co/logos-evm-uniswap-module.git
+[submodule "repos/logos-evm-wallet-backend-module"]
+	path = repos/logos-evm-wallet-backend-module
+	url = git@github.com:logos-co/logos-evm-wallet-backend-module.git
+[submodule "repos/logos-evm-wallet-ui"]
+	path = repos/logos-evm-wallet-ui
+	url = git@github.com:logos-co/logos-evm-wallet-ui.git
