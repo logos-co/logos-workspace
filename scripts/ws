@@ -163,6 +163,7 @@ REPOS=(
   "logos-evm-eth-rpc-module|logos-evm-eth-rpc-module|https://github.com/logos-co/logos-evm-eth-rpc-module.git|yes"
   "logos-evm-token-list-module|logos-evm-token-list-module|https://github.com/logos-co/logos-evm-token-list-module.git|yes"
   "logos-evm-uniswap-module|logos-evm-uniswap-module|https://github.com/logos-co/logos-evm-uniswap-module.git|yes"
+  "logos-evm-railgun-module|logos-evm-railgun-module|https://github.com/logos-co/logos-evm-railgun-module.git|yes"
   "logos-evm-wallet-backend-module|logos-evm-wallet-backend-module|https://github.com/logos-co/logos-evm-wallet-backend-module.git|yes"
   "logos-evm-wallet-ui|logos-evm-wallet-ui|https://github.com/logos-co/logos-evm-wallet-ui.git|yes"
 
@@ -183,7 +184,7 @@ REPO_GROUPS=(
   "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
-  "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui"
+  "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-railgun-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui"
 )
 
 # ── Helper functions ─────────────────────────────────────────────────────────
