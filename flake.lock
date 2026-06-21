@@ -5229,17 +5229,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1782057123,
-        "narHash": "sha256-hLILDh4zULMMyNxumodYvRqmQg7qZQDRsBMbRFFzjdU=",
+        "lastModified": 1782065304,
+        "narHash": "sha256-si9Uq2PVJ4M156kO+TGJ9nsW1LnQ1G+4frxBBfOJ9rM=",
         "owner": "logos-co",
         "repo": "logos-evm-railgun-module",
-        "rev": "4444b22340c91b039bf422642f95c697ea81a3e0",
+        "rev": "73c4836d9fef6346c03aea8de498475c3166c404",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-evm-railgun-module",
-        "rev": "4444b22340c91b039bf422642f95c697ea81a3e0",
+        "rev": "73c4836d9fef6346c03aea8de498475c3166c404",
         "type": "github"
       }
     },
