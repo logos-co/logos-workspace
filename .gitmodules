@@ -187,6 +187,9 @@
 [submodule "repos/logos-evm-uniswap-module"]
 	path = repos/logos-evm-uniswap-module
 	url = git@github.com:logos-co/logos-evm-uniswap-module.git
+[submodule "repos/logos-evm-railgun-module"]
+	path = repos/logos-evm-railgun-module
+	url = git@github.com:logos-co/logos-evm-railgun-module.git
 [submodule "repos/logos-evm-wallet-backend-module"]
 	path = repos/logos-evm-wallet-backend-module
 	url = git@github.com:logos-co/logos-evm-wallet-backend-module.git

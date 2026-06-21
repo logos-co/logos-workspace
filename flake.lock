@@ -5162,17 +5162,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781917977,
-        "narHash": "sha256-w6K8QSjHT0tm8zCcJyXTrsJv0aRq2amkgDRMQP+tQyg=",
+        "lastModified": 1782056851,
+        "narHash": "sha256-QJo+CAyfN7jtkvV284HRtQuqPDompbIC2ecuThv4xrQ=",
         "owner": "logos-co",
         "repo": "logos-evm-eth-rpc-module",
-        "rev": "de295ef3d0d2c80854683c999f62d0296b1ca897",
+        "rev": "bf08ea99ae65a2c999bdc2f7511fa5b05f690936",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-evm-eth-rpc-module",
-        "rev": "de295ef3d0d2c80854683c999f62d0296b1ca897",
+        "rev": "bf08ea99ae65a2c999bdc2f7511fa5b05f690936",
         "type": "github"
       }
     },
@@ -5183,17 +5183,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781974792,
-        "narHash": "sha256-lI2/TXcTvQIN2jP/AjDxNTybuanMRCw4QQuI0c3XcyA=",
+        "lastModified": 1782056118,
+        "narHash": "sha256-D822Qb33RiDRnpVd7W9nhaQW2ThdEf8dqUQhlR6q4Tw=",
         "owner": "logos-co",
         "repo": "logos-evm-keystore-module",
-        "rev": "0419b7382b6fdc0d64a9b00f5929fd3d031b81c3",
+        "rev": "1ac386973acf568b48bb52f7e17baf302fa55670",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-evm-keystore-module",
-        "rev": "0419b7382b6fdc0d64a9b00f5929fd3d031b81c3",
+        "rev": "1ac386973acf568b48bb52f7e17baf302fa55670",
         "type": "github"
       }
     },
@@ -5213,6 +5213,33 @@
         "owner": "logos-co",
         "repo": "logos-evm-net-proxy",
         "rev": "f1a5564afc070257c63d3072db6c24760d6911c9",
+        "type": "github"
+      }
+    },
+    "logos-evm-railgun-module": {
+      "inputs": {
+        "eth_rpc_module": [
+          "logos-evm-eth-rpc-module"
+        ],
+        "keystore_module": [
+          "logos-evm-keystore-module"
+        ],
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782057123,
+        "narHash": "sha256-hLILDh4zULMMyNxumodYvRqmQg7qZQDRsBMbRFFzjdU=",
+        "owner": "logos-co",
+        "repo": "logos-evm-railgun-module",
+        "rev": "4444b22340c91b039bf422642f95c697ea81a3e0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-evm-railgun-module",
+        "rev": "4444b22340c91b039bf422642f95c697ea81a3e0",
         "type": "github"
       }
     },
@@ -5272,6 +5299,9 @@
         "logos-module-builder": [
           "logos-module-builder"
         ],
+        "railgun_module": [
+          "logos-evm-railgun-module"
+        ],
         "token_list_module": [
           "logos-evm-token-list-module"
         ],
@@ -5280,17 +5310,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781989809,
-        "narHash": "sha256-XE0Y66nKQztUlZBa9elPLNB4+Jhrpe9gBb/7NnhofDY=",
+        "lastModified": 1782058795,
+        "narHash": "sha256-s5CzV5/XzoMqksuY0lCadVVK/uTjRkfiA0xTd4RR1xI=",
         "owner": "logos-co",
         "repo": "logos-evm-wallet-backend-module",
-        "rev": "209ca88029cf11e1f9dd3a87f755228596a48551",
+        "rev": "910a7cd99731d120c79a9d964ac62c5cfc58b0e2",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-evm-wallet-backend-module",
-        "rev": "209ca88029cf11e1f9dd3a87f755228596a48551",
+        "rev": "910a7cd99731d120c79a9d964ac62c5cfc58b0e2",
         "type": "github"
       }
     },
@@ -5305,6 +5335,9 @@
         "logos-module-builder": [
           "logos-module-builder"
         ],
+        "railgun_module": [
+          "logos-evm-railgun-module"
+        ],
         "token_list_module": [
           "logos-evm-token-list-module"
         ],
@@ -5316,17 +5349,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781972054,
-        "narHash": "sha256-iRNXKG+l0tnhtuMyy5BX8dgGqQR0ZhIjpf/kELFHKMo=",
+        "lastModified": 1782061582,
+        "narHash": "sha256-AoGn+1L6tagAfN1SRinmMHzXQMU28+jR4Nkh0EMbDEs=",
         "owner": "logos-co",
         "repo": "logos-evm-wallet-ui",
-        "rev": "033e74ef0fd93912c08cb13b1bf42b631cb1b0ec",
+        "rev": "3736386bc5a9e2294e6ef465a5fc8fc02087aa78",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-evm-wallet-ui",
-        "rev": "033e74ef0fd93912c08cb13b1bf42b631cb1b0ec",
+        "rev": "3736386bc5a9e2294e6ef465a5fc8fc02087aa78",
         "type": "github"
       }
     },
@@ -7207,20 +7240,21 @@
         "nix-bundle-logos-module-install": "nix-bundle-logos-module-install_6",
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "rust-overlay": "rust-overlay_4"
       },
       "locked": {
-        "lastModified": 1781963359,
-        "narHash": "sha256-qyHTX+zSVGMVeZE85YHT7X4s7Sf9XBUioNvGO4iSpJs=",
+        "lastModified": 1782048074,
+        "narHash": "sha256-WpjHhCVHJd27qA+LMvbK2ikN4Y9/7HaVMa+MaZi3vp0=",
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "7bcd2def356ed8f37ebbbe007bbc7094f796907e",
+        "rev": "8bb7bd897d6337a2d644ef87d24f786e97edf310",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "7bcd2def356ed8f37ebbbe007bbc7094f796907e",
+        "rev": "8bb7bd897d6337a2d644ef87d24f786e97edf310",
         "type": "github"
       }
     },
@@ -33987,17 +34021,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1781897494,
-        "narHash": "sha256-4WsMEAD86C5cDMKC3jC8dA2AtMBgJxYdeep8z2swob4=",
+        "lastModified": 1782045655,
+        "narHash": "sha256-fprp1M+5opx3nfqAW+2HKcRUQyc+zqxsOxdNvpJFFv0=",
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "eff1ad5f039e37eaab88a845ac8d4529cb58c2ff",
+        "rev": "9957a9dd81c38c27e7021b623709129d3a4b7476",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "eff1ad5f039e37eaab88a845ac8d4529cb58c2ff",
+        "rev": "9957a9dd81c38c27e7021b623709129d3a4b7476",
         "type": "github"
       }
     },
@@ -60514,6 +60548,7 @@
         "logos-evm-eth-rpc-module": "logos-evm-eth-rpc-module",
         "logos-evm-keystore-module": "logos-evm-keystore-module",
         "logos-evm-net-proxy": "logos-evm-net-proxy",
+        "logos-evm-railgun-module": "logos-evm-railgun-module",
         "logos-evm-token-list-module": "logos-evm-token-list-module",
         "logos-evm-uniswap-module": "logos-evm-uniswap-module",
         "logos-evm-wallet-backend-module": "logos-evm-wallet-backend-module",
@@ -60618,6 +60653,27 @@
         "owner": "oxalica",
         "repo": "rust-overlay",
         "rev": "8087ff1f47fff983a1fba70fa88b759f2fd8ae97",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_4": {
+      "inputs": {
+        "nixpkgs": [
+          "logos-module-builder",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782012058,
+        "narHash": "sha256-9mWUnReOUXfKjZuJAL/bAFH3LUyECTRtXgSNVjRw3UY=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "8534567325bd8a8d2928e6afd81e0a87d19efd3c",
         "type": "github"
       },
       "original": {
