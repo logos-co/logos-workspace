@@ -109,7 +109,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/e14e438d2469145fb550c92b6f88a33e6e489735";
+      url = "github:logos-co/logos-module-builder/8bb7bd897d6337a2d644ef87d24f786e97edf310";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -343,11 +343,11 @@
     };
     logos-evm-net-proxy.url = "github:logos-co/logos-evm-net-proxy/f1a5564afc070257c63d3072db6c24760d6911c9";
     logos-evm-keystore-module = {
-      url = "github:logos-co/logos-evm-keystore-module/620ec1780f1b7c02eab323409039379d46216e3e";
+      url = "github:logos-co/logos-evm-keystore-module/1ac386973acf568b48bb52f7e17baf302fa55670";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-eth-rpc-module = {
-      url = "github:logos-co/logos-evm-eth-rpc-module/a4b2b284409f796ab35961aeafbd91cc81dadc4c";
+      url = "github:logos-co/logos-evm-eth-rpc-module/bf08ea99ae65a2c999bdc2f7511fa5b05f690936";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-token-list-module = {
@@ -360,13 +360,13 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-railgun-module = {
-      url = "github:logos-co/logos-evm-railgun-module/babda0af240b9b6f2c7c58de04e8f2db9247f0b1";
+      url = "github:logos-co/logos-evm-railgun-module/4444b22340c91b039bf422642f95c697ea81a3e0";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-wallet-backend-module = {
-      url = "github:logos-co/logos-evm-wallet-backend-module/61c1cf776bc3ff36371bbbc77e4bed601c80b842";
+      url = "github:logos-co/logos-evm-wallet-backend-module/910a7cd99731d120c79a9d964ac62c5cfc58b0e2";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
@@ -375,7 +375,7 @@
       inputs.uniswap_module.follows = "logos-evm-uniswap-module";
     };
     logos-evm-wallet-ui = {
-      url = "github:logos-co/logos-evm-wallet-ui/ab63a828407cf3a8f7f3273c4d44e5a9dbe85437";
+      url = "github:logos-co/logos-evm-wallet-ui/3736386bc5a9e2294e6ef465a5fc8fc02087aa78";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
