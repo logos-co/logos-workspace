@@ -287,8 +287,10 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-libp2p-module = {
-      url = "github:logos-co/logos-libp2p-module/8ba1a52ee4452cd83ea95e3a6dd59118a30ded58";
+      url = "github:logos-co/logos-libp2p-module/31ecb52ed6eff774b7058c976dfb16f167fe6fb3";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.logoscore-cli.follows = "logos-logoscore-cli";
+      inputs.package-manager.follows = "logos-package-manager";
     };
     logos-webview-app = {
       url = "github:logos-co/logos-webview-app/b5d1bb40da6ba550076069a10cf9beaac45aa515";

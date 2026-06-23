@@ -56,7 +56,7 @@
   logos-blockchain-ui             = { deps = [ "logos-module-builder" "nix-bundle-lgx" "logos-blockchain-module" ]; follows = { "liblogos_blockchain_module" = "logos-blockchain-module"; "logos-module-builder" = "logos-module-builder"; "nix-bundle-lgx" = "nix-bundle-lgx"; }; hasTests = false; };
   logos-execution-zone-wallet-ui  = { deps = [ "logos-module-builder" "nix-bundle-lgx" "logos-execution-zone-module" ]; follows = { "logos-module-builder" = "logos-module-builder"; "logos_execution_zone" = "logos-execution-zone-module"; "nix-bundle-lgx" = "nix-bundle-lgx"; }; hasTests = false; };
   logos-execution-zone-module     = { deps = [ "logos-module-builder" "nix-bundle-lgx" ]; follows = { "logos-module-builder" = "logos-module-builder"; "nix-bundle-lgx" = "nix-bundle-lgx"; }; hasTests = false; };
-  logos-libp2p-module             = { deps = [ "logos-module-builder" ]; follows = { "logos-module-builder" = "logos-module-builder"; }; hasTests = true; };
+  logos-libp2p-module             = { deps = [ "logos-logoscore-cli" "logos-module-builder" "logos-package-manager" ]; follows = { "logos-module-builder" = "logos-module-builder"; "logoscore-cli" = "logos-logoscore-cli"; "package-manager" = "logos-package-manager"; }; hasTests = true; };
   logos-webview-app               = { deps = [ "logos-module-builder" "nix-bundle-lgx" ]; follows = { "logos-module-builder" = "logos-module-builder"; "nix-bundle-lgx" = "nix-bundle-lgx"; }; hasTests = false; };
   counter_qml                     = { deps = []; follows = {}; hasTests = false; };
   counter                         = { deps = [ "logos-module-builder" ]; follows = { "logos-module-builder" = "logos-module-builder"; }; hasTests = false; };
