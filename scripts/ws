@@ -126,6 +126,10 @@ REPOS=(
   "logos-wallet-module|logos-wallet-module|https://github.com/logos-co/logos-wallet-module.git|yes"
   "logos-wallet-ui|logos-wallet-ui|https://github.com/logos-co/logos-wallet-ui.git|yes"
 
+  # Delivery
+  "logos-delivery-module|logos-delivery-module|https://github.com/logos-co/logos-delivery-module.git|yes"
+  "logos-delivery-demo|logos-delivery-demo|https://github.com/logos-co/logos-delivery-demo.git|yes"
+
   # Blockchain / Execution zone (LEX)
   "logos-blockchain-module|logos-blockchain-module|https://github.com/logos-blockchain/logos-blockchain-module.git|yes"
   "logos-blockchain-ui|logos-blockchain-ui|https://github.com/logos-blockchain/logos-blockchain-ui.git|yes"

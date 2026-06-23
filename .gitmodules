@@ -196,3 +196,9 @@
 [submodule "repos/logos-evm-wallet-ui"]
 	path = repos/logos-evm-wallet-ui
 	url = git@github.com:logos-co/logos-evm-wallet-ui.git
+[submodule "repos/logos-delivery-module"]
+	path = repos/logos-delivery-module
+	url = git@github.com:logos-co/logos-delivery-module.git
+[submodule "repos/logos-delivery-demo"]
+	path = repos/logos-delivery-demo
+	url = git@github.com:logos-co/logos-delivery-demo.git

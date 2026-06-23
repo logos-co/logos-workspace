@@ -254,6 +254,16 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.wallet_module.follows = "logos-wallet-module";
     };
+    logos-delivery-module = {
+      url = "github:logos-co/logos-delivery-module/b43a6e5561c0e6fd9cf1fa505d9008169f273506";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+    };
+    logos-delivery-demo = {
+      url = "github:logos-co/logos-delivery-demo/20b05977c62d9c7426b9b5dca33b553877e5bf9c";
+      inputs.delivery_module.follows = "logos-delivery-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
     logos-blockchain-module = {
       url = "github:logos-blockchain/logos-blockchain-module/ab733aa7074cf1992f605c203c3d6a7923602705";
       inputs.logos-blockchain.follows = "logos-blockchain";
