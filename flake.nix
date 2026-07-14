@@ -230,6 +230,7 @@
     logos-package-manager-ui = {
       url = "github:logos-co/logos-package-manager-ui/7c8c3acd7b1215fef956a05b9423ab169a09becc";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.logos-package.follows = "logos-package";
       inputs.package_downloader.follows = "logos-package-downloader-module";
       inputs.package_manager.follows = "logos-package-manager-module";
     };

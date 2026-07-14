@@ -177,6 +177,11 @@ REPOS=(
   "|logos-website|https://github.com/logos-co/logos-website.git|no"
   "|logos-tutorial|https://github.com/logos-co/logos-tutorial.git|no"
   "|node-configs|https://github.com/logos-co/node-configs.git|no"
+  # Release/catalog pipeline: -tool is the index.py catalog builder, -action the
+  # reusable GitHub workflows, -base the fork-me catalog template.
+  "|logos-modules-release-tool|https://github.com/logos-co/logos-modules-release-tool.git|no"
+  "|logos-modules-release-action|https://github.com/logos-co/logos-modules-release-action.git|no"
+  "|logos-modules-release-base|https://github.com/logos-co/logos-modules-release-base.git|no"
 )
 
 # ── Repo groups ──────────────────────────────────────────────────────────────

@@ -202,3 +202,12 @@
 [submodule "repos/logos-delivery-demo"]
 	path = repos/logos-delivery-demo
 	url = git@github.com:logos-co/logos-delivery-demo.git
+[submodule "repos/logos-modules-release-tool"]
+	path = repos/logos-modules-release-tool
+	url = https://github.com/logos-co/logos-modules-release-tool.git
+[submodule "repos/logos-modules-release-action"]
+	path = repos/logos-modules-release-action
+	url = https://github.com/logos-co/logos-modules-release-action.git
+[submodule "repos/logos-modules-release-base"]
+	path = repos/logos-modules-release-base
+	url = https://github.com/logos-co/logos-modules-release-base.git
