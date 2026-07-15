@@ -98,7 +98,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
-      url = "github:logos-co/logos-package/cba119c08a377621ffa14994901e49f5f8d82f5e";
+      url = "github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -160,7 +160,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/c3cae3f88906d90bab4eaadf854723b57ffbc113";
+      url = "github:logos-co/logos-basecamp/ae42857141519bcc8a5f39e4ec1343686884122a";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -202,7 +202,7 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-package-manager = {
-      url = "github:logos-co/logos-package-manager/4e202b01f1fbd5c2d77b4899a81316f41e312b80";
+      url = "github:logos-co/logos-package-manager/dca41b63d82477c77bbaf989799fe443d9924fc8";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -210,7 +210,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-downloader = {
-      url = "github:logos-co/logos-package-downloader/feb359a5df1748041579aa992a1db772d6f39046";
+      url = "github:logos-co/logos-package-downloader/e527fee05922119289dfdb99124a0e02e9b47a55";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -228,7 +228,7 @@
       inputs.logos-package-downloader.follows = "logos-package-downloader";
     };
     logos-package-manager-ui = {
-      url = "github:logos-co/logos-package-manager-ui/1f32f4cb0f674f7300678d7c5e882da851e16a83";
+      url = "github:logos-co/logos-package-manager-ui/ec1ea6853aecf7d932365a8e93e2364f29e42613";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package.follows = "logos-package";
       inputs.package_downloader.follows = "logos-package-downloader-module";
