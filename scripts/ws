@@ -2722,9 +2722,28 @@ HEADER
     if [[ "$input_name" != "logos-nix" ]]; then
       local repo_url
       repo_url=$(get_repo_url "$input_name")
-      local url_overrides
+
+      # ── Resolve transitive URL overrides (see get_manual_url_overrides) ──
+      # Keep only inames the downstream flake actually declares (same guard as
+      # the follows path) so a renamed/removed upstream input can't leave a
+      # stale override that adds a spurious lock node.  Sort for deterministic,
+      # idempotent output when a repo has more than one override.
+      local url_overrides url_overrides_sorted=""
       url_overrides=$(get_manual_url_overrides "$input_name")
-      if [[ -z "$follows_sorted" && -z "$url_overrides" ]]; then
+      if [[ -n "$url_overrides" ]]; then
+        local url_kept=""
+        while IFS=$'\t' read -r u_iname u_url; do
+          [[ -z "$u_iname" ]] && continue
+          case "$declared_set" in
+            *" $u_iname "*) url_kept+="${u_iname}	${u_url}
+" ;;
+            *) log "  ${YELLOW}skip${NC} url-override ${input_name}/${u_iname} (not a declared input)" ;;
+          esac
+        done <<< "$url_overrides"
+        [[ -n "$url_kept" ]] && url_overrides_sorted=$(printf '%s' "$url_kept" | sort)
+      fi
+
+      if [[ -z "$follows_sorted" && -z "$url_overrides_sorted" ]]; then
         echo "    ${input_name}.url = \"${repo_url}\";" >> "$flake_inputs_tmp"
       else
         echo "    ${input_name} = {" >> "$flake_inputs_tmp"
@@ -2733,13 +2752,13 @@ HEADER
           [[ -z "$f_iname" ]] && continue
           echo "      inputs.${f_iname}.follows = \"${f_target}\";" >> "$flake_inputs_tmp"
         done <<< "$follows_sorted"
-        # Transitive URL overrides (see get_manual_url_overrides) go after the
-        # follows so a deleted upstream ref can't break the workspace re-lock.
-        if [[ -n "$url_overrides" ]]; then
+        # URL overrides go after the follows so a deleted upstream ref can't
+        # break the workspace re-lock.
+        if [[ -n "$url_overrides_sorted" ]]; then
           while IFS=$'\t' read -r u_iname u_url; do
             [[ -z "$u_iname" ]] && continue
             echo "      inputs.${u_iname}.url = \"${u_url}\";" >> "$flake_inputs_tmp"
-          done <<< "$url_overrides"
+          done <<< "$url_overrides_sorted"
         fi
         echo "    };" >> "$flake_inputs_tmp"
       fi
