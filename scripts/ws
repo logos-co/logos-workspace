@@ -2421,6 +2421,24 @@ get_manual_follows() {
   esac
 }
 
+# ── Workspace-level URL overrides for a downstream repo's TRANSITIVE inputs.
+# Unlike follows (which retarget a transitive input to a workspace input),
+# these pin a transitive input to an explicit flake ref.  Use when upstream
+# pins a ref that has become unresolvable (e.g. a deleted branch), which would
+# otherwise make `nix flake lock --update-input <repo>` (the nightly bump) fail
+# to resolve that ref.  Returns tab-separated `input_name<TAB>flake_ref` lines
+# per repo.  Emitted into the flake.nix input block after the follows lines.
+get_manual_url_overrides() {
+  case "$1" in
+    # logos-libp2p-module pins its `libp2p` input to the upstream
+    # `feat/cbind/xpr-decode` branch, which was deleted — so re-locking it
+    # 422s on branch resolution.  Pin to the exact SHA that branch last pointed
+    # at (never merged to master) until the module pins the SHA itself.
+    logos-libp2p-module)
+      printf 'libp2p\tgithub:vacp2p/nim-libp2p/7c73484cc0c57a5f649dd3d277cef1c7c4de28f0\n' ;;
+  esac
+}
+
 # Parse a flake.nix and emit its declared root input names, one per line.
 # Handles both styles:
 #   inputs.foo.url = "...";
@@ -2704,7 +2722,28 @@ HEADER
     if [[ "$input_name" != "logos-nix" ]]; then
       local repo_url
       repo_url=$(get_repo_url "$input_name")
-      if [[ -z "$follows_sorted" ]]; then
+
+      # ── Resolve transitive URL overrides (see get_manual_url_overrides) ──
+      # Keep only inames the downstream flake actually declares (same guard as
+      # the follows path) so a renamed/removed upstream input can't leave a
+      # stale override that adds a spurious lock node.  Sort for deterministic,
+      # idempotent output when a repo has more than one override.
+      local url_overrides url_overrides_sorted=""
+      url_overrides=$(get_manual_url_overrides "$input_name")
+      if [[ -n "$url_overrides" ]]; then
+        local url_kept=""
+        while IFS=$'\t' read -r u_iname u_url; do
+          [[ -z "$u_iname" ]] && continue
+          case "$declared_set" in
+            *" $u_iname "*) url_kept+="${u_iname}	${u_url}
+" ;;
+            *) log "  ${YELLOW}skip${NC} url-override ${input_name}/${u_iname} (not a declared input)" ;;
+          esac
+        done <<< "$url_overrides"
+        [[ -n "$url_kept" ]] && url_overrides_sorted=$(printf '%s' "$url_kept" | sort)
+      fi
+
+      if [[ -z "$follows_sorted" && -z "$url_overrides_sorted" ]]; then
         echo "    ${input_name}.url = \"${repo_url}\";" >> "$flake_inputs_tmp"
       else
         echo "    ${input_name} = {" >> "$flake_inputs_tmp"
@@ -2713,6 +2752,14 @@ HEADER
           [[ -z "$f_iname" ]] && continue
           echo "      inputs.${f_iname}.follows = \"${f_target}\";" >> "$flake_inputs_tmp"
         done <<< "$follows_sorted"
+        # URL overrides go after the follows so a deleted upstream ref can't
+        # break the workspace re-lock.
+        if [[ -n "$url_overrides_sorted" ]]; then
+          while IFS=$'\t' read -r u_iname u_url; do
+            [[ -z "$u_iname" ]] && continue
+            echo "      inputs.${u_iname}.url = \"${u_url}\";" >> "$flake_inputs_tmp"
+          done <<< "$url_overrides_sorted"
+        fi
         echo "    };" >> "$flake_inputs_tmp"
       fi
     fi
