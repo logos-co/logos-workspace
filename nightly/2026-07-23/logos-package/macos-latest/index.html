@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Execution Report</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --pass: #2ea043; --fail: #f85149; --info: #d29922;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .pill.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .pill.skip { background: rgba(210,153,34,.15); color: var(--info); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+  main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .tutorial-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; color: #fff; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden;
+  }
+  .row.preamble, .row.section { grid-template-columns: 1fr; }
+  .col { padding: 14px 18px; min-width: 0; }
+  .col.left { border-right: 1px solid var(--border); }
+  .row.preamble .col.left, .row.section .col.left { border-right: none; }
+  .col.right { background: var(--panel); }
+  /* A row containing any failed step is tinted red end-to-end so it's
+     impossible to miss when scanning the report. */
+  .row.has-fail { border-color: var(--fail); box-shadow: 0 0 0 1px var(--fail); }
+  .row.has-fail .col.left { background: rgba(248,81,73,.07); border-right-color: var(--fail); }
+  .row.has-fail .col.right { background: rgba(248,81,73,.12); }
+  .col-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .md :first-child { margin-top: 0; }
+  .md h1 { font-size: 22px; } .md h2 { font-size: 18px; } .md h3 { font-size: 15px; }
+  .md pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .md :not(pre) > code { background: rgba(110,118,129,.2); padding: .15em .4em; border-radius: 4px; }
+  .md table { border-collapse: collapse; margin: 8px 0; }
+  .md th, .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .md blockquote { border-left: 3px solid var(--border); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+  .md img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .exec { margin-bottom: 14px; }
+  .exec:last-child { margin-bottom: 0; }
+  .exec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+  .badge.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .badge.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .badge.info { background: rgba(210,153,34,.15); color: var(--info); }
+  .kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  pre.cmd { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 0 0 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.output { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; max-height: 360px; overflow-y: auto; color: #b9c1ca; }
+  pre.cmd, pre.output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
+  .empty { color: var(--muted); font-style: italic; font-size: 12.5px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial Execution Report</h1>
+  <span id="summary"></span>
+  <label style="margin-left:auto; font-size:12px; color:var(--muted)">Tutorial
+    <select id="picker"></select>
+  </label>
+</header>
+<main id="main"></main>
+
+<script id="report-data" type="application/json">{"generated_platform": "Darwin", "summary": {"passed": 25, "failed": 0, "skipped": 0}, "tutorials": [{"meta": {"name": "Packaging a Module with lgx", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"md": "# Packaging a Module with lgx\n\n[`lgx`](https://github.com/logos-co/logos-package) is the Logos **package tool**.\nAn `.lgx` file is just a **gzipped tar archive** with a `manifest.json` at its root\nand one or more platform payloads under `variants/<platform>/`. `lgx` is the CLI that\nbuilds, inspects, extracts, merges, and (in the companion\n[signing doc-test](lgx-signing.md)) signs those archives \u2014 a self-contained C++ tool\nwith no Qt and no module runtime behind it.\n\nThis doc-test builds **this** `lgx` commit and drives the full packaging lifecycle:\n\n1. Build the `lgx` CLI from this repository's flake.\n2. `create` an empty package and read its `manifest`.\n3. `add` this machine's platform variant and `verify` the result.\n4. `extract` a variant back out, and inspect the raw archive with `tar`.\n5. `merge` two single-variant packages into one multi-variant `.lgx`.\n\nEvery command is the real binary built from the commit under test, so a green run is\nevidence that this change keeps the packaging workflow working end-to-end.\n\n**What you'll build:** A `greeter.lgx` package built, inspected, and extracted with `lgx`, plus a multi-variant `widget.lgx` assembled with `lgx merge`.\n\n**What you'll learn:**\n\n- What an `.lgx` package is on disk (a gzipped tar of a manifest + a `variants/` tree)\n- How to create a package and read its manifest with `lgx create` / `lgx manifest`\n- How to add a platform variant, verify structural validity, and extract it back out\n- How to merge per-platform single-variant packages into one multi-variant `.lgx`\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then enable flakes:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\nVerify: `nix flake --help >/dev/null 2>&1 && echo \"Flakes enabled\"`\n\n- A Linux or macOS machine.", "execs": []}, {"md": "## Step 1: Build the lgx CLI\n\n`lgx` ships as a C++ CLI. Build it straight from the flake's `#lgx` output and\nlink the result as `./lgx`, so the binary lands at `./lgx/bin/lgx`.\n\n> The `` in the URL is what pins the build to a specific commit: the\n> doc-test runner expands it to a concrete ref. Locally that is this checkout's\n> `HEAD` (see `run.sh`); in CI it is the commit being tested. With no pin it falls\n> back to the latest `master`. Developing against a local checkout? Replace the\n> GitHub reference with `.`, e.g. `nix build '.#lgx' -o lgx`.", "execs": []}, {"md": "### 1.1 Build lgx\n\n```bash\n# From inside the clone this is simply: nix build '.#lgx' -o lgx\nnix build 'github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2#lgx' -o lgx\n```\n\nThe `-o lgx` flag names the result symlink, so the executable is at `./lgx/bin/lgx`.", "execs": [{"kind": "run", "cmd": "nix build 'github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2#lgx' -o lgx", "status": "pass", "exit_code": 0, "output": "unpacking 'github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2' into the Git cache...\ncopying path '/nix/store/jc3mfa7ybzh32bkvdj5xiib1vkx8jy6x-source' from 'https://cache.nixos.org'...\nthese 5 paths will be fetched (10.0 MiB download, 41.7 MiB unpacked):\n  /nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1\n  /nix/store/5n7gzw96j37dxj7kwmi2qg5ndi9m2v1y-lgx-0.1.0\n  /nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7\n  /nix/store/5gavp9kbhxmxx3zaj7ajblk463432any-libsodium-1.0.20\n  /nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1\ncopying path '/nix/store/5gavp9kbhxmxx3zaj7ajblk463432any-libsodium-1.0.20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5n7gzw96j37dxj7kwmi2qg5ndi9m2v1y-lgx-0.1.0' from 'https://logos-co.cachix.org'...\n", "note": ""}]}, {"md": "### 1.2 Confirm it runs\n\n```bash\n./lgx/bin/lgx --version\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx --version", "status": "pass", "exit_code": 0, "output": "lgx version 0.1.0\n", "note": ""}]}, {"md": "## Step 2: Detect the platform variant\n\nAn `.lgx` package carries one or more **platform variants** \u2014 `linux-x86_64`,\n`darwin-arm64`, and so on \u2014 each holding the payload for that platform. Detect this\nmachine's variant once (and the matching shared-library extension, `.so` on Linux /\n`.dylib` on macOS) and stash both in files so the packaging steps below can reuse\nthem.", "execs": []}, {"md": "### 2.1 Write the variant and library extension to ./variant and ./ext\n\n```bash\ncase \"$(uname -s) $(uname -m)\" in\n  \"Linux x86_64\")   echo linux-x86_64  > variant; echo so    > ext ;;\n  \"Linux aarch64\")  echo linux-arm64   > variant; echo so    > ext ;;\n  \"Darwin arm64\")   echo darwin-arm64  > variant; echo dylib > ext ;;\n  \"Darwin x86_64\")  echo darwin-x86_64 > variant; echo dylib > ext ;;\n  *) echo \"unsupported platform: $(uname -sm)\" >&2; exit 1 ;;\nesac\necho \"variant: $(cat variant)  ext: $(cat ext)\"\n\n```", "execs": [{"kind": "run", "cmd": "case \"$(uname -s) $(uname -m)\" in\n  \"Linux x86_64\")   echo linux-x86_64  > variant; echo so    > ext ;;\n  \"Linux aarch64\")  echo linux-arm64   > variant; echo so    > ext ;;\n  \"Darwin arm64\")   echo darwin-arm64  > variant; echo dylib > ext ;;\n  \"Darwin x86_64\")  echo darwin-x86_64 > variant; echo dylib > ext ;;\n  *) echo \"unsupported platform: $(uname -sm)\" >&2; exit 1 ;;\nesac\necho \"variant: $(cat variant)  ext: $(cat ext)\"\n", "status": "pass", "exit_code": 0, "output": "variant: darwin-arm64  ext: dylib\n", "note": ""}]}, {"md": "## Step 3: Create a package\n\n`lgx create <name>` writes an empty skeleton package \u2014 a `manifest.json` with\nsensible defaults plus an empty `variants/` directory \u2014 to `<name>.lgx`.", "execs": []}, {"md": "### 3.1 Create greeter.lgx\n\n```bash\n./lgx/bin/lgx create greeter\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx create greeter", "status": "pass", "exit_code": 0, "output": "Created package: greeter.lgx\n", "note": ""}]}, {"md": "### 3.2 Read the fresh manifest\n\n`lgx manifest` prints the embedded `manifest.json` in human-readable form. A\nfreshly created package starts at version `0.0.1`, manifest schema `0.3.0`, with\nno type, no variants, and no signature yet.\n\n```bash\nlgx manifest greeter.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx manifest greeter.lgx", "status": "pass", "exit_code": 0, "output": "Name:           greeter\nDisplay name:   (unset \u2014 falls back to name)\nVersion:        0.0.1\nManifest ver.:  0.3.0\nType:           (unset)\nCategory:       (unset)\nAuthor:         (unset)\nVariants:       (none)\nDependencies:   (none)\nSigned:         no\n", "note": ""}]}, {"md": "## Step 4: Add a platform variant\n\n`lgx add` drops a payload into the package under `variants/<variant>/` and records\nthe entry point in the manifest's `main` map. We add a stub shared library for this\nmachine's variant. (In a real build the payload is the module's compiled `.so` /\n`.dylib`; `lgx` does not load it \u2014 it just packages it.)", "execs": []}, {"md": "### 4.1 Add this machine's variant\n\n```bash\n# On Linux x86_64 this expands to:\necho 'stub library' > libgreeter.so\nlgx add greeter.lgx --variant linux-x86_64 --files libgreeter.so\n```\n\nConfirm the archive layout \u2014 a `manifest.json` beside the `variants/` tree:\n\n```bash\ntar -tzf greeter.lgx\n```\n\n```\nmanifest.json\nvariants/\nvariants/<platform>/\nvariants/<platform>/libgreeter.so   # .dylib on macOS\n```", "execs": [{"kind": "run", "cmd": "V=\"$(cat variant)\"; E=\"$(cat ext)\"\necho 'stub library' > \"libgreeter.$E\"\n./lgx/bin/lgx add greeter.lgx --variant \"$V\" --files \"libgreeter.$E\"\n", "status": "pass", "exit_code": 0, "output": "Added variant 'darwin-arm64' to greeter.lgx\n", "note": ""}, {"kind": "run", "cmd": "tar -tzf greeter.lgx", "status": "pass", "exit_code": 0, "output": "manifest.json\nvariants/\nvariants/darwin-arm64/\nvariants/darwin-arm64/libgreeter.dylib\n", "note": ""}]}, {"md": "### 4.2 See the variant in the manifest\n\nThe manifest now lists the variant and points its `main` entry at the file we\nadded. A content hash (`Root hash`) is recomputed on every save.\n\n```bash\nlgx manifest greeter.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx manifest greeter.lgx", "status": "pass", "exit_code": 0, "output": "Name:           greeter\nDisplay name:   (unset \u2014 falls back to name)\nVersion:        0.0.1\nManifest ver.:  0.3.0\nType:           (unset)\nCategory:       (unset)\nAuthor:         (unset)\nRoot hash:      d05451f2b5e0896b9a9b16c7a5564939245d2ca563f9d1f16e7339e0e0406787\nVariants:       darwin-arm64\n                darwin-arm64 -> libgreeter.dylib\nDependencies:   (none)\nSigned:         no\n", "note": ""}]}, {"md": "## Step 5: Verify the package\n\n`lgx verify` validates a package against the LGX spec \u2014 it recomputes the content\nhashes (the Merkle tree) and checks them against the manifest, then reports the\nsignature state. Our package is unsigned, so verification passes and notes it is\nunsigned. The exit code is `0` on success, so `verify` is safe to gate CI on.", "execs": []}, {"md": "### 5.1 Verify greeter.lgx\n\n```bash\nlgx verify greeter.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx verify greeter.lgx", "status": "pass", "exit_code": 0, "output": "Package structure is valid: greeter.lgx\nPackage is unsigned\n", "note": ""}]}, {"md": "## Step 6: Extract a variant\n\n`lgx extract` unpacks a variant's payload back onto disk \u2014 the inverse of `add`.\nFiles land under `<output>/<variant>/`.", "execs": []}, {"md": "### 6.1 Extract this machine's variant\n\n```bash\nlgx extract greeter.lgx --variant linux-x86_64 --output ./extracted\n```\n\nThe payload is now on disk under `./extracted/<variant>/`:\n\n```bash\nls ./extracted/<variant>\n```", "execs": [{"kind": "run", "cmd": "V=\"$(cat variant)\"\n./lgx/bin/lgx extract greeter.lgx --variant \"$V\" --output ./extracted\n", "status": "pass", "exit_code": 0, "output": "Extracted variant 'darwin-arm64' to ./extracted\n", "note": ""}, {"kind": "run", "cmd": "V=\"$(cat variant)\"\nls \"./extracted/$V\"\n", "status": "pass", "exit_code": 0, "output": "libgreeter.dylib\n", "note": ""}]}, {"md": "## Step 7: Merge per-platform packages\n\nReal releases ship one `.lgx` covering every platform. A common pattern is to build\na **single-variant** package on each platform's CI runner, then `lgx merge` them\ninto one multi-variant archive. The inputs must share identical metadata (only the\nvariant-specific `main` entries differ). We simulate it here by hand-building a\nLinux and a macOS package for the same module and merging them.", "execs": []}, {"md": "### 7.1 Build two single-variant packages\n\n```bash\n# A Linux-only package...\n./lgx/bin/lgx create widget && mv widget.lgx widget-linux.lgx\necho 'linux stub' > libwidget.so\n./lgx/bin/lgx add widget-linux.lgx --variant linux-x86_64 --files libwidget.so\n\n# ...and a macOS-only package for the same module.\n./lgx/bin/lgx create widget && mv widget.lgx widget-darwin.lgx\necho 'darwin stub' > libwidget.dylib\n./lgx/bin/lgx add widget-darwin.lgx --variant darwin-arm64 --files libwidget.dylib\n\n```", "execs": [{"kind": "run", "cmd": "# A Linux-only package...\n./lgx/bin/lgx create widget && mv widget.lgx widget-linux.lgx\necho 'linux stub' > libwidget.so\n./lgx/bin/lgx add widget-linux.lgx --variant linux-x86_64 --files libwidget.so\n\n# ...and a macOS-only package for the same module.\n./lgx/bin/lgx create widget && mv widget.lgx widget-darwin.lgx\necho 'darwin stub' > libwidget.dylib\n./lgx/bin/lgx add widget-darwin.lgx --variant darwin-arm64 --files libwidget.dylib\n", "status": "pass", "exit_code": 0, "output": "Created package: widget.lgx\nAdded variant 'linux-x86_64' to widget-linux.lgx\nCreated package: widget.lgx\nAdded variant 'darwin-arm64' to widget-darwin.lgx\n", "note": ""}]}, {"md": "### 7.2 Merge them into one .lgx\n\n`lgx merge` writes a single package carrying both variants. The variants are\nlisted alphabetically in the summary.\n\n```bash\nlgx merge widget-linux.lgx widget-darwin.lgx -o widget.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx merge widget-linux.lgx widget-darwin.lgx -o widget.lgx", "status": "pass", "exit_code": 0, "output": "Merged 2 packages into widget.lgx (darwin-arm64, linux-x86_64)\n", "note": ""}]}, {"md": "### 7.3 Confirm both variants are present\n\nThe merged manifest carries both platforms, and the package verifies:\n\n```bash\nlgx manifest widget.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx manifest widget.lgx", "status": "pass", "exit_code": 0, "output": "Name:           widget\nDisplay name:   (unset \u2014 falls back to name)\nVersion:        0.0.1\nManifest ver.:  0.3.0\nType:           (unset)\nCategory:       (unset)\nAuthor:         (unset)\nRoot hash:      0a75dda1458cfde4e1d28487da541307631fab66c797942c4e5f0ce9fe4a23d8\nVariants:       darwin-arm64, linux-x86_64\n                darwin-arm64 -> libwidget.dylib\n                linux-x86_64 -> libwidget.so\nDependencies:   (none)\nSigned:         no\n", "note": ""}]}, {"md": "```bash\nlgx verify widget.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx verify widget.lgx", "status": "pass", "exit_code": 0, "output": "Package structure is valid: widget.lgx\nPackage is unsigned\n", "note": ""}]}, {"md": "## Recap\n\nYou built `lgx` from this commit and ran a full packaging lifecycle \u2014 creating a\npackage, adding a platform variant, verifying it, extracting it, and merging\nper-platform packages into one multi-variant `.lgx`:\n\n| Command | What it does |\n|---|---|\n| `create <name>` | Write an empty skeleton `<name>.lgx` |\n| `add <pkg> -v <variant> -f <path>` | Add a payload for a variant (records `main`) |\n| `manifest <pkg> [--json]` | Print the embedded `manifest.json` (`--json` for raw bytes) |\n| `verify <pkg>` | Validate structure + content hashes, report signature state |\n| `extract <pkg> -v <variant> -o <dir>` | Unpack a variant's payload to disk |\n| `merge <pkg\u2026> -o <out>` | Combine single-variant packages into one multi-variant `.lgx` |\n\nSigning, signature inspection, and trusted-key management are covered in the\ncompanion [signing doc-test](lgx-signing.md).", "execs": []}]}, {"meta": {"name": "Signing and Trusting an lgx Package", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"md": "# Signing and Trusting an lgx Package\n\n[`lgx`](https://github.com/logos-co/logos-package) packages can be **signed** so\nconsumers can verify who produced them. Signing uses an **Ed25519** keypair whose public\nhalf is published as a [`did:jwk:`](https://github.com/quartzjer/did-jwk/blob/main/spec.md)\ndecentralized identifier; `lgx sign` writes a `manifest.sig` next to the manifest, and\n`lgx verify` checks it. A **keyring** of trusted DIDs lets `verify` go one step further\nand report whether the signer is one you trust.\n\nThis doc-test builds **this** `lgx` commit and runs the full signing-and-trust lifecycle:\n\n1. Build `lgx` and create a small package to sign.\n2. `keygen` an Ed25519 keypair (printing its `did:jwk:` DID).\n3. `sign` the package and inspect the signature with `manifest` and `signature`.\n4. `verify` it \u2014 first as an *untrusted* signer, then after adding the DID to a keyring.\n\nEvery key directory is passed explicitly (`--output-dir`, `--keys-dir`, `--keyring-dir`)\nso the whole flow is self-contained and never touches your real `~/.config/logos`.\n\n**What you'll build:** A signed `greeter.lgx`, an Ed25519 signing key, and a trusted-key keyring that makes `lgx verify` recognise the signer.\n\n**What you'll learn:**\n\n- How to generate an Ed25519 signing keypair and its `did:jwk:` DID with `lgx keygen`\n- How to sign a package and read back its signature with `lgx sign` / `lgx signature`\n- How `lgx verify` reports signature validity and distinguishes trusted from untrusted signers\n- How to manage trusted DIDs with `lgx keyring add` / `list`\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then enable flakes:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\nVerify: `nix flake --help >/dev/null 2>&1 && echo \"Flakes enabled\"`\n\n- A Linux or macOS machine.", "execs": []}, {"md": "## Step 1: Build lgx and create a package to sign\n\nBuild the `lgx` CLI from this commit, then create a one-variant package \u2014 the thing\nwe will sign. (The [packaging doc-test](lgx-cli.md) covers `create` / `add` in\ndetail; here they are just setup.)\n\n> The `` placeholder pins the build to the commit under test (this\n> checkout's `HEAD` locally, the PR/push commit in CI). Against a local checkout use\n> `nix build '.#lgx' -o lgx`.", "execs": []}, {"md": "### 1.1 Build lgx\n\n```bash\n# From inside the clone this is simply: nix build '.#lgx' -o lgx\nnix build 'github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2#lgx' -o lgx\n```", "execs": [{"kind": "run", "cmd": "nix build 'github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2#lgx' -o lgx", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}, {"md": "### 1.2 Create and populate greeter.lgx\n\nDetect this machine's variant (and shared-library extension), create the\npackage, and add a stub payload so there is content to sign.\n\n```bash\nlgx create greeter\necho 'stub library' > libgreeter.so          # .dylib on macOS\nlgx add greeter.lgx --variant linux-x86_64 --files libgreeter.so\n```", "execs": [{"kind": "run", "cmd": "case \"$(uname -s) $(uname -m)\" in\n  \"Linux x86_64\")   V=linux-x86_64;  E=so ;;\n  \"Linux aarch64\")  V=linux-arm64;   E=so ;;\n  \"Darwin arm64\")   V=darwin-arm64;  E=dylib ;;\n  \"Darwin x86_64\")  V=darwin-x86_64; E=dylib ;;\n  *) echo \"unsupported platform: $(uname -sm)\" >&2; exit 1 ;;\nesac\n./lgx/bin/lgx create greeter\necho 'stub library' > \"libgreeter.$E\"\n./lgx/bin/lgx add greeter.lgx --variant \"$V\" --files \"libgreeter.$E\"\n", "status": "pass", "exit_code": 0, "output": "Created package: greeter.lgx\nAdded variant 'darwin-arm64' to greeter.lgx\n", "note": ""}]}, {"md": "## Step 2: Generate a signing key\n\n`lgx keygen` creates an Ed25519 keypair and writes three files \u2014 the secret key\n(`.jwk`), the public key (`.pub`), and the DID string (`.did`). It prints the\n`did:jwk:` DID to stdout. We point `--output-dir` at a local `./keys` directory and\nstash the DID in a file so later steps can refer to it.", "execs": []}, {"md": "### 2.1 Run keygen into ./keys\n\n`keygen` prints the DID to stdout and also writes it to `./keys/demo-key.did`. We\ncopy that file to `./did.txt` so later steps can pass the exact DID without\nre-deriving it.\n\n```bash\nlgx keygen --name demo-key --output-dir ./keys\n# \u2192 did:jwk:eyJjcnYiOiJFZDI1NTE5Ii...   (also saved to ./keys/demo-key.did)\n```\n\nThe keypair now lives under `./keys/` as `demo-key.{jwk,pub,did}`. The `.jwk`\nfile is the **secret** key \u2014 keep it safe; only the DID is meant to be shared.", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx keygen --name demo-key --output-dir ./keys\ncp ./keys/demo-key.did did.txt\n", "status": "pass", "exit_code": 0, "output": "did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\nKeypair generated: ./keys/demo-key.{jwk,pub,did}\n", "note": ""}]}, {"md": "## Step 3: Sign the package\n\n`lgx sign` validates the package, then writes a `manifest.sig` containing the\nsigner's DID, an Ed25519 signature over the manifest bytes, and optional\nself-asserted signer metadata (`--name` / `--url`). We pass `--keys-dir ./keys` so it\nfinds the key we just generated.", "execs": []}, {"md": "### 3.1 Sign greeter.lgx\n\n```bash\nlgx sign greeter.lgx --key demo-key --keys-dir ./keys \\\n  --name \"Logos Demo\" --url \"https://logos.co\"\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx sign greeter.lgx --key demo-key --keys-dir ./keys \\\n  --name \"Logos Demo\" --url \"https://logos.co\"\n", "status": "pass", "exit_code": 0, "output": "Package signed: greeter.lgx\nSigner DID: did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\n", "note": ""}]}, {"md": "### 3.2 See the signature in the manifest\n\n`lgx manifest` now reports the package as signed, along with the signer's DID and\nself-asserted name/URL.\n\n```bash\nlgx manifest greeter.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx manifest greeter.lgx", "status": "pass", "exit_code": 0, "output": "Name:           greeter\nDisplay name:   (unset \u2014 falls back to name)\nVersion:        0.0.1\nManifest ver.:  0.3.0\nType:           (unset)\nCategory:       (unset)\nAuthor:         (unset)\nRoot hash:      d05451f2b5e0896b9a9b16c7a5564939245d2ca563f9d1f16e7339e0e0406787\nVariants:       darwin-arm64\n                darwin-arm64 -> libgreeter.dylib\nDependencies:   (none)\nSigned:         yes\nSigner DID:     did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\nSigner name:    Logos Demo (self-asserted)\nSigner URL:     https://logos.co (self-asserted)\n", "note": ""}]}, {"md": "### 3.3 Read the raw signature\n\n`lgx signature` prints the raw `manifest.sig` JSON \u2014 byte-identical to the file\ninside the `.lgx`. It carries the algorithm, the signer DID, the base64\nsignature, and the signer metadata. Unsigned packages print nothing and exit 0,\nso tooling tells \"unsigned\" from \"error\" by the exit status, not the output.\n\n```bash\nlgx signature greeter.lgx\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx signature greeter.lgx", "status": "pass", "exit_code": 0, "output": "{\n  \"algorithm\": \"ed25519\",\n  \"did\": \"did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\",\n  \"linkedDids\": [],\n  \"signature\": \"zpNOT7Ilsr/pIlfzGvCdAuuoZ6TGgZ9ij2zIixutbg1xu1pYeHdqy2MHxkAqoVrCeHorC7DnsAk3mtPiiMtCDg==\",\n  \"signer\": {\n    \"name\": \"Logos Demo\",\n    \"url\": \"https://logos.co\"\n  },\n  \"version\": 1\n}", "note": ""}]}, {"md": "## Step 4: Verify an untrusted signer\n\n`lgx verify` always checks structure and (for signed packages) the signature itself.\nTrust is separate: with no matching entry in the keyring, the signature is reported\n**valid** but the signer is flagged as **not** trusted. We point `--keyring-dir` at an\nempty `./trusted` directory to make that explicit.", "execs": []}, {"md": "### 4.1 Verify against an empty keyring\n\n```bash\nmkdir -p trusted\nlgx verify greeter.lgx --keyring-dir ./trusted\n```", "execs": [{"kind": "run", "cmd": "mkdir -p trusted\n./lgx/bin/lgx verify greeter.lgx --keyring-dir ./trusted\n", "status": "pass", "exit_code": 0, "output": "Package structure is valid: greeter.lgx\nSignature is valid\nSigner DID: did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\nSigner name (self-asserted): Logos Demo\nSigner URL (self-asserted): https://logos.co\nSigner DID is NOT in trusted keyring\n", "note": ""}]}, {"md": "## Step 5: Trust the signer\n\n`lgx keyring add` records a DID as trusted under a short name. We add the DID we\nstashed earlier (still in `did.txt`) to the `./trusted` keyring, then list it.", "execs": []}, {"md": "### 5.1 Add the DID to the keyring\n\n```bash\nlgx keyring add logos-demo \"$DID\" \\\n  --display-name \"Logos Demo\" --url \"https://logos.co\" --dir ./trusted\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx keyring add logos-demo \"$(cat did.txt)\" \\\n  --display-name \"Logos Demo\" --url \"https://logos.co\" --dir ./trusted\n", "status": "pass", "exit_code": 0, "output": "Added trusted key: logos-demo\nDID: did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\n", "note": ""}]}, {"md": "### 5.2 List trusted keys\n\n```bash\nlgx keyring list --dir ./trusted\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx keyring list --dir ./trusted", "status": "pass", "exit_code": 0, "output": "logos-demo (Logos Demo)\n  DID: did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQ...\n  URL: https://logos.co\n  Added: 2026-07-23T03:21:15Z\n", "note": ""}]}, {"md": "## Step 6: Verify a trusted signer\n\nRe-run `verify` against the populated keyring. Now that the signer's DID is trusted,\n`verify` adds a final line naming the trusted key \u2014 the same valid signature, now\nrecognised.", "execs": []}, {"md": "### 6.1 Verify against the populated keyring\n\n```bash\nlgx verify greeter.lgx --keyring-dir ./trusted\n```", "execs": [{"kind": "run", "cmd": "./lgx/bin/lgx verify greeter.lgx --keyring-dir ./trusted", "status": "pass", "exit_code": 0, "output": "Package structure is valid: greeter.lgx\nSignature is valid\nSigner DID: did:jwk:eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IkhPQWVtYndfUEoyUVROQkxIVjZpLVhBcWhlNVVieHJ6WTB1SzBHekt1VlUifQ\nSigner name (self-asserted): Logos Demo\nSigner URL (self-asserted): https://logos.co\nSigner is trusted: logos-demo\n", "note": ""}]}, {"md": "## Recap\n\nYou built `lgx` from this commit and ran the full signing-and-trust lifecycle \u2014\ngenerating a key, signing a package, inspecting the signature, and verifying it both\nas an untrusted and a trusted signer:\n\n| Command | What it does |\n|---|---|\n| `keygen --name <n> --output-dir <dir>` | Generate an Ed25519 keypair; print its `did:jwk:` DID |\n| `sign <pkg> --key <n> --keys-dir <dir> [--name \u2026] [--url \u2026]` | Write `manifest.sig` with the signer's DID |\n| `signature <pkg>` | Print the raw `manifest.sig` JSON (unsigned \u2192 empty + exit 0) |\n| `verify <pkg> [--keyring-dir <dir>]` | Validate structure + signature; report trust |\n| `keyring add <name> <did> [--dir <dir>]` | Trust a DID under a short name |\n| `keyring list [--dir <dir>]` | List trusted DIDs |\n\nCreating, adding variants, extracting, and merging packages are covered in the\ncompanion [packaging doc-test](lgx-cli.md).", "execs": []}]}]}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  if (window.marked) { marked.setOptions({ gfm: true, breaks: false }); }
+  const mdToHtml = (s) => window.marked ? marked.parse(s || "") : ("<pre>" + (s || "") + "</pre>");
+
+  const sum = DATA.summary;
+  document.getElementById("summary").innerHTML =
+    `<span class="pill pass">${sum.passed} passed</span> ` +
+    (sum.failed ? `<span class="pill fail">${sum.failed} failed</span> ` : "") +
+    (sum.skipped ? `<span class="pill skip">${sum.skipped} skipped</span>` : "");
+
+  const picker = document.getElementById("picker");
+  DATA.tutorials.forEach((t, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = t.meta.name; picker.appendChild(o);
+  });
+
+  function execHtml(e) {
+    const badge = `<span class="badge ${e.status}">${e.status.toUpperCase()}</span>`;
+    const kind = `<span class="kind">${e.kind}${e.exit_code !== undefined ? " · exit " + e.exit_code : ""}</span>`;
+    let h = `<div class="exec"><div class="exec-head">${badge}${kind}</div>`;
+    if (e.note) h += `<div class="note">${escapeHtml(e.note)}</div>`;
+    if (e.cmd) h += `<pre class="cmd">${escapeHtml(e.cmd)}</pre>`;
+    const out = (e.output || "").trim();
+    if (out) {
+      const long = out.split("\n").length > 12;
+      if (long) {
+        h += `<details><summary>output (${out.split("\n").length} lines)</summary><pre class="output">${escapeHtml(out)}</pre></details>`;
+      } else {
+        h += `<pre class="output">${escapeHtml(out)}</pre>`;
+      }
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  function render(idx) {
+    const t = DATA.tutorials[idx];
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const h = document.createElement("div");
+    h.className = "tutorial-title";
+    h.textContent = t.meta.name + "  —  " + t.meta.platform;
+    main.appendChild(h);
+
+    t.rows.forEach(row => {
+      const isStructural = row.execs.length === 0 &&
+        (/^#\s|^##\s/.test(row.md.trim()));
+      const div = document.createElement("div");
+      const hasExec = row.execs.length > 0;
+      const hasFail = row.execs.some(e => e.status === "fail");
+      div.className = "row" + (hasExec ? "" : (isStructural ? " section" : " preamble")) +
+        (hasFail ? " has-fail" : "");
+
+      const left = document.createElement("div");
+      left.className = "col left";
+      left.innerHTML = `<div class="md">${mdToHtml(row.md)}</div>`;
+      div.appendChild(left);
+
+      if (hasExec || !isStructural) {
+        const right = document.createElement("div");
+        right.className = "col right";
+        if (hasExec) {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            row.execs.map(execHtml).join("");
+        } else {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            `<div class="empty">No commands run for this step.</div>`;
+        }
+        div.appendChild(right);
+      }
+      main.appendChild(div);
+    });
+  }
+
+  function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+  function indexFromHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (!raw) return 0;
+    if (/^\d+$/.test(raw) && +raw < DATA.tutorials.length) return +raw;
+    const i = DATA.tutorials.findIndex(
+      t => slug(t.meta.name) === raw || t.meta.name === raw
+    );
+    return i >= 0 ? i : 0;
+  }
+  function show(idx) { picker.value = idx; render(idx); }
+  picker.addEventListener("change", () => {
+    location.hash = slug(DATA.tutorials[+picker.value].meta.name);
+    render(+picker.value);
+  });
+  window.addEventListener("hashchange", () => show(indexFromHash()));
+  show(indexFromHash());
+</script>
+</body>
+</html>
