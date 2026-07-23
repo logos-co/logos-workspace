@@ -68,6 +68,7 @@ jobs:
     outputs:
       matrix:    ${{ steps.matrix.outputs.matrix }}
       overrides: ${{ steps.matrix.outputs.overrides }}
+      pins:      ${{ steps.matrix.outputs.pins }}
     steps:
       - name: Checkout workspace at ref
         uses: actions/checkout@v4
@@ -162,6 +163,36 @@ jobs:
               if sha:
                   flags.append('--release-for %s=%s' % (name, sha))
           print('overrides=' + ' '.join(flags))
+
+          # The workspace snapshot as a pin map, for --workspace-pins.
+          #
+          # --release-for pins WHICH COMMIT of a repo a spec builds; it says
+          # nothing about that repo's own inputs. Nix resolves a repo flake from
+          # ITS committed flake.lock, so the workspace's `follows` never reach a
+          # doc-test — a suite can build a dependency at a commit the workspace
+          # does not pin, and regularly does. (That is how the wallet-ui
+          # doc-test stayed red for a week against a snapshot that already had
+          # the fix.) Handing the harness this map makes it rewrite each
+          # `nix build/run` of a workspace repo with --override-input flags
+          # pinning its inputs to the snapshot, and check out `git clone`d
+          # workspace repos at the pinned commit instead of their default
+          # branch. It costs cache hits, which is the right trade for the one
+          # job whose entire purpose is validating a snapshot.
+          pins = {}
+          for name in sorted(submodules):
+              d = os.path.join('repos', name)
+              if not os.path.isdir(d):
+                  continue
+              try:
+                  sha = subprocess.run(
+                      ['git', '-C', d, 'rev-parse', 'HEAD'],
+                      capture_output=True, text=True, check=True,
+                  ).stdout.strip()
+              except Exception:
+                  continue
+              if sha:
+                  pins[name] = {'owner': owners.get(name, 'logos-co'), 'rev': sha}
+          print('pins=' + json.dumps(pins, separators=(',', ':')))
 
           summary = os.environ.get('GITHUB_STEP_SUMMARY')
           if summary:
@@ -349,6 +380,15 @@ jobs:
       # EVERY workspace submodule's {release} to its pinned commit, so this spec
       # builds its whole dependency closure against the workspace state rather
       # than letting deps fall back to latest master.
+      # The workspace snapshot, written to a file for --workspace-pins below.
+      # Single-quoted because the value is JSON (double quotes only).
+      - name: Write workspace pin map
+        shell: bash
+        run: |
+          printf '%s' '${{ needs.setup.outputs.pins }}' > "${{ runner.temp }}/ws-pins.json"
+          python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))), 'workspace pins')" \
+            "${{ runner.temp }}/ws-pins.json"
+
       - name: Run ${{ matrix.repo.name }} doctests
         run: |
           nix run github:logos-co/logos-doctest -- run \
@@ -356,6 +396,7 @@ jobs:
             --verbose \
             --continue-on-fail \
             ${{ needs.setup.outputs.overrides }} \
+            --workspace-pins "${{ runner.temp }}/ws-pins.json" \
             --report "${{ runner.temp }}/report.html"
 
       - name: Stage report
