@@ -98,7 +98,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
-      url = "github:logos-co/logos-package/53336d37e4efb7c8e8243347ab77ab78705214c9";
+      url = "github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
