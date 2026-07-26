@@ -38814,17 +38814,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1784649770,
-        "narHash": "sha256-bN4KcHm1wzWIvg0W/abV5SEruqdD75wOLjGkJTLjl5I=",
+        "lastModified": 1785036290,
+        "narHash": "sha256-cp5Un0NBXwNoK/+atBLMl4NwCfDXzy0KMpyUOtK6pcc=",
         "owner": "logos-co",
         "repo": "logos-protocol",
-        "rev": "30857a74151a645606b76c600cf248a898528c76",
+        "rev": "cacb177d6c3aea580afb2259738f8b4c00bd7350",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-protocol",
-        "rev": "30857a74151a645606b76c600cf248a898528c76",
+        "rev": "cacb177d6c3aea580afb2259738f8b4c00bd7350",
         "type": "github"
       }
     },
