@@ -202,3 +202,15 @@
 [submodule "repos/logos-delivery-demo"]
 	path = repos/logos-delivery-demo
 	url = git@github.com:logos-co/logos-delivery-demo.git
+[submodule "repos/logos-lez-explorer-ui"]
+	path = repos/logos-lez-explorer-ui
+	url = https://github.com/logos-blockchain/lez-explorer-ui.git
+[submodule "repos/logos-lez-indexer-module"]
+	path = repos/logos-lez-indexer-module
+	url = https://github.com/logos-blockchain/lez-indexer-module.git
+[submodule "repos/logos-doctest"]
+	path = repos/logos-doctest
+	url = https://github.com/logos-co/logos-doctest.git
+[submodule "repos/logos-qt-mcp"]
+	path = repos/logos-qt-mcp
+	url = https://github.com/logos-co/logos-qt-mcp.git
