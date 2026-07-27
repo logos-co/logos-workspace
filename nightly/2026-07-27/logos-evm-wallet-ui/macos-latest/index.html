@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Execution Report</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --pass: #2ea043; --fail: #f85149; --info: #d29922;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .pill.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .pill.skip { background: rgba(210,153,34,.15); color: var(--info); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+  main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .tutorial-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; color: #fff; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden;
+  }
+  .row.preamble, .row.section { grid-template-columns: 1fr; }
+  .col { padding: 14px 18px; min-width: 0; }
+  .col.left { border-right: 1px solid var(--border); }
+  .row.preamble .col.left, .row.section .col.left { border-right: none; }
+  .col.right { background: var(--panel); }
+  /* A row containing any failed step is tinted red end-to-end so it's
+     impossible to miss when scanning the report. */
+  .row.has-fail { border-color: var(--fail); box-shadow: 0 0 0 1px var(--fail); }
+  .row.has-fail .col.left { background: rgba(248,81,73,.07); border-right-color: var(--fail); }
+  .row.has-fail .col.right { background: rgba(248,81,73,.12); }
+  .col-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .md :first-child { margin-top: 0; }
+  .md h1 { font-size: 22px; } .md h2 { font-size: 18px; } .md h3 { font-size: 15px; }
+  .md pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .md :not(pre) > code { background: rgba(110,118,129,.2); padding: .15em .4em; border-radius: 4px; }
+  .md table { border-collapse: collapse; margin: 8px 0; }
+  .md th, .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .md blockquote { border-left: 3px solid var(--border); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+  .md img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .exec { margin-bottom: 14px; }
+  .exec:last-child { margin-bottom: 0; }
+  .exec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+  .badge.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .badge.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .badge.info { background: rgba(210,153,34,.15); color: var(--info); }
+  .kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  pre.cmd { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 0 0 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.output { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; max-height: 360px; overflow-y: auto; color: #b9c1ca; }
+  pre.cmd, pre.output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
+  .empty { color: var(--muted); font-style: italic; font-size: 12.5px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial Execution Report</h1>
+  <span id="summary"></span>
+  <label style="margin-left:auto; font-size:12px; color:var(--muted)">Tutorial
+    <select id="picker"></select>
+  </label>
+</header>
+<main id="main"></main>
+
+<script id="report-data" type="application/json">{"generated_platform": "Darwin", "summary": {"passed": 6, "failed": 2, "skipped": 0}, "tutorials": [{"meta": {"name": "Driving the Wallet UI App Headlessly", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"md": "# Driving the Wallet UI App Headlessly\n\n`logos-evm-wallet-ui` is the Metamask-like QML interface for the Logos\nmulti-chain EVM wallet. It is **QML-only**: the view drives\n`wallet_backend_module` (and, through it, the eth-rpc / keystore / token-list\nmodules) entirely over the `logos` bridge.\n\nBecause it is built with `logos-module-builder`'s `mkLogosQmlModule`, its flake\nexposes a self-contained standalone app (`apps.default`) that bundles and\nauto-loads the backend module tree. This doc-test launches that app **headless**\n(`QT_QPA_PLATFORM=offscreen`) and drives it through the QML inspector with\n[`logos-qt-mcp`](https://github.com/logos-co/logos-qt-mcp): it waits for the UI\nto come up, **navigates every tab** (Balances \u2192 Market \u2192 Send \u2192 Tokens \u2192\nHistory \u2192 Private \u2192 Settings \u2192 Advanced) through the view's `selectTab` helper,\nand on the Settings tab applies a SOCKS5 proxy \u2014 a real `set_proxy_config`\nround-trip into the bundled backend that flips the status to **Proxy applied** \u2014\ncapturing screenshots along the way.\n\n> For the full transactional flow driven through the UI \u2014 pointing the wallet at\n> a local node on the **Advanced** tab, then importing an account, unlocking it,\n> and sending \u2014 see the companion\n> [`wallet-ui-e2e`](./wallet-ui-e2e.md) doc-test.\n\n**What you'll build:** The `logos-evm-wallet-ui` standalone app, launched headless and driven through its QML UI against the bundled wallet backend.\n\n**What you'll learn:**\n\n- How a QML-only Logos UI exposes a runnable standalone app that bundles its backend\n- How to drive a headless Qt/QML app with logos-qt-mcp (wait, click, type, assert)\n- How to navigate a tabbed QML UI headlessly by calling a view helper (call_method \u2192 selectTab)\n- How a UI action round-trips into the backend module over the Logos bridge\n- How to capture screenshots of the running UI for documentation and CI\n\n## Prerequisites\n\n- **Nix** with flakes enabled (see [nixos.org](https://nixos.org/download.html)).\n\n- **A Linux or macOS machine.** The app runs headless via `QT_QPA_PLATFORM=offscreen`, so no display is required.", "execs": []}, {"md": "## Step 1: Build the qt-mcp test driver\n\n[`logos-qt-mcp`](https://github.com/logos-co/logos-qt-mcp) connects to the\napp's QML inspector and drives it. Build it once and link it as\n`./result-mcp`.", "execs": []}, {"md": "### 1.1 Build logos-qt-mcp\n\n```bash\nnix build 'github:logos-co/logos-qt-mcp' -o result-mcp\n```", "execs": [{"kind": "run", "cmd": "nix build 'github:logos-co/logos-qt-mcp' -o result-mcp", "status": "pass", "exit_code": 0, "output": "unpacking 'github:logos-co/logos-qt-mcp/1fea509485a48ab185fafae8dc21bdbcc808a07e' into the Git cache...\ncopying path '/nix/store/jc3mfa7ybzh32bkvdj5xiib1vkx8jy6x-source' from 'https://cache.nixos.org'...\nthese 20 paths will be fetched (33.5 MiB download, 212.8 MiB unpacked):\n  /nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3\n  /nix/store/dgfikfjky3nq6gycpd08fyvmr7ww1j7j-bash-interactive-5.3p3\n  /nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1\n  /nix/store/0pr4q85wdnizd5rfvx1z9g16p6hvsmg1-icu4c-76.1-dev\n  /nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7\n  /nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109\n  /nix/store/5i7n3axk65fm14q3aywqg6pdch4y3zfl-libuv-1.51.0\n  /nix/store/hbbyr0434ww52i6bph4lyswm76ixzpcw-libuv-1.51.0-dev\n  /nix/store/0pvy2s1y0i9s7k7smvx3a3bxgxdg9mwf-logos-qt-mcp\n  /nix/store/r2nxv2gamv2hi4s6klngl1gnw72smn59-ncurses-6.5\n  /nix/store/3scj3c1qxh5iclf8jy5hbl9pki40y77n-nodejs-22.19.0\n  /nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1\n  /nix/store/bpawzvf8z4yjmwr3zc7haxhv99sl8s2a-openssl-3.5.1-bin\n  /nix/store/4fwifkd3zn4m6y7zacyhpwy5frj63knk-openssl-3.5.1-dev\n  /nix/store/cc040r4dq636j6criffnmi6nk98pmfn8-readline-8.3p1\n  /nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2\n  /nix/store/p0psb5n8drhajc6n4wnsrh2azd03jsqn-sqlite-3.50.2-bin\n  /nix/store/27nl2zmsbzgraliqqq17ni8fnmjywmwh-sqlite-3.50.2-dev\n  /nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1\n  /nix/store/ypda0r27k1fg2zz7daqmhqgxdqff8jg4-zlib-1.3.1-dev\ncopying path '/nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5i7n3axk65fm14q3aywqg6pdch4y3zfl-libuv-1.51.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/r2nxv2gamv2hi4s6klngl1gnw72smn59-ncurses-6.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109' from 'https://cache.nixos.org'...\ncopying path '/nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/hbbyr0434ww52i6bph4lyswm76ixzpcw-libuv-1.51.0-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ypda0r27k1fg2zz7daqmhqgxdqff8jg4-zlib-1.3.1-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/p0psb5n8drhajc6n4wnsrh2azd03jsqn-sqlite-3.50.2-bin' from 'https://cache.nixos.org'...\ncopying path '/nix/store/bpawzvf8z4yjmwr3zc7haxhv99sl8s2a-openssl-3.5.1-bin' from 'https://cache.nixos.org'...\ncopying path '/nix/store/27nl2zmsbzgraliqqq17ni8fnmjywmwh-sqlite-3.50.2-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4fwifkd3zn4m6y7zacyhpwy5frj63knk-openssl-3.5.1-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cc040r4dq636j6criffnmi6nk98pmfn8-readline-8.3p1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dgfikfjky3nq6gycpd08fyvmr7ww1j7j-bash-interactive-5.3p3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0pr4q85wdnizd5rfvx1z9g16p6hvsmg1-icu4c-76.1-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3scj3c1qxh5iclf8jy5hbl9pki40y77n-nodejs-22.19.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0pvy2s1y0i9s7k7smvx3a3bxgxdg9mwf-logos-qt-mcp' from 'https://logos-co.cachix.org'...\n", "note": ""}]}, {"md": "## Step 2: Launch the UI and exercise the backend\n\nLaunch the standalone app with `nix run`. The app bundles\n`wallet_backend_module` and its dependency modules and auto-loads them, so a\nrendered UI that can talk to the backend is itself proof the whole module\ntree loaded.\n\n> The first launch builds the full app bundle (the UI plugin, the backend\n> and its dependencies, and the standalone-app shell), so we allow a generous\n> build timeout.", "execs": []}, {"md": "### 2.1 Launch and drive the app\n\n```bash\nnix run github:logos-co/logos-evm-wallet-ui/68f7c4fe6005990dea38de67d6853d12d9045872 --no-write-lock-file -- --height 1000\n```\n\n![App window opens on the Balances tab](images/wallet-ui-launch.png)\n\n![Market tab rendered](images/wallet-ui-market.png)\n\n![Private (RAILGUN) tab rendered](images/wallet-ui-private.png)\n\n![Enter a SOCKS5 (Tor) proxy URL](images/wallet-ui-settings.png)\n\n![Status flips to 'Proxy applied'](images/wallet-ui-applied.png)\n\n![Advanced tab rendered](images/wallet-ui-advanced.png)\n\nA rendered, interactive UI whose **Apply proxy** action flips the status\nto *Proxy applied* is end-to-end proof that the QML view, the bundled\n`wallet_backend_module`, and its dependency modules are wired together\nover the Logos bridge \u2014 the call only returns (and the status only\nupdates) because the whole module tree loaded. The captured screenshots\nare embedded above and in the CI report.", "execs": [{"kind": "ui_test", "cmd": "nix run github:logos-co/logos-evm-wallet-ui/68f7c4fe6005990dea38de67d6853d12d9045872 --no-write-lock-file -- --height 1000 --override-input eth_rpc_module github:logos-co/logos-evm-eth-rpc-module/8a825cdbf0b78de4af30b6250e91b08d2e1ba1d7 --override-input keystore_module/logos-module-builder/logos-cpp-sdk github:logos-co/logos-cpp-sdk/8a40a9832251840d96e121abdc9e6bd760bc5afd --override-input keystore_module/logos-module-builder/logos-module github:logos-co/logos-module/2ec64c4a65f8966b5137cdba3a19a6498ce17b6d --override-input keystore_module/logos-module-builder/logos-plugin-core/logos-module/logos-nix github:logos-co/logos-nix/e637a1f5e871244d1c2df1e3c52a067f2eb406f2 --override-input keystore_module/logos-module-builder/logos-protocol github:logos-co/logos-protocol/ae2f7e1b5842d62836091c6dc0c903508806456e --override-input keystore_module/logos-module-builder/logos-qt-sdk github:logos-co/logos-qt-sdk/09365f5e048b75422c7a95169c03b82bdea3b918 --override-input keystore_module/logos-module-builder/logos-rust-sdk github:logos-co/logos-rust-sdk/be0dedad0fbef00c497e2e5e83ef03a000abcee6 --override-input keystore_module/logos-module-builder/logos-standalone-app github:logos-co/logos-standalone-app/0d4b65212196ad3fdeea76ac5c2756e2397ed9da --override-input keystore_module/logos-module-builder/logos-test-framework github:logos-co/logos-test-framework/eb1600cc6f61b66f6d75edd4773a58f0d1fa1ca4 --override-input keystore_module/logos-module-builder/nix-bundle-lgx github:logos-co/nix-bundle-lgx/b49074a8e1157832002b11d3d254c1aaa4b96680 --override-input keystore_module/logos-module-builder/nix-bundle-logos-module-install github:logos-co/nix-bundle-logos-module-install/55de9a6fce755387224ececd0493f46b028ee0a3 --override-input logos-module-builder github:logos-co/logos-module-builder/8e4ea1c1d0e523cea46850f8fd9466dd35af7cc1 --override-input railgun_module github:logos-co/logos-evm-railgun-module/b6d066932c62791c8be5b9a7344318d8df9a6156 --override-input token_list_module github:logos-co/logos-evm-token-list-module/25d5d6b2a96987bb2a757a0348c150baeb675e3b --override-input uniswap_module github:logos-co/logos-evm-uniswap-module/df069a7eab47d705eb3b519092a5e41e85ddd7f1 --override-input wallet_backend_module github:logos-co/logos-evm-wallet-backend-module/584dbfe3195ec6dfe4c0d8b91fabb02ac2d963f4\n\n# test actions:\n- App window opens on the Balances tab: wait for ['Logos Wallet', 'Accounts', 'Refresh balances']\n- Switch to the Market tab: call 'walletRoot'.selectTab(1)\n- Market tab rendered: wait for ['Refresh market']\n- Switch to the Send tab: call 'walletRoot'.selectTab(2)\n- Send tab rendered: wait for ['Estimate']\n- Switch to the Tokens tab: call 'walletRoot'.selectTab(3)\n- Tokens tab rendered: wait for ['Load tokens']\n- Switch to the History tab: call 'walletRoot'.selectTab(4)\n- History tab rendered: wait for ['Recent activity']\n- Switch to the Private tab: call 'walletRoot'.selectTab(5)\n- Private (RAILGUN) tab rendered: wait for ['Shielded balance']\n- Switch to the Settings tab: call 'walletRoot'.selectTab(6)\n- Settings tab rendered: wait for ['Apply proxy']\n- Enter a SOCKS5 (Tor) proxy URL: set placeholderText='socks5h://127.0.0.1:9050' to 'socks5h://127.0.0.1:9050'\n- Apply the proxy (UI -> backend round-trip): click 'Apply proxy'\n- Status flips to 'Proxy applied': wait for ['Proxy applied']\n- Switch to the Advanced tab: call 'walletRoot'.selectTab(7)\n- Advanced tab rendered: wait for ['Custom network']", "status": "fail", "output": "th '/nix/store/ndn4fngbdn6yplqj8s0984xklvmlwr96-qtwebview-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8n6h60ih9pg7d17nykykjv707xhvj6bd-logos-liblogos-build-0.1.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/ss63wrd3fx1hwwcgw54m38kfh8b82y6r-logos-liblogos-modules-0.1.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/f6azhwymbybr1ihhza71sxki6aljvlw7-logos-view-module-runtime-1.0.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/8vc3wqy4l79c0dnf79xlwjgkcpd24dz5-logos-wallet_ui-plugin-dir' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/9pxnfyxwc04nvzhql9hxg1jpkyjgn22p-logos-wallet_ui-plugin-dir-modules' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/1pdnybamkazkqc7hnqmv34282lgl6ny6-logos-liblogos-bin-0.1.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/n9w4rvalqxk7anhbc4h0wgj0szf7773x-clang-19.1.7-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mn9finbx6inzgbbkdfilaww7idxyac07-logos-standalone-app-1.0.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/kww1b20bhw33gjipgimrs4366kwqp92c-run-logos-standalone-ui' from 'https://logos-co.cachix.org'...\nLogosStandalone: Unknown options: override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input.", "note": "app exited (code 1) before inspector opened on port 3768"}]}]}, {"meta": {"name": "Wallet UI end-to-end: configure a network, import, unlock, send", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"md": "# Wallet UI end-to-end: configure a network, import, unlock, send\n\nThis doc-test drives the `logos-evm-wallet-ui` standalone app **headless**\nthrough a full wallet flow \u2014 the same end-to-end validation the\n[`wallet-backend` runtime doc-test](https://github.com/logos-co/logos-evm-wallet-backend-module)\nperforms against the coordinator, but here **every step goes through the real\nQML UI** over the Logos bridge.\n\nIt launches the app with `QT_QPA_PLATFORM=offscreen`, drives it with\n[`logos-qt-mcp`](https://github.com/logos-co/logos-qt-mcp), and on the new\n**Advanced** tab points the wallet at a **local mock JSON-RPC node**, then\nimports Foundry's well-known test account, unlocks it, sends a native transfer,\nand confirms it lands in History \u2014 proving the UI \u2192 C++ backend \u2192\n`wallet_backend_module` \u2192 eth-rpc / keystore round-trips end to end.\n\n**What you'll build:** The wallet UI standalone app, launched headless and driven through its Advanced, Send, and History tabs against a local mock JSON-RPC node.\n\n**What you'll learn:**\n\n- How the Advanced tab repoints the wallet at a custom RPC endpoint (setChains / testEndpoint)\n- How to import and unlock an account and send a native transfer entirely through the UI\n- How a UI-initiated send composes build \u2192 sign \u2192 broadcast \u2192 record across the backend module tree\n\n## Prerequisites\n\n- **Nix** with flakes enabled (see [nixos.org](https://nixos.org/download.html)).\n\n- **A Linux or macOS machine** with `python3` available (for the local mock JSON-RPC node). The app runs headless via `QT_QPA_PLATFORM=offscreen`, so no display is required.", "execs": []}, {"md": "## Step 1: Build the qt-mcp test driver\n\n[`logos-qt-mcp`](https://github.com/logos-co/logos-qt-mcp) connects to the\napp's QML inspector and drives it. Build it once and link it as\n`./result-mcp`.", "execs": []}, {"md": "### 1.1 Build logos-qt-mcp\n\n```bash\nnix build 'github:logos-co/logos-qt-mcp' -o result-mcp\n```", "execs": [{"kind": "run", "cmd": "nix build 'github:logos-co/logos-qt-mcp' -o result-mcp", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}, {"md": "## Step 2: Start a local mock JSON-RPC node\n\nThe wallet is pointed at this node (chain id 1337) from the UI's Advanced\ntab. It answers the methods the send pipeline needs with canned values, so\nthe run is offline and deterministic.", "execs": []}, {"md": "### 2.1 Write the mock node\n\n```\nimport http.server, json\nRES = {\n    \"eth_chainId\": \"0x539\",                 # 1337\n    \"eth_getTransactionCount\": \"0x0\",\n    \"eth_gasPrice\": \"0x3b9aca00\",\n    \"eth_estimateGas\": \"0x5208\",\n    \"eth_sendRawTransaction\": \"0x\" + \"ab\" * 32,\n}\nclass H(http.server.BaseHTTPRequestHandler):\n    def do_POST(self):\n        n = int(self.headers.get('content-length', 0))\n        req = json.loads(self.rfile.read(n) or b'{}')\n        body = json.dumps({\"jsonrpc\": \"2.0\", \"id\": req.get(\"id\", 1),\n                           \"result\": RES.get(req.get(\"method\"), \"0x0\")}).encode()\n        self.send_response(200)\n        self.send_header('content-length', str(len(body)))\n        self.end_headers()\n        self.wfile.write(body)\n    def log_message(self, *a): pass\nhttp.server.HTTPServer(('127.0.0.1', 8613), H).serve_forever()\n```", "execs": [{"kind": "file", "cmd": "write mock_node.py", "status": "pass", "note": "Wrote mock_node.py"}]}, {"md": "### 2.2 Start the mock node\n\n```bash\npython3 mock_node.py &\n```", "execs": [{"kind": "run", "cmd": "sh -c 'python3 mock_node.py > mock.log 2>&1 & echo $! > mock.pid'", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}, {"md": "```bash\nsleep 2\n```", "execs": [{"kind": "run", "cmd": "sleep 2", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}, {"md": "## Step 3: Launch the wallet UI and drive the full flow\n\nLaunch the standalone app with `nix run`. It bundles\n`wallet_backend_module` and its dependency modules and auto-loads them, so a\nUI that can drive a send is itself proof the whole module tree is wired.\n\n> The first launch builds the full app bundle (the UI plugin, the backend and\n> its dependencies, and the standalone-app shell), so we allow a generous\n> timeout.", "execs": []}, {"md": "### 3.1 Drive the app: Advanced \u2192 Send \u2192 History\n\n```bash\nnix run github:logos-co/logos-evm-wallet-ui/68f7c4fe6005990dea38de67d6853d12d9045872 --no-write-lock-file -- --height 2000\n```\n\n![App window opens on the Balances tab](images/wallet-ui-e2e-launch.png)\n\nThe custom RPC round-trips: the UI calls `testEndpoint`, the backend asks eth-rpc for `eth_chainId`, and the mock answers.\n\n![Endpoint is reachable](images/wallet-ui-e2e-test-endpoint.png)\n\n![Account imported (status flips)](images/wallet-ui-e2e-import.png)\n\n![Native transfer submitted (status flips)](images/wallet-ui-e2e-send.png)\n\nA `native` transfer recorded as `pending` \u2014 proof the send was built, signed, broadcast, and recorded, all driven through the UI.\n\n![The transaction is in history](images/wallet-ui-e2e-history.png)\n\nA native transfer initiated entirely through the QML UI \u2014 pointed at a\nlocal node on the **Advanced** tab, imported + unlocked there, signed by\nthe bundled keystore, broadcast via eth-rpc, and surfaced in **History**\n\u2014 is end-to-end proof that the wallet UI and its whole backend module\ntree are wired together over the Logos bridge.", "execs": [{"kind": "ui_test", "cmd": "nix run github:logos-co/logos-evm-wallet-ui/68f7c4fe6005990dea38de67d6853d12d9045872 --no-write-lock-file -- --height 2000 --override-input eth_rpc_module github:logos-co/logos-evm-eth-rpc-module/8a825cdbf0b78de4af30b6250e91b08d2e1ba1d7 --override-input keystore_module/logos-module-builder/logos-cpp-sdk github:logos-co/logos-cpp-sdk/8a40a9832251840d96e121abdc9e6bd760bc5afd --override-input keystore_module/logos-module-builder/logos-module github:logos-co/logos-module/2ec64c4a65f8966b5137cdba3a19a6498ce17b6d --override-input keystore_module/logos-module-builder/logos-plugin-core/logos-module/logos-nix github:logos-co/logos-nix/e637a1f5e871244d1c2df1e3c52a067f2eb406f2 --override-input keystore_module/logos-module-builder/logos-protocol github:logos-co/logos-protocol/ae2f7e1b5842d62836091c6dc0c903508806456e --override-input keystore_module/logos-module-builder/logos-qt-sdk github:logos-co/logos-qt-sdk/09365f5e048b75422c7a95169c03b82bdea3b918 --override-input keystore_module/logos-module-builder/logos-rust-sdk github:logos-co/logos-rust-sdk/be0dedad0fbef00c497e2e5e83ef03a000abcee6 --override-input keystore_module/logos-module-builder/logos-standalone-app github:logos-co/logos-standalone-app/0d4b65212196ad3fdeea76ac5c2756e2397ed9da --override-input keystore_module/logos-module-builder/logos-test-framework github:logos-co/logos-test-framework/eb1600cc6f61b66f6d75edd4773a58f0d1fa1ca4 --override-input keystore_module/logos-module-builder/nix-bundle-lgx github:logos-co/nix-bundle-lgx/b49074a8e1157832002b11d3d254c1aaa4b96680 --override-input keystore_module/logos-module-builder/nix-bundle-logos-module-install github:logos-co/nix-bundle-logos-module-install/55de9a6fce755387224ececd0493f46b028ee0a3 --override-input logos-module-builder github:logos-co/logos-module-builder/8e4ea1c1d0e523cea46850f8fd9466dd35af7cc1 --override-input railgun_module github:logos-co/logos-evm-railgun-module/b6d066932c62791c8be5b9a7344318d8df9a6156 --override-input token_list_module github:logos-co/logos-evm-token-list-module/25d5d6b2a96987bb2a757a0348c150baeb675e3b --override-input uniswap_module github:logos-co/logos-evm-uniswap-module/df069a7eab47d705eb3b519092a5e41e85ddd7f1 --override-input wallet_backend_module github:logos-co/logos-evm-wallet-backend-module/584dbfe3195ec6dfe4c0d8b91fabb02ac2d963f4\n\n# test actions:\n- App window opens on the Balances tab: wait for ['Logos Wallet', 'Accounts']\n- Switch to the Advanced tab: call 'walletRoot'.selectTab(7)\n- Advanced tab rendered: wait for ['Custom network']\n- Enter the chain id: set objectName='advChainIdField' to '1337'\n- Enter the network name: set objectName='advChainNameField' to 'Local Mock'\n- Enter the RPC URL (the local mock node): set objectName='advRpcUrlField' to 'http://127.0.0.1:8613'\n- Enter the native symbol: set objectName='advSymbolField' to 'ETH'\n- Test the endpoint (UI \u2192 backend \u2192 eth-rpc \u2192 mock node): click 'Test endpoint'\n- Endpoint is reachable: wait for ['Endpoint reachable']\n- Save the chain (repoints the wallet): click 'Save chain'\n- Chain saved (status flips): wait for ['Chains updated']\n- Enter the seed phrase: set objectName='advSeedField' to 'test test test test test test test test test test test junk'\n- Enter the account passphrase: set objectName='advAcctPwField' to 'pw'\n- Import the account: click 'Import'\n- Account imported (status flips): wait for ['Account imported']\n- Unlock the imported account: click 'Unlock imported'\n- Account unlocked (status flips): wait for ['Unlocked']\n- Switch to the Send tab: call 'walletRoot'.selectTab(2)\n- Send tab rendered: wait for ['Estimate']\n- Enter the recipient (Foundry account #1): set objectName='sendToField' to '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'\n- Enter the amount (1 ETH in wei, hex): set objectName='sendAmountField' to '0xde0b6b3a7640000'\n- Send (build \u2192 sign \u2192 broadcast \u2192 record): click 'Send transaction'\n- Native transfer submitted (status flips): wait for ['Native transfer submitted']\n- Switch to the History tab: call 'walletRoot'.selectTab(4)\n- Refresh history: click 'Refresh history'\n- The transaction is in history: wait for ['native', 'pending']", "status": "fail", "output": "LogosStandalone: Unknown options: override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input, override-input.", "note": "app exited (code 1) before inspector opened on port 3768"}]}, {"md": "## Step 4: Stop the mock node", "execs": []}, {"md": "### 4.1 Kill the mock node by PID\n\n```bash\nkill \"$(cat mock.pid 2>/dev/null)\" 2>/dev/null || true\n```", "execs": [{"kind": "run", "cmd": "kill \"$(cat mock.pid 2>/dev/null)\" 2>/dev/null || true", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}, {"md": "```bash\nsleep 1\n```", "execs": [{"kind": "run", "cmd": "sleep 1", "status": "pass", "exit_code": 0, "output": "", "note": ""}]}]}]}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  if (window.marked) { marked.setOptions({ gfm: true, breaks: false }); }
+  const mdToHtml = (s) => window.marked ? marked.parse(s || "") : ("<pre>" + (s || "") + "</pre>");
+
+  const sum = DATA.summary;
+  document.getElementById("summary").innerHTML =
+    `<span class="pill pass">${sum.passed} passed</span> ` +
+    (sum.failed ? `<span class="pill fail">${sum.failed} failed</span> ` : "") +
+    (sum.skipped ? `<span class="pill skip">${sum.skipped} skipped</span>` : "");
+
+  const picker = document.getElementById("picker");
+  DATA.tutorials.forEach((t, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = t.meta.name; picker.appendChild(o);
+  });
+
+  function execHtml(e) {
+    const badge = `<span class="badge ${e.status}">${e.status.toUpperCase()}</span>`;
+    const kind = `<span class="kind">${e.kind}${e.exit_code !== undefined ? " · exit " + e.exit_code : ""}</span>`;
+    let h = `<div class="exec"><div class="exec-head">${badge}${kind}</div>`;
+    if (e.note) h += `<div class="note">${escapeHtml(e.note)}</div>`;
+    if (e.cmd) h += `<pre class="cmd">${escapeHtml(e.cmd)}</pre>`;
+    const out = (e.output || "").trim();
+    if (out) {
+      const long = out.split("\n").length > 12;
+      if (long) {
+        h += `<details><summary>output (${out.split("\n").length} lines)</summary><pre class="output">${escapeHtml(out)}</pre></details>`;
+      } else {
+        h += `<pre class="output">${escapeHtml(out)}</pre>`;
+      }
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  function render(idx) {
+    const t = DATA.tutorials[idx];
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const h = document.createElement("div");
+    h.className = "tutorial-title";
+    h.textContent = t.meta.name + "  —  " + t.meta.platform;
+    main.appendChild(h);
+
+    t.rows.forEach(row => {
+      const isStructural = row.execs.length === 0 &&
+        (/^#\s|^##\s/.test(row.md.trim()));
+      const div = document.createElement("div");
+      const hasExec = row.execs.length > 0;
+      const hasFail = row.execs.some(e => e.status === "fail");
+      div.className = "row" + (hasExec ? "" : (isStructural ? " section" : " preamble")) +
+        (hasFail ? " has-fail" : "");
+
+      const left = document.createElement("div");
+      left.className = "col left";
+      left.innerHTML = `<div class="md">${mdToHtml(row.md)}</div>`;
+      div.appendChild(left);
+
+      if (hasExec || !isStructural) {
+        const right = document.createElement("div");
+        right.className = "col right";
+        if (hasExec) {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            row.execs.map(execHtml).join("");
+        } else {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            `<div class="empty">No commands run for this step.</div>`;
+        }
+        div.appendChild(right);
+      }
+      main.appendChild(div);
+    });
+  }
+
+  function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+  function indexFromHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (!raw) return 0;
+    if (/^\d+$/.test(raw) && +raw < DATA.tutorials.length) return +raw;
+    const i = DATA.tutorials.findIndex(
+      t => slug(t.meta.name) === raw || t.meta.name === raw
+    );
+    return i >= 0 ? i : 0;
+  }
+  function show(idx) { picker.value = idx; render(idx); }
+  picker.addEventListener("change", () => {
+    location.hash = slug(DATA.tutorials[+picker.value].meta.name);
+    render(+picker.value);
+  });
+  window.addEventListener("hashchange", () => show(indexFromHash()));
+  show(indexFromHash());
+</script>
+</body>
+</html>
