@@ -108,6 +108,17 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    logos-module-loader-qt = {
+      url = "github:logos-co/logos-module-loader-qt";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-module.follows = "logos-module";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # logos-container and logos-module-loader are not workspace repos, so
+      # they keep their own pins rather than following anything here.
+    };
     logos-module-builder = {
       url = "github:logos-co/logos-module-builder/e9c8da45d3cf84e4207ba22d22e23ccccb1cb59a";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
