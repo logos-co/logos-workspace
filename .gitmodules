@@ -217,3 +217,12 @@
 [submodule "repos/logos-module-loader-qt"]
 	path = repos/logos-module-loader-qt
 	url = git@github.com:logos-co/logos-module-loader-qt.git
+[submodule "repos/logos-container"]
+	path = repos/logos-container
+	url = git@github.com:logos-co/logos-container.git
+[submodule "repos/logos-module-loader"]
+	path = repos/logos-module-loader
+	url = git@github.com:logos-co/logos-module-loader.git
+[submodule "repos/logos-container-subprocess"]
+	path = repos/logos-container-subprocess
+	url = git@github.com:logos-co/logos-container-subprocess.git
