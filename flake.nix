@@ -440,7 +440,12 @@
 
   outputs = { self, nixpkgs, ... }@inputs:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      # "x86_64-windows" is a pseudo-system for the mingw cross target: a cross
+      # derivation's `system` attribute is its BUILD platform, so these
+      # outputs evaluate anywhere and realise on x86_64-linux. Repos that have
+      # not been ported yet simply expose nothing under it, and the generic
+      # forwarder below skips them.
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" "x86_64-windows" ];
       forAllSystems = fn: nixpkgs.lib.genAttrs systems fn;
 
       depGraph = import ./nix/dep-graph.nix;
