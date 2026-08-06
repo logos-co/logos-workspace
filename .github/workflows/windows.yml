@@ -1,0 +1,363 @@
+name: Windows (cross)
+
+# Cross-builds the Windows (mingw) targets and asserts real properties of the
+# artifacts. Everything here was hand-verified on a Linux builder and on real
+# Windows hardware before being wired up; this job exists so it stays that way.
+#
+# WHY THE WORKSPACE IS THE CARRIER, AND WHY THE OVERRIDES EXIST
+# The Windows work lives on unmerged `feat/windows-cross` branches across 20
+# repos. Each repo's own flake pins its siblings at master, so a per-repo CI job
+# cannot resolve them -- verified: building logos-logoscore-cli with only
+# logos-nix overridden dies with "attribute 'x86_64-windows' missing", because
+# its lock still points cpp-sdk at master. The workspace flake is the one place
+# all 20 can be resolved together. Consequently `packages.x86_64-windows` is
+# EMPTY (0 attrs) without the overrides below and has 329 with them, so the
+# override block is not a convenience -- nothing Windows exists without it.
+#
+# WHY REVS ARE RESOLVED AT RUNTIME RATHER THAN HARDCODED
+# Two reasons, both measured. (a) Hardcoded revs decouple the gate from the
+# branches it is meant to protect and rot silently. (b) A `github:owner/repo/
+# branch` override makes nix call api.github.com to resolve the ref -- one call
+# per override against a 60/hour unauthenticated budget -- and a cold runner
+# dies partway through with HTTP 403. `git ls-remote` speaks the git protocol,
+# costs no API quota, and yields an explicit rev that nix fetches straight from
+# codeload. So we get freshness AND zero API calls.
+#
+# DELETE THIS FILE'S OVERRIDE BLOCK once the branches merge; the targets then
+# resolve from the workspace's own lock.
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-build:
+    runs-on: ubuntu-latest
+    # Cold-cache cost was measured at roughly 1.5-2.5 h: 123 derivations to
+    # build from an empty store (qtbase/qtdeclarative/qtsvg/qtremoteobjects at
+    # 6.11.1, plus icu4c, boost, glib, harfbuzz), with the rest substituted.
+    # Notably qtwebengine -- the thing that normally makes a cross-Qt build
+    # multi-hour -- is NOT in this closure, and the whole mingw toolchain comes
+    # from cache.nixos.org. Once cachix holds our ~235 Logos-built paths this
+    # drops to ~10-25 min. The generous timeout is deliberate: a cold cache
+    # should degrade to "slow", never to a red build nobody can interpret.
+    timeout-minutes: 240
+
+    env:
+      WINDOWS_BRANCH: feat/windows-cross
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # No submodules on purpose. Verified: a fresh clone with zero
+        # submodules initialised builds every target here, because the
+        # overrides below supply the sources. Worse, the recorded gitlinks
+        # point at MASTER commits rather than the branch tips, so
+        # `submodule update --init` would quietly check out the wrong code.
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ github.token }}
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: logos-co
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          # Never continue-on-error here: a silently failed push means every
+          # subsequent run rebuilds the entire mingw Qt stack from source.
+
+      - name: Free disk space
+        # The build closure is ~9 GiB and ubuntu-latest ships ~14 GiB free.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          df -h /
+
+      - name: Resolve Windows branch revisions
+        id: pins
+        run: |
+          set -euo pipefail
+          # logos-nix carries the overlay on its own branch name; everything
+          # else uses $WINDOWS_BRANCH.
+          repos="logos-lidl logos-protocol logos-cpp-sdk logos-qt-sdk logos-module
+                 logos-plugin-qt logos-container logos-container-subprocess
+                 logos-module-loader logos-module-loader-qt logos-liblogos
+                 logos-package logos-package-manager logos-package-downloader
+                 logos-capability-module logos-module-builder logos-logoscore-cli
+                 nix-bundle-lgx process-stats"
+
+          : > pins.txt
+          resolve() {
+            local repo="$1" branch="$2" rev
+            rev=$(git ls-remote "https://github.com/logos-co/$repo" \
+                    "refs/heads/$branch" | cut -f1)
+            if [ -z "$rev" ]; then
+              echo "::error::$repo has no branch $branch — did it merge? If so, drop it from this list."
+              exit 1
+            fi
+            echo "$repo $rev" >> pins.txt
+          }
+
+          resolve logos-nix feat/windows-cross-overlay
+          for r in $repos; do resolve "$r" "$WINDOWS_BRANCH"; done
+
+          echo "resolved $(wc -l < pins.txt) revisions"
+          cat pins.txt
+
+      - name: Cross-build Windows targets
+        run: |
+          set -euo pipefail
+          # Deliberately NOT a wildcard over all 329 evaluating attrs: most were
+          # never ported and inherit the x86_64-windows system for free from
+          # logos-module-builder. Evaluating is not building. This is the set
+          # that is actually verified to produce working PEs.
+          cat > targets.txt <<'TARGETS'
+          logosctl           logos-logoscore-cli--ctl
+          logoscore          logos-logoscore-cli--cli
+          lgx                logos-package--lgx
+          lgpm               logos-package-manager--cli-portable
+          lgpd               logos-package-downloader--cli
+          lm                 logos-module--bin
+          capability-module  logos-capability-module--lib
+          capability-lgx     logos-capability-module--lgx-portable
+          liblogos           logos-liblogos--portable
+          TARGETS
+
+          OV=(); while read -r r rev; do
+            OV+=(--override-input "$r" "github:logos-co/$r/$rev")
+          done < pins.txt
+          printf '%s\n' "${OV[@]}" > overrides.txt
+
+          ATTRS=(); while read -r _ a; do
+            ATTRS+=(".#packages.x86_64-windows.$a")
+          done < targets.txt
+
+          # One invocation so nix parallelises the shared closure rather than
+          # serialising nine near-identical dependency graphs.
+          nix build "${ATTRS[@]}" "${OV[@]}" --print-build-logs \
+            --out-link result-win
+
+          # checks.x86_64-windows.* is deliberately not built. All 11 throw on
+          # logos-test-framework, which declares no Windows system and is not a
+          # workspace flake input so it cannot be overridden from here. Even
+          # fixed, a cross-built unit test is a PE this runner cannot execute.
+
+      - name: Stage artifacts
+        run: |
+          set -euo pipefail
+          mapfile -t OV < overrides.txt
+          mkdir -p stage
+          while read -r name attr; do
+            out=$(nix build --no-link --print-out-paths \
+                    ".#packages.x86_64-windows.$attr" "${OV[@]}")
+            mkdir -p "stage/$name"
+            cp -rL "$out"/. "stage/$name"/
+          done < targets.txt
+          chmod -R u+w stage
+          find stage -name '*.exe' -o -name '*.dll' | wc -l
+
+      # ---------------------------------------------------------------- gates
+      # Every gate below fails on an EMPTY input set. That is not defensive
+      # padding: each of the four Windows bugs found while building this port
+      # was a SILENT SUCCESS -- an install rule that copied nothing and exited
+      # 0, a package that labelled itself linux-amd64, a plugin shipped without
+      # its DLLs, a load-time fallback that failed soft. A gate that passes
+      # vacuously on zero artifacts reproduces exactly that failure mode.
+
+      - name: Gate — artifacts are 64-bit PEs
+        run: |
+          set -euo pipefail
+          mapfile -t pes < <(find stage -type f \( -name '*.exe' -o -name '*.dll' \))
+          echo "found ${#pes[@]} PE candidates"
+          # 40 is well under the ~200 we actually produce, but far above zero.
+          if [ "${#pes[@]}" -lt 40 ]; then
+            echo "::error::only ${#pes[@]} PE files staged — a target installed nothing"
+            exit 1
+          fi
+          bad=0
+          for f in "${pes[@]}"; do
+            case "$(file -b "$f")" in
+              PE32+*x86-64*) ;;
+              *) echo "::error::not a 64-bit PE: $f — $(file -b "$f")"; bad=1 ;;
+            esac
+          done
+          # A silent fallback to a NATIVE build emits unsuffixed ELF binaries,
+          # which the *.exe/*.dll filter above would never even look at.
+          while read -r f; do
+            if file -b "$f" | grep -q ELF; then
+              echo "::error::native ELF binary in a Windows output: $f"; bad=1
+            fi
+          done < <(find stage -type f -perm -u+x ! -name '*.exe' ! -name '*.dll')
+          [ "$bad" -eq 0 ]
+
+      - name: Gate — every PE's imports are bundled beside it
+        run: |
+          set -euo pipefail
+          # The cross binutils is already in the closure we just built, so this
+          # costs nothing and avoids depending on the runner image's objdump
+          # having PE targets compiled in.
+          # binutils is multi-output, so --print-out-paths emits several store
+          # paths (out, man, ...). Naively appending /bin to that yields a
+          # mangled multi-line path — pick the output that really has objdump.
+          OBJDUMP=""
+          while read -r p; do
+            if [ -x "$p/bin/x86_64-w64-mingw32-objdump" ]; then
+              OBJDUMP="$p/bin/x86_64-w64-mingw32-objdump"; break
+            fi
+          done < <(nix build --no-link --print-out-paths \
+                     nixpkgs#pkgsCross.mingwW64.buildPackages.binutils)
+          [ -n "$OBJDUMP" ] || { echo "::error::no mingw objdump in the binutils outputs"; exit 1; }
+          export OBJDUMP
+          "$OBJDUMP" --version > /dev/null
+
+          python3 - <<'PY'
+          import os, subprocess, sys, glob
+          OBJDUMP = os.environ["OBJDUMP"]
+          # Everything Windows itself provides. Anything else must ship with us.
+          SYSTEM = (
+              "kernel32 ntdll user32 advapi32 ws2_32 mswsock shell32 ole32 "
+              "oleaut32 version winmm netapi32 userenv authz mpr crypt32 "
+              "bcrypt secur32 dbghelp psapi imm32 gdi32 comdlg32 shlwapi "
+              "iphlpapi dnsapi wtsapi32 setupapi winspool rpcrt4 msvcrt "
+              "uxtheme dwmapi d3d9 d3d11 dxgi dwrite opengl32 wldap32 normaliz "
+              "winhttp wininet ncrypt cfgmgr32 powrprof propsys oleacc avrt"
+          ).split()
+          # Names are compared case-insensitively with the extension stripped,
+          # because import tables mix spellings freely: the real tree contains
+          # both "KERNEL32.dll" and "KERNEL32.DLL", and "IPHLPAPI.DLL".
+          def is_system(d):
+              b = os.path.splitext(d)[0].lower()
+              return b in SYSTEM or b.startswith("api-ms-win") or b.startswith("ext-ms-win")
+          pes = [p for p in glob.glob("stage/**/*", recursive=True)
+                 if p.lower().endswith((".exe", ".dll")) and os.path.isfile(p)]
+          minimum = int(os.environ.get("MIN_PES", "40"))
+          if len(pes) < minimum:
+              sys.exit(f"only {len(pes)} PEs discovered (need >= {minimum}) "
+                       "— refusing to pass vacuously")
+          bad = 0
+          for p in pes:
+              r = subprocess.run([OBJDUMP, "-p", p], capture_output=True, text=True)
+              # An objdump that errors would otherwise yield an empty import
+              # list, indistinguishable from "no imports" — i.e. a silent pass.
+              if r.returncode != 0:
+                  print(f"::error::objdump failed on {p}: {r.stderr.strip()[:200]}")
+                  bad = 1
+                  continue
+              imports = [l.split("DLL Name:")[1].strip()
+                         for l in r.stdout.splitlines() if "DLL Name:" in l]
+              if not imports:
+                  print(f"::error::{p} has no import table at all")
+                  bad = 1
+                  continue
+              here = os.path.dirname(p)
+              for dll in imports:
+                  if is_system(dll):
+                      continue
+                  if not os.path.exists(os.path.join(here, dll)):
+                      print(f"::error::{p} imports {dll}, which is not beside it")
+                      bad = 1
+          print(f"checked {len(pes)} PEs")
+          sys.exit(bad)
+          PY
+
+      - name: Gate — the .lgx declares a Windows variant with a real payload
+        run: |
+          set -euo pipefail
+          lgxf=$(find stage/capability-lgx -name '*.lgx' | head -1)
+          [ -n "$lgxf" ] || { echo "::error::no .lgx produced"; exit 1; }
+
+          # The mislabel this catches: under a mingw cross set isDarwin and
+          # isAarch64 are both false, so the variant used to fall through to
+          # "linux-amd64" — a Windows package claiming to be a Linux one. lgpm
+          # computes "windows-x86_64" and has no alias fallback, so the exact
+          # spelling is a contract.
+          tar tzf "$lgxf" | grep -q '^variants/windows-x86_64/' \
+            || { echo "::error::.lgx has no variants/windows-x86_64/"; tar tzf "$lgxf"; exit 1; }
+          if tar tzf "$lgxf" | grep -qE '^variants/(linux|darwin)'; then
+            echo "::error::.lgx carries a non-Windows variant"; tar tzf "$lgxf"; exit 1
+          fi
+
+          # Entry names alone are not enough: a zero-byte payload satisfies the
+          # greps above. Extract and check the payload is a real PE.
+          rm -rf lgxout && mkdir lgxout && tar xzf "$lgxf" -C lgxout
+          n=0
+          for dll in lgxout/variants/windows-x86_64/*.dll; do
+            [ -e "$dll" ] || continue
+            [ -s "$dll" ] || { echo "::error::empty payload: $dll"; exit 1; }
+            file -b "$dll" | grep -q 'PE32+.*x86-64' \
+              || { echo "::error::payload is not a 64-bit PE: $dll"; exit 1; }
+            n=$((n+1))
+          done
+          [ "$n" -gt 0 ] || { echo "::error::windows-x86_64 variant contains no DLL"; exit 1; }
+          echo "verified $n payload DLL(s)"
+
+      - name: Gate — the PEs run, and a module loads, under wine
+        run: |
+          set -euo pipefail
+          # wine is fully substituted from cache.nixos.org (~53 MiB, 0
+          # derivations built) and needs no display, no X server and no
+          # privileges. It is necessary-but-not-sufficient: wine's DLL-search
+          # and WM_CLOSE semantics diverge from Windows exactly where our hard
+          # problems live, so real-hardware acceptance stays manual.
+          WINE=$(nix build --no-link --print-out-paths nixpkgs#wine64Packages.minimal)/bin/wine
+          export WINEPREFIX="$PWD/wineprefix" WINEDEBUG=-all WINEDLLOVERRIDES="mscoree,mshtml="
+          unset DISPLAY DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR
+
+          "$WINE" stage/logosctl/bin/logosctl.exe --version | tee ctl.txt
+          grep -qi version ctl.txt
+          "$WINE" stage/lm/bin/lm.exe --version | grep -qi 'version'
+
+          # The load test. lm.exe shares LogosModule::loadFromPath with
+          # logos_host_qt.exe, so this exercises the real module-loading path:
+          # the plugin sits in its OWN directory (as lgpm installs it) while the
+          # shared runtime sits beside the executable.
+          mkdir -p wt/bin wt/modules/capability_module
+          cp -L stage/logosctl/bin/*.dll wt/bin/
+          cp -L stage/lm/bin/lm.exe wt/bin/
+          cp -L stage/capability-module/lib/capability_module_plugin.dll \
+                wt/modules/capability_module/
+
+          set +e
+          "$WINE" wt/bin/lm.exe metadata \
+            "Z:$PWD/wt/modules/capability_module/capability_module_plugin.dll" \
+            > load.out 2> load.err
+          rc=$?
+          set -e
+          cat load.out
+          [ "$rc" -eq 0 ] || { echo "::error::module load failed (rc=$rc)"; cat load.err; exit 1; }
+          grep -q 'capability_module' load.out \
+            || { echo "::error::load produced no metadata"; exit 1; }
+
+          # The pre-load that resolves a plugin's private DLLs fails SOFT by
+          # design, so the plain load can still succeed while the mechanism is
+          # broken. That is precisely how a regression slipped through once
+          # already: LOAD_WITH_ALTERED_SEARCH_PATH substitutes the module's
+          # directory for the application's instead of adding to it, and the
+          # only symptom was this warning. Assert on stderr or the gate is blind.
+          if grep -q 'dependency pre-load failed' load.err; then
+            echo "::error::the Windows DLL-search pre-load regressed:"
+            grep 'dependency pre-load failed' load.err
+            exit 1
+          fi
+
+      - name: Upload Windows artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86_64
+          path: |
+            stage/**/*.exe
+            stage/**/*.lgx
+          if-no-files-found: error
+          retention-days: 14
