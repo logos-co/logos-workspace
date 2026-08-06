@@ -80,6 +80,7 @@ REPOS=(
   "logos-nix|logos-nix|https://github.com/logos-co/logos-nix.git|yes"
 
   # Foundation
+  "logos-lidl|logos-lidl|https://github.com/logos-co/logos-lidl.git|yes"
   "logos-protocol|logos-protocol|https://github.com/logos-co/logos-protocol.git|yes"
   "logos-qt-sdk|logos-qt-sdk|https://github.com/logos-co/logos-qt-sdk.git|yes"
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
