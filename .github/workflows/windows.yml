@@ -90,12 +90,22 @@ jobs:
           set -euo pipefail
           # logos-nix carries the overlay on its own branch name; everything
           # else uses $WINDOWS_BRANCH.
+          # This list is NOT hand-curated: it is the set a Windows build
+          # actually resolves. Derived by running the override generator against
+          # logos-basecamp (the deepest target) and taking the distinct repos it
+          # requires, then unioned with what the CLI targets need. Getting it
+          # short is not a virtue -- a repo missing here silently resolves at its
+          # pinned master rev, which has no `x86_64-windows`, and the build dies
+          # with "attribute 'x86_64-windows' missing" pointing at a store path
+          # rather than at the omission.
           repos="logos-lidl logos-protocol logos-cpp-sdk logos-qt-sdk logos-module
                  logos-plugin-qt logos-container logos-container-subprocess
                  logos-module-loader logos-module-loader-qt logos-liblogos
                  logos-package logos-package-manager logos-package-downloader
                  logos-capability-module logos-module-builder logos-logoscore-cli
-                 nix-bundle-lgx process-stats"
+                 nix-bundle-lgx process-stats
+                 logos-basecamp logos-design-system logos-package-manager-ui
+                 logos-view-module-runtime nix-bundle-logos-module-install"
 
           : > pins.txt
           resolve() {
@@ -141,8 +151,23 @@ jobs:
           main-ui            logos-basecamp--main-ui-plugin
           TARGETS
 
+          # nix-bundle-logos-module-install is NOT a top-level workspace input,
+          # and the workspace's logos-basecamp block declares no `follows` for
+          # it -- so basecamp resolves it from its OWN lock, which pins the
+          # pre-Windows rev. A top-level --override-input for a non-input does
+          # not error, it is merely ignored, so this has to be a NESTED override
+          # or CI silently builds the old bundler and dies later with
+          # "main file 'capability_module_plugin.so' not found" -- an error that
+          # names the payload rather than the stale input that caused it.
+          # Delete this special case if it ever becomes a workspace input.
+          NESTED_ONLY="nix-bundle-logos-module-install"
+
           OV=(); while read -r r rev; do
-            OV+=(--override-input "$r" "github:logos-co/$r/$rev")
+            if [ "$r" = "$NESTED_ONLY" ]; then
+              OV+=(--override-input "logos-basecamp/$r" "github:logos-co/$r/$rev")
+            else
+              OV+=(--override-input "$r" "github:logos-co/$r/$rev")
+            fi
           done < pins.txt
           printf '%s\n' "${OV[@]}" > overrides.txt
 
