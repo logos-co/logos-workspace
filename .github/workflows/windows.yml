@@ -132,6 +132,16 @@ jobs:
           # never ported and inherit the x86_64-windows system for free from
           # logos-module-builder. Evaluating is not building. This is the set
           # that is actually verified to produce working PEs.
+          # NOTE: the heredoc body is DATA, not shell -- a `#` line inside it
+          # is parsed as `name=#` and becomes a garbage attribute. The readers
+          # below skip blanks and comments so that mistake fails loudly if it
+          # recurs, but keep prose out here regardless.
+          #
+          # basecamp / main-ui are the GUI stack; everything above is a
+          # self-contained CLI or module. Until they were added, nothing in CI
+          # compiled the Qt Quick path, the design system, the QQuickWidget host
+          # or main_ui at all -- they were protected only by hand-testing on real
+          # Windows hardware.
           cat > targets.txt <<'TARGETS'
           logosctl           logos-logoscore-cli--ctl
           logoscore          logos-logoscore-cli--cli
@@ -142,11 +152,6 @@ jobs:
           capability-module  logos-capability-module--lib
           capability-lgx     logos-capability-module--lgx-portable
           liblogos           logos-liblogos--portable
-          # Basecamp and its in-process UI plugin. Everything above is a
-          # self-contained CLI or module; these two are the GUI stack, and until
-          # now nothing in CI compiled them at all -- the Qt Quick path, the
-          # design system, the QQuickWidget host and main_ui were protected only
-          # by hand-testing on real hardware.
           basecamp           logos-basecamp
           main-ui            logos-basecamp--main-ui-plugin
           TARGETS
@@ -174,8 +179,12 @@ jobs:
           fi
 
           ATTRS=(); while read -r _ a; do
+            [ -z "$a" ] && continue
+            case "$a" in '#'*) continue;; esac
             ATTRS+=(".#packages.x86_64-windows.$a")
           done < targets.txt
+          [ "${#ATTRS[@]}" -ge 11 ] || {
+            echo "::error::parsed only ${#ATTRS[@]} targets from targets.txt"; exit 1; }
 
           # One invocation so nix parallelises the shared closure rather than
           # serialising nine near-identical dependency graphs.
@@ -193,6 +202,8 @@ jobs:
           mapfile -t OV < overrides.txt
           mkdir -p stage
           while read -r name attr; do
+            [ -z "$attr" ] && continue
+            case "$name" in '#'*) continue;; esac
             out=$(nix build --no-link --print-out-paths \
                     ".#packages.x86_64-windows.$attr" "${OV[@]}")
             mkdir -p "stage/$name"
@@ -374,13 +385,21 @@ jobs:
           # BOTH in-process consumers must import, not define. Checking only one
           # would miss a regression in the other, and they are built by separate
           # derivations with separate link lines.
+          # EVERY copy is checked, not the first one found. main_ui.dll is
+          # staged twice -- stage/basecamp/plugins/main_ui/ from the app target
+          # and stage/main-ui/lib/ from the plugin target -- built by two
+          # derivations. `head -1` would pick one by find order, so a regression
+          # in the other half would pass or fail depending on directory
+          # traversal. Both currently satisfy the gate; that is a fact to assert,
+          # not to sample.
           bad=0; checked=0
           for name in main_ui.dll LogosBasecamp.exe; do
-            pe=$(find stage -name "$name" | head -1)
-            if [ -z "$pe" ]; then
+            mapfile -t copies < <(find stage -name "$name" -type f)
+            if [ "${#copies[@]}" -eq 0 ]; then
               echo "::error::$name not staged — cannot check the runtime topology"
               bad=1; continue
             fi
+            for pe in "${copies[@]}"; do
             checked=$((checked + 1))
             # Everything this PE imports from liblogos_core.dll, and nothing else.
             imports=$("$OBJDUMP" -p "$pe" \
@@ -392,7 +411,7 @@ jobs:
             fi
             tm=$(printf '%s\n' "$imports"  | grep -c 'TokenManager' || true)
             api=$(printf '%s\n' "$imports" | grep -c 'LogosAPI'     || true)
-            echo "$name imports from liblogos_core.dll: TokenManager=$tm LogosAPI*=$api"
+            echo "$pe imports from liblogos_core.dll: TokenManager=$tm LogosAPI*=$api"
             # Measured on the current tree: main_ui 3/16, LogosBasecamp 3/3. The
             # floor is 1/1 -- low enough that ordinary refactoring of which
             # methods are called does not trip it, while zero (the signature of
@@ -409,16 +428,21 @@ jobs:
             # this one. `\*UND\*` entries are references, not definitions.
             defs=$("$OBJDUMP" -t "$pe" \
               | grep '_ZN12TokenManager8instanceEv' | grep -vc '\*UND\*' || true)
-            echo "$name defines TokenManager::instance: $defs (must be 0)"
+            echo "$pe defines TokenManager::instance: $defs (must be 0)"
             if [ "$defs" -ne 0 ]; then
-              echo "::error::$name defines its own TokenManager::instance ($defs)"
+              echo "::error::$pe defines its own TokenManager::instance ($defs)"
               echo "::error::that is a second singleton in the process — see the note above"
               bad=1
             fi
+            done
           done
           # Same reason as every other gate here: passing because nothing was
-          # found is the exact failure mode this port kept producing.
-          [ "$checked" -eq 2 ] || { echo "::error::checked only $checked/2 consumers"; bad=1; }
+          # found is the exact failure mode this port kept producing. Three
+          # copies are staged today (main_ui.dll twice, LogosBasecamp.exe once);
+          # the floor is 2 so adding or dropping a staging path does not silently
+          # shrink the check to nothing.
+          [ "$checked" -ge 2 ] || { echo "::error::checked only $checked PEs"; bad=1; }
+          echo "checked $checked consumer PE copies"
           [ "$bad" -eq 0 ]
 
       - name: Gate — the .lgx declares a Windows variant with a real payload
