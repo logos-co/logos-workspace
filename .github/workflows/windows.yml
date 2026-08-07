@@ -352,9 +352,16 @@ jobs:
           # imports these symbols rather than defining them -- so if the topology
           # regresses, this import list goes empty and this gate goes red.
           #
-          # Checked on imports rather than the symbol table on purpose: the
-          # release DLLs are stripped, so `objdump -t` finds nothing and a
-          # definition-counting gate would pass vacuously on every input.
+          # Checked BOTH ways, because each alone has a vacuous-pass mode:
+          # counting imports passes if the symbol is imported but also defined
+          # locally, and counting definitions passes if the image simply does
+          # not use the runtime at all. Together they state the invariant
+          # directly: these images use it AND do not define it.
+          #
+          # (These PEs are NOT stripped -- measured: objdump -t yields 4,263
+          # lines for LogosBasecamp.exe, 71,408 for main_ui.dll and 175,046 for
+          # logos_host.exe. An earlier version of this comment claimed they were,
+          # inferred from a zero that was really "does not define it".)
           OBJDUMP=""
           while read -r p; do
             if [ -x "$p/bin/x86_64-w64-mingw32-objdump" ]; then
@@ -393,6 +400,19 @@ jobs:
             if [ "$tm" -lt 1 ] || [ "$api" -lt 1 ]; then
               echo "::error::$name: expected >=1 TokenManager and >=1 LogosAPI* import"
               echo "::error::got TokenManager=$tm LogosAPI*=$api — it is defining its own copies"
+              bad=1
+            fi
+
+            # The other half: it must not ALSO carry its own definition. This is
+            # the invariant stated directly -- one instance per process means
+            # exactly one image defines the singleton accessor, and it is not
+            # this one. `\*UND\*` entries are references, not definitions.
+            defs=$("$OBJDUMP" -t "$pe" \
+              | grep '_ZN12TokenManager8instanceEv' | grep -vc '\*UND\*' || true)
+            echo "$name defines TokenManager::instance: $defs (must be 0)"
+            if [ "$defs" -ne 0 ]; then
+              echo "::error::$name defines its own TokenManager::instance ($defs)"
+              echo "::error::that is a second singleton in the process — see the note above"
               bad=1
             fi
           done
