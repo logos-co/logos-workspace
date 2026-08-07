@@ -171,6 +171,23 @@ jobs:
           done < pins.txt
           printf '%s\n' "${OV[@]}" > overrides.txt
 
+          # An override that matches nothing is a WARNING, not an error --
+          # measured: `nix eval --override-input definitely-not-an-input ...`
+          # prints "does not match any input" and exits 0, having quietly used
+          # the un-overridden master input. So a typo in the repo list above, or
+          # a repo that stops being a workspace input, degrades to a silent
+          # wrong build. Turn that into a loud one.
+          # Matched on the exact CLI-flag wording: this flake already emits
+          # several unrelated "has an override for a non-existent input"
+          # warnings from its own follows declarations, which are not this.
+          nix eval --raw ".#packages.x86_64-windows.logos-module.name" \
+            "${OV[@]}" >/dev/null 2>ovcheck.log || true
+          if grep -q "does not match any input" ovcheck.log; then
+            echo "::error::an --override-input matched no input — it was silently ignored:"
+            grep "does not match any input" ovcheck.log
+            exit 1
+          fi
+
           ATTRS=(); while read -r _ a; do
             ATTRS+=(".#packages.x86_64-windows.$a")
           done < targets.txt
