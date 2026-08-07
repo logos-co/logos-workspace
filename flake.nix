@@ -132,6 +132,7 @@
       inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-capability-module = {
@@ -164,6 +165,7 @@
       inputs.logos-standalone-app.follows = "logos-standalone-app";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-dir = {
@@ -230,6 +232,7 @@
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nix-bundle-macos-app.follows = "nix-bundle-macos-app";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-accounts-module = {
@@ -389,6 +392,7 @@
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     process-stats = {
