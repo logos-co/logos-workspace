@@ -101,6 +101,7 @@ REPOS=(
   # Packaging / Bundling
   "nix-bundle-dir|nix-bundle-dir|https://github.com/logos-co/nix-bundle-dir.git|yes"
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
+  "nix-bundle-logos-module-install|nix-bundle-logos-module-install|https://github.com/logos-co/nix-bundle-logos-module-install.git|yes"
   "nix-bundle-appimage|nix-bundle-appimage|https://github.com/logos-co/nix-bundle-appimage.git|yes"
   "nix-bundle-macos-app|nix-bundle-macos-app|https://github.com/logos-co/nix-bundle-macos-app.git|yes"
 

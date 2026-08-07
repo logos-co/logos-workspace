@@ -151,23 +151,8 @@ jobs:
           main-ui            logos-basecamp--main-ui-plugin
           TARGETS
 
-          # nix-bundle-logos-module-install is NOT a top-level workspace input,
-          # and the workspace's logos-basecamp block declares no `follows` for
-          # it -- so basecamp resolves it from its OWN lock, which pins the
-          # pre-Windows rev. A top-level --override-input for a non-input does
-          # not error, it is merely ignored, so this has to be a NESTED override
-          # or CI silently builds the old bundler and dies later with
-          # "main file 'capability_module_plugin.so' not found" -- an error that
-          # names the payload rather than the stale input that caused it.
-          # Delete this special case if it ever becomes a workspace input.
-          NESTED_ONLY="nix-bundle-logos-module-install"
-
           OV=(); while read -r r rev; do
-            if [ "$r" = "$NESTED_ONLY" ]; then
-              OV+=(--override-input "logos-basecamp/$r" "github:logos-co/$r/$rev")
-            else
-              OV+=(--override-input "$r" "github:logos-co/$r/$rev")
-            fi
+            OV+=(--override-input "$r" "github:logos-co/$r/$rev")
           done < pins.txt
           printf '%s\n' "${OV[@]}" > overrides.txt
 

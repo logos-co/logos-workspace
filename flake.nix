@@ -178,6 +178,14 @@
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-bundle-logos-module-install = {
+      url = "github:logos-co/nix-bundle-logos-module-install";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-bundle-appimage = {
       url = "github:logos-co/nix-bundle-appimage/8fcc56b5afcc313ca917cf3487be082ae2f0184c";
       inputs.logos-nix.follows = "logos-nix";
