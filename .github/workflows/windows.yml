@@ -132,6 +132,13 @@ jobs:
           capability-module  logos-capability-module--lib
           capability-lgx     logos-capability-module--lgx-portable
           liblogos           logos-liblogos--portable
+          # Basecamp and its in-process UI plugin. Everything above is a
+          # self-contained CLI or module; these two are the GUI stack, and until
+          # now nothing in CI compiled them at all -- the Qt Quick path, the
+          # design system, the QQuickWidget host and main_ui were protected only
+          # by hand-testing on real hardware.
+          basecamp           logos-basecamp
+          main-ui            logos-basecamp--main-ui-plugin
           TARGETS
 
           OV=(); while read -r r rev; do
@@ -230,9 +237,36 @@ jobs:
               "oleaut32 version winmm netapi32 userenv authz mpr crypt32 "
               "bcrypt secur32 dbghelp psapi imm32 gdi32 comdlg32 shlwapi "
               "iphlpapi dnsapi wtsapi32 setupapi winspool rpcrt4 msvcrt "
-              "uxtheme dwmapi d3d9 d3d11 dxgi dwrite opengl32 wldap32 normaliz "
-              "winhttp wininet ncrypt cfgmgr32 powrprof propsys oleacc avrt"
+              "uxtheme dwmapi d3d9 d3d11 d3d12 dxgi dwrite opengl32 wldap32 "
+              "normaliz winhttp wininet ncrypt cfgmgr32 powrprof propsys "
+              "oleacc avrt"
           ).split()
+          # d3d12 was added when Basecamp joined the target list: Qt6Gui.dll
+          # imports it, and it is a Windows system DLL like d3d11 beside it.
+          # Measured, not assumed -- it was the only genuine system import the
+          # GUI stack added.
+
+          # An APP is assembled from more than one derivation. Basecamp's own
+          # output deliberately does not contain liblogos_core.dll / libfmt.dll
+          # / libspdlog.dll -- those come from the logos-liblogos target and land
+          # in bin/ when the payload is staged, which is exactly how it is
+          # deployed on real Windows. Windows resolves a plugin's imports from
+          # the APPLICATION directory as well as the plugin's own (and our W1
+          # pre-load adds the module's own dir on top), so "beside it" for these
+          # trees legitimately means "in its own dir OR in the app's bin/".
+          # Everything not listed here keeps the strict one-directory rule.
+          ASSEMBLED = {
+              "stage/basecamp": ["stage/basecamp/bin", "stage/liblogos/bin",
+                                 "stage/liblogos/lib"],
+              "stage/main-ui":  ["stage/basecamp/bin", "stage/liblogos/bin",
+                                 "stage/liblogos/lib"],
+          }
+          def search_dirs(pe_path):
+              dirs = [os.path.dirname(pe_path)]
+              for root, extra in ASSEMBLED.items():
+                  if pe_path.startswith(root + os.sep):
+                      dirs += extra
+              return dirs
           # Names are compared case-insensitively with the extension stripped,
           # because import tables mix spellings freely: the real tree contains
           # both "KERNEL32.dll" and "KERNEL32.DLL", and "IPHLPAPI.DLL".
@@ -260,16 +294,85 @@ jobs:
                   print(f"::error::{p} has no import table at all")
                   bad = 1
                   continue
-              here = os.path.dirname(p)
+              here = search_dirs(p)
               for dll in imports:
                   if is_system(dll):
                       continue
-                  if not os.path.exists(os.path.join(here, dll)):
-                      print(f"::error::{p} imports {dll}, which is not beside it")
+                  if not any(os.path.exists(os.path.join(d, dll)) for d in here):
+                      print(f"::error::{p} imports {dll}, not found in {here}")
                       bad = 1
           print(f"checked {len(pes)} PEs")
           sys.exit(bad)
           PY
+
+      - name: Gate — the shared C++ runtime has exactly one provider
+        run: |
+          set -euo pipefail
+          # THE REGRESSION THIS EXISTS FOR, measured on real Windows:
+          # PE has no symbol interposition, so a function-local static exists
+          # once per IMAGE. TokenManager::instance() is one. When Basecamp's exe
+          # and main_ui.dll each linked their own copy of the qt-sdk archive the
+          # process held THREE TokenManagers, the host saved a capability token
+          # into one and the plugin read another, and every cross-module call was
+          # refused -- 29 "rejecting unauthorized call" lines and a UI that never
+          # appeared. Nothing crashed and nothing logged a link error.
+          #
+          # liblogos_core.dll is now the single provider (generated .def), and
+          # consumers compile with LOGOS_SHARED_USE_DLL so they IMPORT instead of
+          # linking their own. That topology is invisible to every other gate
+          # here: the binaries are the right format, the imports resolve, the
+          # .lgx is fine. The only artifact-level evidence is that main_ui.dll
+          # imports these symbols rather than defining them -- so if the topology
+          # regresses, this import list goes empty and this gate goes red.
+          #
+          # Checked on imports rather than the symbol table on purpose: the
+          # release DLLs are stripped, so `objdump -t` finds nothing and a
+          # definition-counting gate would pass vacuously on every input.
+          OBJDUMP=""
+          while read -r p; do
+            if [ -x "$p/bin/x86_64-w64-mingw32-objdump" ]; then
+              OBJDUMP="$p/bin/x86_64-w64-mingw32-objdump"; break
+            fi
+          done < <(nix build --no-link --print-out-paths \
+                     nixpkgs#pkgsCross.mingwW64.buildPackages.binutils)
+          [ -n "$OBJDUMP" ] || { echo "::error::no mingw objdump"; exit 1; }
+
+          # BOTH in-process consumers must import, not define. Checking only one
+          # would miss a regression in the other, and they are built by separate
+          # derivations with separate link lines.
+          bad=0; checked=0
+          for name in main_ui.dll LogosBasecamp.exe; do
+            pe=$(find stage -name "$name" | head -1)
+            if [ -z "$pe" ]; then
+              echo "::error::$name not staged — cannot check the runtime topology"
+              bad=1; continue
+            fi
+            checked=$((checked + 1))
+            # Everything this PE imports from liblogos_core.dll, and nothing else.
+            imports=$("$OBJDUMP" -p "$pe" \
+              | awk '/DLL Name: liblogos_core.dll/{f=1;next} f&&/DLL Name:/{exit} f')
+            if [ -z "$imports" ]; then
+              echo "::error::$name does not import from liblogos_core.dll at all"
+              echo "::error::the shared runtime is being linked per-image again — see the note above"
+              bad=1; continue
+            fi
+            tm=$(printf '%s\n' "$imports"  | grep -c 'TokenManager' || true)
+            api=$(printf '%s\n' "$imports" | grep -c 'LogosAPI'     || true)
+            echo "$name imports from liblogos_core.dll: TokenManager=$tm LogosAPI*=$api"
+            # Measured on the current tree: main_ui 3/16, LogosBasecamp 3/3. The
+            # floor is 1/1 -- low enough that ordinary refactoring of which
+            # methods are called does not trip it, while zero (the signature of
+            # the regression) always does.
+            if [ "$tm" -lt 1 ] || [ "$api" -lt 1 ]; then
+              echo "::error::$name: expected >=1 TokenManager and >=1 LogosAPI* import"
+              echo "::error::got TokenManager=$tm LogosAPI*=$api — it is defining its own copies"
+              bad=1
+            fi
+          done
+          # Same reason as every other gate here: passing because nothing was
+          # found is the exact failure mode this port kept producing.
+          [ "$checked" -eq 2 ] || { echo "::error::checked only $checked/2 consumers"; bad=1; }
+          [ "$bad" -eq 0 ]
 
       - name: Gate — the .lgx declares a Windows variant with a real payload
         run: |
