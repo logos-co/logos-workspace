@@ -393,7 +393,7 @@ jobs:
           # traversal. Both currently satisfy the gate; that is a fact to assert,
           # not to sample.
           bad=0; checked=0
-          for name in main_ui.dll LogosBasecamp.exe; do
+          for name in main_ui.dll LogosBasecamp.exe logosctl.exe; do
             mapfile -t copies < <(find stage -name "$name" -type f)
             if [ "${#copies[@]}" -eq 0 ]; then
               echo "::error::$name not staged — cannot check the runtime topology"
@@ -422,15 +422,26 @@ jobs:
               bad=1
             fi
 
-            # The other half: it must not ALSO carry its own definition. This is
-            # the invariant stated directly -- one instance per process means
-            # exactly one image defines the singleton accessor, and it is not
-            # this one. `\*UND\*` entries are references, not definitions.
+            # The other half: it must not ALSO carry its own instance.
+            #
+            # Matched on the singleton's STORAGE, not on the accessor function.
+            # Counting the function is wrong and produced a false positive:
+            # when one translation unit references the symbol without the
+            # dllimport declaration, ld emits an auto-import THUNK named
+            # _ZN12TokenManager8instanceEv in .text plus an __imp_ entry in
+            # .idata. That looks exactly like a definition in the symbol table
+            # and is not -- the thunk jumps into the DLL. Measured on
+            # logosctl.exe: 1 thunk, 0 storage slots.
+            #
+            # The function-local `static TokenManager instance;` has storage
+            # that only a real second copy carries, so it is the true
+            # discriminator. Measured: logosctl.exe 0, main_ui.dll 0,
+            # logos_host.exe 2 (correct -- separate process, no liblogos_core).
             defs=$("$OBJDUMP" -t "$pe" \
-              | grep '_ZN12TokenManager8instanceEv' | grep -vc '\*UND\*' || true)
-            echo "$pe defines TokenManager::instance: $defs (must be 0)"
+              | grep -c '_ZZN12TokenManager8instanceEvE8instance' || true)
+            echo "$pe owns TokenManager storage: $defs (must be 0)"
             if [ "$defs" -ne 0 ]; then
-              echo "::error::$pe defines its own TokenManager::instance ($defs)"
+              echo "::error::$pe carries its own TokenManager instance ($defs storage slots)"
               echo "::error::that is a second singleton in the process — see the note above"
               bad=1
             fi
@@ -441,7 +452,7 @@ jobs:
           # copies are staged today (main_ui.dll twice, LogosBasecamp.exe once);
           # the floor is 2 so adding or dropping a staging path does not silently
           # shrink the check to nothing.
-          [ "$checked" -ge 2 ] || { echo "::error::checked only $checked PEs"; bad=1; }
+          [ "$checked" -ge 3 ] || { echo "::error::checked only $checked PEs"; bad=1; }
           echo "checked $checked consumer PE copies"
           [ "$bad" -eq 0 ]
 
