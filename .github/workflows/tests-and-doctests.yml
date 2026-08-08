@@ -226,7 +226,11 @@ jobs:
           git submodule update --init --depth 1 --jobs 4
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v27
+        # Nix 2.35.1. Must stay >= 2.26: below that, `--override-input` DISCARDS the
+        # overridden input's own lock and resolves its children from the parent's stale
+        # lock, so a doc-test that overrides an input can silently build months-old deps
+        # and still report green. v27 shipped 2.22 and did exactly that.
+        uses: cachix/install-nix-action@v31.11.0
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
