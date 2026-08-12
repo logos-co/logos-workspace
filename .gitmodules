@@ -226,3 +226,9 @@
 [submodule "repos/logos-container-subprocess"]
 	path = repos/logos-container-subprocess
 	url = git@github.com:logos-co/logos-container-subprocess.git
+[submodule "repos/logos-view-module-nim"]
+	path = repos/logos-view-module-nim
+	url = git@github.com:logos-co/logos-view-module-nim.git
+[submodule "repos/logos-view-module"]
+	path = repos/logos-view-module
+	url = git@github.com:logos-co/logos-view-module.git
