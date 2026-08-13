@@ -104,7 +104,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-capability-module = {
-      url = "github:logos-co/logos-capability-module/f18b9b15683af260c47a4d076183af13b34cd4e7";
+      url = "github:logos-co/logos-capability-module/189b6045fdcf0cdc1f23467360415687f38f8425";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
@@ -113,14 +113,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-plugin-qt = {
-      url = "github:logos-co/logos-plugin-qt/6597592b97010f1603aca9a0bed45486c27fd604";
+      url = "github:logos-co/logos-plugin-qt/8ed8586207fe5599c88d83f89559d808e2a1d5d5";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/ca6a96dc3046a9f67af17a5684fc20cbf6e3146d";
+      url = "github:logos-co/logos-module-builder/542d3b1e74ade2aa578f074fc06eecab6b83996a";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-module.follows = "logos-module";
@@ -349,7 +349,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/2030f23d6ad6bb6dc0f3c1eb168ec53694fd3d13";
+      url = "github:logos-co/logos-test-modules/1dd588ba72ec4eb393b1aa050745cdb5b6657a60";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
