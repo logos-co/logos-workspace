@@ -22142,17 +22142,17 @@
         "rust-overlay": "rust-overlay_12"
       },
       "locked": {
-        "lastModified": 1786578139,
-        "narHash": "sha256-6aCFh3MiHnJGjKtJxfxGful93d4DeFWSs8OcyUtQfmI=",
+        "lastModified": 1786625555,
+        "narHash": "sha256-8i5GAP+/9Mc3cYGMSLeS4Evi2r2gufFr8AbSCrNbq6E=",
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "7891cc227c00803560e48c1f245942ebd37943d6",
+        "rev": "e234a4c60ed5a9b099b03195939325917e239c13",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-module-builder",
-        "rev": "7891cc227c00803560e48c1f245942ebd37943d6",
+        "rev": "e234a4c60ed5a9b099b03195939325917e239c13",
         "type": "github"
       }
     },
@@ -90477,17 +90477,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786581995,
-        "narHash": "sha256-uiGAe4zTkPyj4ouAb1QBofkI2PJrvXCsQyJ4kqKh5Mw=",
+        "lastModified": 1786625554,
+        "narHash": "sha256-B0LEvoqruSiO5YRoQmE2dE8o2wFADEeBJd4loGyuu6Y=",
         "owner": "logos-co",
         "repo": "logos-plugin-qt",
-        "rev": "778b4c5fd2a497b1e053ab2c1532777101ce1c71",
+        "rev": "67ba6efe29b6becea9cef5d0d1827037bb7258d9",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-plugin-qt",
-        "rev": "778b4c5fd2a497b1e053ab2c1532777101ce1c71",
+        "rev": "67ba6efe29b6becea9cef5d0d1827037bb7258d9",
         "type": "github"
       }
     },
@@ -96533,17 +96533,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786588220,
-        "narHash": "sha256-I156dKewTLnXtWkeXjl59ALMy4R7gbnIdGyJf2S/WX4=",
+        "lastModified": 1786625554,
+        "narHash": "sha256-MI24yr5J82egOwFgu+ApQ0M/4qtqOmJRu29qzIhWqgQ=",
         "owner": "logos-co",
         "repo": "logos-qt-sdk",
-        "rev": "c4f2c6a0aeb0d1bab89d6d0c07032be344830a39",
+        "rev": "b6d4c4bf9745bcde6907fb2090f6e308763fd087",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-qt-sdk",
-        "rev": "c4f2c6a0aeb0d1bab89d6d0c07032be344830a39",
+        "rev": "b6d4c4bf9745bcde6907fb2090f6e308763fd087",
         "type": "github"
       }
     },

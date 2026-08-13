@@ -1,7 +1,7 @@
 name: Windows (cross)
 
 # The INTEGRATION job. Per-repo Windows CI now lives in each repo as a ~14-line
-# caller of logos-co/logos-nix/.github/workflows/windows-ci.yml; this one exists
+# caller of logos-co/logos-windows-ci/.github/workflows/windows-ci.yml; this one exists
 # for the properties that only appear when the whole fleet is resolved together
 # from one lock — chiefly the assembled Basecamp tree, which is built out of
 # several derivations and whose C++ runtime topology no single repo can check.
@@ -15,7 +15,7 @@ name: Windows (cross)
 #   exist — `resolve()` would `exit 1` on logos-liblogos, logos-basecamp and
 #   logos-nix on the first run.
 #   The ~180 lines of gate scripts, which are now in
-#   logos-co/logos-nix/.github/actions/windows-gates and shared with 20 repos.
+#   logos-co/logos-windows-ci/.github/actions/windows-gates and shared with 20 repos.
 #
 # PREREQUISITE, and it is a real one: this workspace's flake.lock is behind
 # master on every Windows-capable input, so `.#packages.x86_64-windows` still
@@ -33,7 +33,7 @@ on:
 
 jobs:
   windows:
-    uses: logos-co/logos-nix/.github/workflows/windows-ci.yml@v1
+    uses: logos-co/logos-windows-ci/.github/workflows/windows-ci.yml@v1
     secrets: inherit
     with:
       targets: >-
