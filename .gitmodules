@@ -214,3 +214,6 @@
 [submodule "repos/logos-qt-mcp"]
 	path = repos/logos-qt-mcp
 	url = https://github.com/logos-co/logos-qt-mcp.git
+[submodule "repos/logos-module-loader-qt"]
+	path = repos/logos-module-loader-qt
+	url = https://github.com/logos-co/logos-module-loader-qt.git

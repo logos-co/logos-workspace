@@ -86,6 +86,7 @@ REPOS=(
   "logos-view-module-runtime|logos-view-module-runtime|https://github.com/logos-co/logos-view-module-runtime.git|yes"
   "logos-module-client|logos-module-client|https://github.com/logos-co/logos-module-client.git|yes"
   "logos-module|logos-module|https://github.com/logos-co/logos-module.git|yes"
+  "logos-module-loader-qt|logos-module-loader-qt|https://github.com/logos-co/logos-module-loader-qt.git|yes"
   "logos-liblogos|logos-liblogos|https://github.com/logos-co/logos-liblogos.git|yes"
   "logos-logoscore-cli|logos-logoscore-cli|https://github.com/logos-co/logos-logoscore-cli.git|yes"
   "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
