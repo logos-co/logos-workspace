@@ -618,6 +618,11 @@ Examples:
     fi
     local display_name="$input_name"
     [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
+    # See _repo_has_default_package: a nix-library repo has nothing to build.
+    if [[ -z "$output_suffix" ]] && ! _repo_has_default_package "$input_name" "$(_detect_system)"; then
+      echo -e "${YELLOW}SKIP${NC} $display_name (nix library — no default package)"
+      exit 0
+    fi
     log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
     if $VERBOSE; then
       exec nix build \
@@ -660,6 +665,13 @@ Examples:
     fi
     local display_name="$input_name"
     [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
+
+    # A library-only repo has nothing to build; say so rather than failing.
+    if [[ -z "$output_suffix" ]] && ! _repo_has_default_package "$input_name" "$(_detect_system)"; then
+      echo -e "${YELLOW}SKIP${NC} $display_name (nix library — no default package)"
+      log ""
+      continue
+    fi
 
     log "${BOLD}Building ${CYAN}$display_name${NC}${BOLD}...${NC}"
     if ! run_nix build \
@@ -1171,6 +1183,20 @@ Examples:
 _detect_system() {
   nix eval --extra-experimental-features "nix-command flakes" \
     --impure --raw --expr builtins.currentSystem 2>/dev/null || echo "x86_64-linux"
+}
+
+# True when the workspace flake exposes a buildable `.#<input_name>` for this repo.
+#
+# Some repos are nix LIBRARIES, not packages — logos-module-builder exports
+# lib.mkLogosModule and friends and has no `default` package at all, so there is
+# nothing for `ws build` to build. Without this check it reported a red FAIL
+# ("flake does not provide attribute ..."), which is indistinguishable from a
+# real build failure and trains people to ignore group-build output.
+_repo_has_default_package() {
+  local input_name="$1" system="$2"
+  nix eval --extra-experimental-features "nix-command flakes" \
+    --json "$WORKSPACE_ROOT#packages.$system" \
+    --apply "p: builtins.hasAttr \"$input_name\" p" 2>/dev/null | grep -q true
 }
 
 # Parse a JSON array string like ["a","b","c"] into newline-separated values (no jq needed)
