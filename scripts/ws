@@ -518,11 +518,13 @@ Options:
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
   --workspace, -w               Override all deps with local workspace repos
+  --parallel, -p                Build all repos in a single nix call (nix parallelizes internally)
 
 Examples:
   ws build logos-basecamp
   ws build logos-basecamp#portable
   ws build logos-basecamp logos-liblogos
+  ws build logos-basecamp logos-liblogos --parallel
   ws build --group core
   ws build logos-basecamp --auto-local
   ws build logos-basecamp --local logos-cpp-sdk logos-liblogos
@@ -532,6 +534,7 @@ Examples:
   local repos=()
   local auto_local=false
   local use_workspace=false
+  local parallel=false
   local local_overrides=()
   local extra_args=()
 
@@ -548,6 +551,8 @@ Examples:
         auto_local=true; shift ;;
       --workspace|-w)
         use_workspace=true; shift ;;
+      --parallel|-p)
+        parallel=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -640,6 +645,47 @@ Examples:
     fi
   fi
 
+  # --parallel: single nix build call with all refs (nix parallelizes internally)
+  if $parallel; then
+    local nix_refs=()
+    local display_names=()
+    for repo_spec in "${repos[@]}"; do
+      local repo_name="${repo_spec%%#*}"
+      local output_suffix=""
+      [[ "$repo_spec" == *"#"* ]] && output_suffix="${repo_spec#*#}"
+      local input_name
+      input_name=$(get_input_name "$repo_name")
+      if [[ -z "$input_name" ]]; then
+        echo -e "${RED}Error:${NC} repo '$repo_name' has no flake input (non-flake repo)" >&2
+        continue
+      fi
+      local nix_ref
+      if [[ -n "$output_suffix" ]]; then
+        nix_ref="$WORKSPACE_ROOT#$input_name--$output_suffix"
+      else
+        nix_ref="$WORKSPACE_ROOT#$input_name"
+      fi
+      nix_refs+=("$nix_ref")
+      local display_name="$input_name"
+      [[ -n "$output_suffix" ]] && display_name="$input_name#$output_suffix"
+      display_names+=("$display_name")
+    done
+
+    if [[ ${#nix_refs[@]} -eq 0 ]]; then
+      echo -e "${RED}Error:${NC} no valid repos to build" >&2
+      exit 1
+    fi
+
+    log "${BOLD}Building (parallel) ${CYAN}${display_names[*]}${NC}${BOLD}...${NC}"
+    nix build \
+      --extra-experimental-features "nix-command flakes" \
+      "${nix_refs[@]}" \
+      ${flags[@]+"${flags[@]}"} \
+      ${extra_args[@]+"${extra_args[@]}"}
+    return
+  fi
+
+  # Default: sequential builds with per-repo reporting
   local failed=0
   for repo_spec in "${repos[@]}"; do
     local repo_name="${repo_spec%%#*}"
@@ -1345,12 +1391,14 @@ Options:
   --auto-local, -a              Auto-detect dirty repos and use as local overrides
   --local, -l <repo1> <repo2>   Use specific repos as local overrides
   --workspace, -w               Override all deps with local workspace repos
+  --parallel, -p                Run all checks in a single nix call (nix parallelizes internally)
 
 Examples:
   ws test logos-module           Test a single repo
   ws test logos-module logos-liblogos  Test multiple repos
   ws test --group core           Test all repos in the core group
   ws test --all                  Test all repos
+  ws test --all --parallel       Test all repos in parallel
   ws test --type cpp             Test only C++ repos
   ws test logos-module --type cpp
   ws test logos-test-modules --auto-local
@@ -1362,6 +1410,7 @@ Examples:
   local test_type=""
   local auto_local=false
   local use_workspace=false
+  local parallel=false
   local local_overrides=()
 
   while [[ $# -gt 0 ]]; do
@@ -1377,6 +1426,7 @@ Examples:
       --all) test_all=true; shift ;;
       --auto-local|--autolocal|-a) auto_local=true; shift ;;
       --workspace|-w) use_workspace=true; shift ;;
+      --parallel|-p) parallel=true; shift ;;
       --local|-l)
         shift
         while [[ $# -gt 0 && "$1" != -* ]]; do
@@ -1427,6 +1477,102 @@ Examples:
 
   local system
   system=$(_detect_system)
+
+  # --parallel: discover all checks from the workspace flake, build in one nix call
+  if $parallel; then
+    log "${BOLD}Discovering all checks (system: $system)${NC}"
+
+    # Single nix eval to get all check names from the workspace flake
+    local all_checks
+    # shellcheck disable=SC2086
+    all_checks=$(nix eval --extra-experimental-features "nix-command flakes" \
+      --json "$WORKSPACE_ROOT#checks.$system" --apply 'builtins.attrNames' \
+      $override_flags 2>/dev/null) || {
+      echo -e "${RED}Error:${NC} failed to discover checks" >&2
+      exit 1
+    }
+
+    # Convert JSON array to lines
+    local check_names
+    check_names=$(echo "$all_checks" | tr -d '[]"' | tr ',' '\n' | sed 's/^ *//')
+
+    # Filter by target repos if specified (check names are prefixed: <input_name>--<check>)
+    if [[ ${#targets[@]} -gt 0 ]] || { ! $test_all && [[ ${#targets[@]} -eq 0 ]]; }; then
+      if [[ ${#targets[@]} -eq 0 ]]; then
+        echo -e "${RED}Error:${NC} --parallel requires --all or specific repos" >&2
+        exit 1
+      fi
+      local filtered=""
+      for target in "${targets[@]}"; do
+        local input_name
+        input_name=$(get_input_name "$target")
+        [[ -z "$input_name" ]] && continue
+        local matching
+        matching=$(echo "$check_names" | grep "^${input_name}--" || true)
+        filtered="$filtered"$'\n'"$matching"
+      done
+      check_names=$(echo "$filtered" | sed '/^$/d')
+    fi
+
+    # Filter by type if specified
+    if [[ -n "$test_type" ]]; then
+      local filtered=""
+      while IFS= read -r check; do
+        [[ -z "$check" ]] && continue
+        local repo_input="${check%%--*}"
+        # Map input name back to directory name
+        local dir_name="$repo_input"
+        for _entry in "${REPOS[@]}"; do
+          if [[ "$(get_field "$_entry" 1)" == "$repo_input" ]]; then
+            dir_name=$(get_field "$_entry" 2)
+            break
+          fi
+        done
+        local repo_path="$REPOS_DIR/$dir_name"
+        local matches=false
+        case "$test_type" in
+          cpp|cmake) [[ -f "$repo_path/CMakeLists.txt" ]] && matches=true ;;
+          rust|cargo) [[ -f "$repo_path/Cargo.toml" ]] && matches=true ;;
+          nim|nimble) ls "$repo_path"/*.nimble >/dev/null 2>&1 && matches=true ;;
+          js|node|npm) [[ -f "$repo_path/package.json" ]] && matches=true ;;
+          qml) ls "$repo_path"/*.qml >/dev/null 2>&1 && matches=true
+               [[ -f "$repo_path/CMakeLists.txt" ]] && grep -q "qml" "$repo_path/CMakeLists.txt" 2>/dev/null && matches=true ;;
+        esac
+        $matches && filtered="$filtered"$'\n'"$check"
+      done <<< "$check_names"
+      check_names=$(echo "$filtered" | sed '/^$/d')
+    fi
+
+    if [[ -z "$check_names" ]]; then
+      echo -e "${YELLOW}No checks found${NC}"
+      return 0
+    fi
+
+    # Build nix refs
+    local nix_refs=()
+    while IFS= read -r check; do
+      [[ -z "$check" ]] && continue
+      nix_refs+=("$WORKSPACE_ROOT#checks.$system.$check")
+    done <<< "$check_names"
+
+    local count=${#nix_refs[@]}
+    log "${BOLD}Running ${CYAN}$count${NC}${BOLD} checks in parallel...${NC}"
+    while IFS= read -r check; do
+      [[ -z "$check" ]] && continue
+      log "  ${YELLOW}*${NC} $check"
+    done <<< "$check_names"
+    log ""
+
+    # shellcheck disable=SC2086
+    if nix build --extra-experimental-features "nix-command flakes" \
+      "${nix_refs[@]}" $override_flags -L; then
+      echo -e "${GREEN}All $count checks passed${NC}"
+    else
+      echo -e "${RED}Some checks failed${NC}"
+      exit 1
+    fi
+    return
+  fi
 
   if $test_all || [[ ${#targets[@]} -eq 0 ]]; then
     log "${BOLD}Running tests across all repos (system: $system)${NC}"
