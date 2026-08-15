@@ -6683,7 +6683,7 @@
     },
     "logos-cpp-sdk_134": {
       "inputs": {
-        "logos-lidl": "logos-lidl_46",
+        "logos-lidl": "logos-lidl_43",
         "logos-nix": "logos-nix_1418",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -6714,7 +6714,7 @@
     },
     "logos-cpp-sdk_135": {
       "inputs": {
-        "logos-lidl": "logos-lidl_49",
+        "logos-lidl": "logos-lidl_46",
         "logos-nix": "logos-nix_1428",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -6751,7 +6751,7 @@
     },
     "logos-cpp-sdk_136": {
       "inputs": {
-        "logos-lidl": "logos-lidl_52",
+        "logos-lidl": "logos-lidl_49",
         "logos-nix": "logos-nix_1438",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -7237,7 +7237,7 @@
     },
     "logos-cpp-sdk_148": {
       "inputs": {
-        "logos-lidl": "logos-lidl_55",
+        "logos-lidl": "logos-lidl_52",
         "logos-nix": "logos-nix_1561",
         "logos-protocol": "logos-protocol_36",
         "nixpkgs": [
@@ -7773,7 +7773,7 @@
     },
     "logos-cpp-sdk_161": {
       "inputs": {
-        "logos-lidl": "logos-lidl_56",
+        "logos-lidl": "logos-lidl_53",
         "logos-nix": "logos-nix_1691",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -7814,7 +7814,7 @@
     },
     "logos-cpp-sdk_162": {
       "inputs": {
-        "logos-lidl": "logos-lidl_59",
+        "logos-lidl": "logos-lidl_56",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -7855,7 +7855,7 @@
     },
     "logos-cpp-sdk_163": {
       "inputs": {
-        "logos-lidl": "logos-lidl_62",
+        "logos-lidl": "logos-lidl_59",
         "logos-nix": "logos-nix_1723",
         "logos-protocol": "logos-protocol_42",
         "nixpkgs": [
@@ -7883,7 +7883,7 @@
     },
     "logos-cpp-sdk_164": {
       "inputs": {
-        "logos-lidl": "logos-lidl_63",
+        "logos-lidl": "logos-lidl_60",
         "logos-nix": "logos-nix_1731",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -7922,7 +7922,7 @@
     },
     "logos-cpp-sdk_165": {
       "inputs": {
-        "logos-lidl": "logos-lidl_66",
+        "logos-lidl": "logos-lidl_63",
         "logos-nix": "logos-nix_1741",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -8412,7 +8412,7 @@
     },
     "logos-cpp-sdk_177": {
       "inputs": {
-        "logos-lidl": "logos-lidl_69",
+        "logos-lidl": "logos-lidl_66",
         "logos-nix": "logos-nix_1864",
         "logos-protocol": "logos-protocol_46",
         "nixpkgs": [
@@ -8973,7 +8973,7 @@
     },
     "logos-cpp-sdk_190": {
       "inputs": {
-        "logos-lidl": "logos-lidl_70",
+        "logos-lidl": "logos-lidl_67",
         "logos-nix": "logos-nix_1994",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -9016,7 +9016,7 @@
     },
     "logos-cpp-sdk_191": {
       "inputs": {
-        "logos-lidl": "logos-lidl_73",
+        "logos-lidl": "logos-lidl_70",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -9059,7 +9059,7 @@
     },
     "logos-cpp-sdk_192": {
       "inputs": {
-        "logos-lidl": "logos-lidl_76",
+        "logos-lidl": "logos-lidl_73",
         "logos-nix": "logos-nix_2027",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -9094,7 +9094,7 @@
     },
     "logos-cpp-sdk_193": {
       "inputs": {
-        "logos-lidl": "logos-lidl_80",
+        "logos-lidl": "logos-lidl_77",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -10859,7 +10859,9 @@
     },
     "logos-cpp-sdk_61": {
       "inputs": {
-        "logos-lidl": "logos-lidl_37",
+        "logos-lidl": [
+          "logos-lidl"
+        ],
         "logos-nix": [
           "logos-nix"
         ],
@@ -10887,7 +10889,7 @@
     },
     "logos-cpp-sdk_62": {
       "inputs": {
-        "logos-lidl": "logos-lidl_38",
+        "logos-lidl": "logos-lidl_37",
         "logos-nix": "logos-nix_655",
         "logos-protocol": [
           "logos-execution-zone-module",
@@ -11348,7 +11350,7 @@
     },
     "logos-cpp-sdk_75": {
       "inputs": {
-        "logos-lidl": "logos-lidl_40",
+        "logos-lidl": "logos-lidl_39",
         "logos-nix": "logos-nix_784",
         "logos-protocol": [
           "logos-execution-zone-module",
@@ -17236,33 +17238,6 @@
     "logos-lidl_37": {
       "inputs": {
         "logos-nix": [
-          "logos-cpp-sdk",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-cpp-sdk",
-          "logos-lidl",
-          "logos-nix",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1785470541,
-        "narHash": "sha256-5fVAbSGMRhEfRXfhaoq26LZeJuziRT/NMFsfhtd0ogA=",
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "rev": "35f33d87b7d6c22d9d4658c58855ae887ce515f1",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "type": "github"
-      }
-    },
-    "logos-lidl_38": {
-      "inputs": {
-        "logos-nix": [
           "logos-execution-zone-module",
           "logos-execution-zone",
           "logos-liblogos",
@@ -17295,7 +17270,7 @@
         "type": "github"
       }
     },
-    "logos-lidl_39": {
+    "logos-lidl_38": {
       "inputs": {
         "logos-nix": [
           "logos-execution-zone-module",
@@ -17311,6 +17286,39 @@
           "logos-liblogos",
           "default-module-loader",
           "logos-qt-sdk",
+          "logos-lidl",
+          "logos-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781653473,
+        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
+        "owner": "logos-co",
+        "repo": "logos-lidl",
+        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-lidl",
+        "type": "github"
+      }
+    },
+    "logos-lidl_39": {
+      "inputs": {
+        "logos-nix": [
+          "logos-execution-zone-module",
+          "logos-execution-zone",
+          "logos-liblogos",
+          "logos-cpp-sdk",
+          "logos-nix"
+        ],
+        "nixpkgs": [
+          "logos-execution-zone-module",
+          "logos-execution-zone",
+          "logos-liblogos",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -17373,14 +17381,14 @@
           "logos-execution-zone-module",
           "logos-execution-zone",
           "logos-liblogos",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-execution-zone-module",
           "logos-execution-zone",
           "logos-liblogos",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -17403,33 +17411,26 @@
     "logos-lidl_41": {
       "inputs": {
         "logos-nix": [
-          "logos-execution-zone-module",
-          "logos-execution-zone",
-          "logos-liblogos",
-          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
-          "logos-execution-zone-module",
-          "logos-execution-zone",
-          "logos-liblogos",
-          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1781653473,
-        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
+        "lastModified": 1786578140,
+        "narHash": "sha256-1Ca6eZj+/DhXF/CJmB8BFJ2PKmO7Vm1tQ8un+tUmSAA=",
         "owner": "logos-co",
         "repo": "logos-lidl",
-        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
+        "rev": "39015299b913ac6c81a9808268141b3bdc046b4e",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-lidl",
+        "rev": "39015299b913ac6c81a9808268141b3bdc046b4e",
         "type": "github"
       }
     },
@@ -17467,22 +17468,26 @@
     "logos-lidl_43": {
       "inputs": {
         "logos-nix": [
-          "logos-plugin-qt",
+          "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
-          "logos-plugin-qt",
+          "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1786415321,
-        "narHash": "sha256-Oe98SavQSVGBIY7WIc8RQ5l+Bl4KLsdmjb+PyscfdNw=",
+        "lastModified": 1781653473,
+        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
         "owner": "logos-co",
         "repo": "logos-lidl",
-        "rev": "ffeebf2e90fa0c65e8c486988271fe0ca029d1e1",
+        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
         "type": "github"
       },
       "original": {
@@ -17494,10 +17499,14 @@
     "logos-lidl_44": {
       "inputs": {
         "logos-nix": [
+          "logos-rust-sdk",
+          "logos-module-builder",
           "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
+          "logos-rust-sdk",
+          "logos-module-builder",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -17505,11 +17514,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786415321,
-        "narHash": "sha256-Oe98SavQSVGBIY7WIc8RQ5l+Bl4KLsdmjb+PyscfdNw=",
+        "lastModified": 1781653473,
+        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
         "owner": "logos-co",
         "repo": "logos-lidl",
-        "rev": "ffeebf2e90fa0c65e8c486988271fe0ca029d1e1",
+        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
         "type": "github"
       },
       "original": {
@@ -17522,9 +17531,13 @@
       "inputs": {
         "logos-nix": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-rust-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
+          "logos-rust-sdk",
+          "logos-module-builder",
           "logos-rust-sdk",
           "logos-lidl",
           "logos-nix",
@@ -17550,11 +17563,17 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-cpp-sdk",
           "logos-lidl",
@@ -17581,11 +17600,17 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-qt-sdk",
           "logos-lidl",
@@ -17612,11 +17637,17 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-rust-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-rust-sdk",
           "logos-lidl",
@@ -17646,11 +17677,17 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
           "logos-capability-module",
@@ -17720,11 +17757,17 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
           "logos-capability-module",
@@ -17757,11 +17800,17 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-rust-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
+          "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
           "logos-capability-module",
@@ -17795,8 +17844,6 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -17807,8 +17854,6 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -17838,9 +17883,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-qt-sdk",
+          "logos-liblogos",
+          "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -17850,9 +17894,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-qt-sdk",
+          "logos-liblogos",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -17881,9 +17924,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-rust-sdk",
+          "logos-liblogos",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -17893,9 +17935,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-rust-sdk",
+          "logos-liblogos",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -17924,7 +17965,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -17934,7 +17975,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -17963,7 +18004,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -17974,7 +18015,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18004,7 +18045,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18015,7 +18056,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18044,7 +18085,7 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
+          "logos-test-framework",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18054,7 +18095,7 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
+          "logos-test-framework",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18081,10 +18122,6 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -18092,10 +18129,6 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18159,22 +18192,20 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
+          "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
-          "logos-qt-sdk",
+          "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
+          "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
-          "logos-qt-sdk",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18200,9 +18231,9 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
+          "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-test-framework",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18210,9 +18241,9 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
+          "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-test-framework",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18239,14 +18270,20 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-liblogos",
+          "logos-capability-module",
+          "logos-module-builder",
+          "logos-rust-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-liblogos",
+          "logos-capability-module",
+          "logos-module-builder",
+          "logos-rust-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18275,6 +18312,9 @@
           "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -18283,6 +18323,9 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
+          "logos-capability-module",
+          "logos-module-builder",
+          "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
           "logos-cpp-sdk",
@@ -18314,6 +18357,9 @@
           "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18322,6 +18368,9 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
+          "logos-capability-module",
+          "logos-module-builder",
+          "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
           "logos-qt-sdk",
@@ -18353,6 +18402,9 @@
           "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
+          "logos-standalone-app",
+          "logos-capability-module",
+          "logos-module-builder",
           "logos-rust-sdk",
           "logos-nix"
         ],
@@ -18361,6 +18413,9 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
+          "logos-capability-module",
+          "logos-module-builder",
+          "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
           "logos-rust-sdk",
@@ -18393,8 +18448,6 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -18406,8 +18459,6 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18438,9 +18489,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-qt-sdk",
+          "logos-liblogos",
+          "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -18451,9 +18501,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-qt-sdk",
+          "logos-liblogos",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18483,9 +18532,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-rust-sdk",
+          "logos-liblogos",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -18496,9 +18544,8 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-rust-sdk",
+          "logos-liblogos",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18528,7 +18575,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
@@ -18539,7 +18586,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-cpp-sdk",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18612,7 +18659,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -18624,7 +18671,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18655,7 +18702,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18667,7 +18714,7 @@
           "logos-capability-module",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18697,7 +18744,7 @@
           "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
+          "logos-test-framework",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18708,7 +18755,7 @@
           "logos-liblogos",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-standalone-app",
+          "logos-test-framework",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18736,10 +18783,6 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-nix"
         ],
@@ -18748,10 +18791,6 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18779,10 +18818,6 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18791,10 +18826,6 @@
           "logos-module-builder",
           "logos-standalone-app",
           "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-standalone-app",
-          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18821,10 +18852,6 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-test-framework",
           "logos-qt-sdk",
           "logos-nix"
         ],
@@ -18832,10 +18859,6 @@
           "logos-rust-sdk",
           "logos-module-builder",
           "logos-standalone-app",
-          "logos-liblogos",
-          "logos-capability-module",
-          "logos-module-builder",
-          "logos-test-framework",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -18861,17 +18884,15 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-liblogos",
-          "logos-cpp-sdk",
+          "logos-test-framework",
+          "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-liblogos",
-          "logos-cpp-sdk",
+          "logos-test-framework",
+          "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18896,17 +18917,15 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-liblogos",
-          "logos-qt-sdk",
+          "logos-view-module-runtime",
+          "logos-cpp-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-liblogos",
-          "logos-qt-sdk",
+          "logos-view-module-runtime",
+          "logos-cpp-sdk",
           "logos-lidl",
           "logos-nix",
           "nixpkgs"
@@ -18931,47 +18950,14 @@
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-nix"
         ],
         "nixpkgs": [
           "logos-rust-sdk",
           "logos-module-builder",
-          "logos-standalone-app",
-          "logos-qt-sdk",
-          "logos-lidl",
-          "logos-nix",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781653473,
-        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "type": "github"
-      }
-    },
-    "logos-lidl_79": {
-      "inputs": {
-        "logos-nix": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-test-framework",
-          "logos-qt-sdk",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-test-framework",
+          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -19015,72 +19001,6 @@
           "logos-standalone-app",
           "logos-capability-module",
           "logos-module-builder",
-          "logos-qt-sdk",
-          "logos-lidl",
-          "logos-nix",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781653473,
-        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "type": "github"
-      }
-    },
-    "logos-lidl_80": {
-      "inputs": {
-        "logos-nix": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-view-module-runtime",
-          "logos-cpp-sdk",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-view-module-runtime",
-          "logos-cpp-sdk",
-          "logos-lidl",
-          "logos-nix",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1781653473,
-        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "logos-co",
-        "repo": "logos-lidl",
-        "type": "github"
-      }
-    },
-    "logos-lidl_81": {
-      "inputs": {
-        "logos-nix": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-view-module-runtime",
-          "logos-qt-sdk",
-          "logos-nix"
-        ],
-        "nixpkgs": [
-          "logos-rust-sdk",
-          "logos-module-builder",
-          "logos-view-module-runtime",
           "logos-qt-sdk",
           "logos-lidl",
           "logos-nix",
@@ -81043,7 +80963,9 @@
     },
     "logos-plugin-qt_19": {
       "inputs": {
-        "logos-lidl": "logos-lidl_43",
+        "logos-lidl": [
+          "logos-lidl"
+        ],
         "logos-module": [
           "logos-module"
         ],
@@ -86191,7 +86113,7 @@
           "default-module-loader",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_39",
+        "logos-lidl": "logos-lidl_38",
         "logos-nix": "logos-nix_661",
         "logos-protocol": [
           "logos-execution-zone-module",
@@ -86232,7 +86154,7 @@
           "logos-liblogos",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_41",
+        "logos-lidl": "logos-lidl_40",
         "logos-nix": "logos-nix_795",
         "logos-protocol": [
           "logos-execution-zone-module",
@@ -86306,7 +86228,9 @@
         "logos-cpp-sdk": [
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_44",
+        "logos-lidl": [
+          "logos-lidl"
+        ],
         "logos-nix": [
           "logos-nix"
         ],
@@ -86415,7 +86339,7 @@
           "logos-module-builder",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_47",
+        "logos-lidl": "logos-lidl_44",
         "logos-nix": "logos-nix_1427",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -86454,7 +86378,7 @@
           "logos-module-builder",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_50",
+        "logos-lidl": "logos-lidl_47",
         "logos-nix": "logos-nix_1437",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -86502,7 +86426,7 @@
           "logos-module-builder",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_53",
+        "logos-lidl": "logos-lidl_50",
         "logos-nix": "logos-nix_1446",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -86674,7 +86598,7 @@
           "logos-liblogos",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_57",
+        "logos-lidl": "logos-lidl_54",
         "logos-nix": "logos-nix_1702",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -86724,7 +86648,7 @@
           "logos-standalone-app",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_58",
+        "logos-lidl": "logos-lidl_55",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -86779,7 +86703,7 @@
           "logos-view-module-runtime",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_60",
+        "logos-lidl": "logos-lidl_57",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -86836,7 +86760,7 @@
           "logos-test-framework",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_61",
+        "logos-lidl": "logos-lidl_58",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -86890,7 +86814,7 @@
           "logos-module-builder",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_64",
+        "logos-lidl": "logos-lidl_61",
         "logos-nix": "logos-nix_1740",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -86941,7 +86865,7 @@
           "logos-module-builder",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_67",
+        "logos-lidl": "logos-lidl_64",
         "logos-nix": "logos-nix_1749",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -87066,7 +86990,7 @@
           "logos-liblogos",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_71",
+        "logos-lidl": "logos-lidl_68",
         "logos-nix": "logos-nix_2005",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -87119,7 +87043,7 @@
           "logos-standalone-app",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_72",
+        "logos-lidl": "logos-lidl_69",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87178,7 +87102,7 @@
           "logos-view-module-runtime",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_74",
+        "logos-lidl": "logos-lidl_71",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87304,7 +87228,7 @@
           "logos-test-framework",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_75",
+        "logos-lidl": "logos-lidl_72",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87359,7 +87283,7 @@
           "logos-liblogos",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_77",
+        "logos-lidl": "logos-lidl_74",
         "logos-nix": "logos-nix_2038",
         "logos-protocol": [
           "logos-rust-sdk",
@@ -87400,7 +87324,7 @@
           "logos-standalone-app",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_78",
+        "logos-lidl": "logos-lidl_75",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87442,7 +87366,7 @@
           "logos-test-framework",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_79",
+        "logos-lidl": "logos-lidl_76",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87484,7 +87408,7 @@
           "logos-view-module-runtime",
           "logos-cpp-sdk"
         ],
-        "logos-lidl": "logos-lidl_81",
+        "logos-lidl": "logos-lidl_78",
         "logos-nix": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87826,7 +87750,7 @@
     },
     "logos-rust-sdk_10": {
       "inputs": {
-        "logos-lidl": "logos-lidl_65",
+        "logos-lidl": "logos-lidl_62",
         "logos-logoscore-cli": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -87883,7 +87807,7 @@
     },
     "logos-rust-sdk_11": {
       "inputs": {
-        "logos-lidl": "logos-lidl_68",
+        "logos-lidl": "logos-lidl_65",
         "logos-logoscore-cli": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -88231,7 +88155,9 @@
     },
     "logos-rust-sdk_6": {
       "inputs": {
-        "logos-lidl": "logos-lidl_45",
+        "logos-lidl": [
+          "logos-lidl"
+        ],
         "logos-logoscore-cli": "logos-logoscore-cli_2",
         "logos-module-builder": "logos-module-builder_32",
         "logos-nix": "logos-nix_2059",
@@ -88258,7 +88184,7 @@
     },
     "logos-rust-sdk_7": {
       "inputs": {
-        "logos-lidl": "logos-lidl_48",
+        "logos-lidl": "logos-lidl_45",
         "logos-logoscore-cli": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -88299,7 +88225,7 @@
     },
     "logos-rust-sdk_8": {
       "inputs": {
-        "logos-lidl": "logos-lidl_51",
+        "logos-lidl": "logos-lidl_48",
         "logos-logoscore-cli": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -88352,7 +88278,7 @@
     },
     "logos-rust-sdk_9": {
       "inputs": {
-        "logos-lidl": "logos-lidl_54",
+        "logos-lidl": "logos-lidl_51",
         "logos-logoscore-cli": [
           "logos-rust-sdk",
           "logos-module-builder",
@@ -152025,6 +151951,7 @@
         "logos-js-sdk": "logos-js-sdk",
         "logos-liblogos": "logos-liblogos_20",
         "logos-libp2p-module": "logos-libp2p-module",
+        "logos-lidl": "logos-lidl_41",
         "logos-logoscore-cli": "logos-logoscore-cli",
         "logos-logoscore-py": "logos-logoscore-py",
         "logos-module": "logos-module_98",

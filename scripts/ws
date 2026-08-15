@@ -2445,6 +2445,17 @@ get_manual_follows() {
     # workspace overrides it (version consistency with the rest of the tree).
     logos-evm-keystore-module|logos-evm-token-list-module)
       printf 'logos-module-builder\tlogos-module-builder\n' ;;
+    # logos-lidl is a workspace-level input declared BY HAND in flake.nix's
+    # manual block (it is deliberately not in the REPOS table below, so
+    # sync-graph would otherwise not know it is a follow target).  Without
+    # these entries each generator repo resolves the LIDL frontend from its
+    # own lock, and the closure ends up carrying several logos-lidl revisions
+    # at once — which is how three of them (8c95d4f0 / 35f33d87 / ffeebf2e)
+    # accumulated before this was added.  Codegen differences from a split
+    # frontend do NOT show up as a build failure, so keep this list in sync
+    # with the repos that declare a `logos-lidl` input.
+    logos-cpp-sdk|logos-js-sdk|logos-plugin-qt|logos-qt-sdk|logos-rust-sdk)
+      printf 'logos-lidl\tlogos-lidl\n' ;;
   esac
 }
 
