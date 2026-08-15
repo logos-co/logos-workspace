@@ -35,9 +35,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-qt-sdk = {
-      url = "github:logos-co/logos-qt-sdk/1e2021f77c91935b7ad82bcfeba4d1a2549589ae";
+      url = "github:logos-co/logos-qt-sdk/e3ddbbde342286143ad2a4b4b8e09d839f3a7d19";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
+      # Load-bearing, not tidiness. logos-qt-sdk no longer compiles the Qt host
+      # runtime — it re-exports logos-plugin-qt's logos-qt-host. Without this
+      # follows the SDK resolves plugin-qt from its OWN lock while everything
+      # else here resolves the workspace's, and the closure ends up with two
+      # logos-qt-host prefixes: two LogosAPIs, two TokenManager singletons.
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
