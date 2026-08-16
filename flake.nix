@@ -28,24 +28,65 @@
     # currently references an invalid commit-ish via /0.2.1.
     logos-blockchain.url = "github:logos-blockchain/logos-blockchain/88941ff33f2e028591b9d0ed2549a328d54f0cfa";
 
+    # ── Notes on entries in the AUTO-INPUTS block below ────────────────────
+    #
+    # `ws sync-graph` rewrites everything between the BEGIN/END markers from
+    # scratch, so any comment placed *inside* that block is deleted on the
+    # next run.  Curated rationale therefore lives up here, outside it.
+    #
+    # sync-graph reads each repo's WORKING-TREE flake.nix for the set of
+    # declared inputs but pins the URL to the submodule's HEAD, so a repo whose
+    # pin is deliberately held BEHIND a dirty checkout can acquire a follows
+    # for an input that does not exist at the pinned rev.  Nix reports that as
+    #   warning: input 'X' has an override for a non-existent input 'Y'
+    # and ignores it.  `logos-basecamp`'s `logos-module-loader-qt` follows was
+    # dropped for exactly this reason — basecamp is pinned at 8bfc3691, which
+    # predates that input.  Re-add it when the pin moves past it.
+
+    # ── logos-qt-sdk: `inputs.logos-plugin-qt.follows` ─────────────────────
+    #
+    # Load-bearing, not tidiness.  logos-qt-sdk no longer compiles the Qt host
+    # runtime — it re-exports logos-plugin-qt's logos-qt-host.  Without that
+    # follows the SDK resolves plugin-qt from its OWN lock while everything
+    # else here resolves the workspace's, and the closure ends up with two
+    # logos-qt-host prefixes: two LogosAPIs, two TokenManager singletons.
+
+    # ── logos-plugin-qt: the cc24fa1c pin ──────────────────────────────────
+    #
+    # cc24fa1c is the tip of feat/b4-qt-host-windows-target — the SUPERSET of
+    # the two branches carrying the qt-host split.  The sibling
+    # feat/b4-qt-host-windows-target-8ccb1fc (989f6ae) is a reduced
+    # re-baselining that omits the LogosModule.cmake/view-template unification;
+    # every consumer here (liblogos, qt-sdk, standalone-app, logoscore-cli,
+    # module-builder, test-modules, view-module-runtime, basecamp) pins
+    # cc24fa1c, so taking 989f6ae would put a SECOND logos-qt-host in the
+    # closure: two LogosAPIs, two TokenManager singletons.  repos/logos-plugin-qt
+    # is checked out on this same rev so `ws sync-graph` cannot walk it back.
+
+    # ── logos-rust-sdk: `inputs.logos-lidl.follows` ────────────────────────
+    #
+    # logos-rust-sdk was the last consumer still resolving logos-lidl from its
+    # own lock (8c95d4f0) — the sole root-level repo that this unification
+    # moves ACROSS the two-state-optionality commit.  Safe: lidl-gen reads the
+    # JSON wire form through serde with no deny_unknown_fields, and that
+    # commit only ADDS keys (isOptional/valueType/returnIsOptional), leaving
+    # every pre-existing key and the C ABI byte-identical.  logos-rust-sdk is
+    # `follows_exempt` in scripts/ws, so this follows comes from
+    # `get_manual_follows`, not from auto-derivation.
+
+    # ── logos-lidl (was a manual input; now in the auto-block) ─────────────
+    #
     # logos-lidl is the LIDL frontend (lexer/parser/AST/serializer/validator)
-    # that EVERY code generator links — cpp-sdk's, qt-sdk's, plugin-qt's and
-    # rust-sdk's.  It is declared MANUALLY, here, and not in the auto-block
-    # below, for two reasons:
+    # that EVERY code generator links — cpp-sdk's, qt-sdk's, plugin-qt's,
+    # rust-sdk's and js-sdk's.  It used to be declared BY HAND here because it
+    # was missing from `scripts/ws`'s REPOS table: with no root to follow,
+    # each consumer resolved logos-lidl from its OWN lock and the closure
+    # carried THREE revisions at once (8c95d4f0, 35f33d87, ffeebf2e).  It is
+    # now a registered repo, so sync-graph emits it below and pins it to the
+    # submodule pointer like every other repo.
     #
-    #   1. logos-lidl is not registered in `scripts/ws`'s REPOS table, so
-    #      `ws sync-graph` never emitted it as a workspace input.  With no
-    #      root to follow, each consumer resolved logos-lidl from its OWN
-    #      lock and the closure carried THREE revisions at once (8c95d4f0,
-    #      35f33d87, ffeebf2e).  A hand-added entry in the auto-block gets
-    #      wiped by the next sync-graph; an entry here survives.
-    #   2. sync-graph pins auto-block URLs to the submodule's checked-out
-    #      HEAD, which would silently re-pin this the moment anyone runs it
-    #      with a different commit checked out.  This pin is curated.
-    #
-    # The rev is a DESCENDANT of all three revisions that were previously in
-    # the closure — the history is strictly linear, so unifying here loses
-    # nothing:
+    # The pin is a DESCENDANT of all three revisions that were previously in
+    # the closure — the history is strictly linear, so unifying loses nothing:
     #
     #   8c95d4f0  descriptions + AST<->JSON + C ABI
     #     -> 35f33d87  two-state optionality (adds the fieldIsOptional() /
@@ -58,14 +99,17 @@
     #                      (CMakeLists-only, purely additive)
     #
     # 39015299 is on feat/sdk-codegen-phase-a rather than master: master
-    # (ffeebf2e) does not carry the shared library yet.  Re-point at master
-    # once that branch merges.
+    # (ffeebf2e) does not carry the shared library yet.  Re-point at master —
+    # by moving the SUBMODULE and re-running sync-graph — once it merges.
+    # Keep repos/logos-lidl on the intended rev before running sync-graph;
+    # the emitted URL follows the submodule's checked-out HEAD.
+
+    # BEGIN AUTO-INPUTS — generated by `ws sync-graph`, do not edit by hand
     logos-lidl = {
       url = "github:logos-co/logos-lidl/39015299b913ac6c81a9808268141b3bdc046b4e";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # BEGIN AUTO-INPUTS — generated by `ws sync-graph`, do not edit by hand
     logos-protocol = {
       url = "github:logos-co/logos-protocol/c8bab12834dbf92155b483546875e6078d17c74e";
       inputs.logos-nix.follows = "logos-nix";
@@ -76,11 +120,6 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
-      # Load-bearing, not tidiness. logos-qt-sdk no longer compiles the Qt host
-      # runtime — it re-exports logos-plugin-qt's logos-qt-host. Without this
-      # follows the SDK resolves plugin-qt from its OWN lock while everything
-      # else here resolves the workspace's, and the closure ends up with two
-      # logos-qt-host prefixes: two LogosAPIs, two TokenManager singletons.
       inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -96,6 +135,7 @@
       url = "github:logos-co/logos-view-module-runtime/5510acd9eb7fcd49e420c9e530679edfa8f315ab";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -103,6 +143,7 @@
       url = "github:logos-co/logos-module-client/e0e58286ce2de85b9bf7b86c5472ccce68225dea";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -128,6 +169,7 @@
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -139,10 +181,14 @@
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-package-downloader-module.follows = "logos-package-downloader-module";
+      inputs.logos-package-manager-module.follows = "logos-package-manager-module";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-capability-module = {
@@ -154,15 +200,6 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # cc24fa1c is the tip of feat/b4-qt-host-windows-target — the SUPERSET of
-    # the two branches carrying the qt-host split.  The sibling
-    # feat/b4-qt-host-windows-target-8ccb1fc (989f6ae) is a reduced
-    # re-baselining that omits the LogosModule.cmake/view-template unification;
-    # every consumer here (liblogos, qt-sdk, standalone-app, logoscore-cli,
-    # module-builder, test-modules, view-module-runtime, basecamp) pins
-    # cc24fa1c, so taking 989f6ae would put a SECOND logos-qt-host in the
-    # closure: two LogosAPIs, two TokenManager singletons.  repos/logos-plugin-qt
-    # is checked out on this same rev so `ws sync-graph` cannot walk it back.
     logos-plugin-qt = {
       url = "github:logos-co/logos-plugin-qt/cc24fa1c0c43b2d96c1dc165ee545a0321318b59";
       inputs.logos-lidl.follows = "logos-lidl";
@@ -183,8 +220,10 @@
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-rust-sdk.follows = "logos-rust-sdk";
       inputs.logos-standalone-app.follows = "logos-standalone-app";
+      inputs.logos-test-framework.follows = "logos-test-framework";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-dir = {
@@ -211,6 +250,13 @@
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-bundle-logos-module-install = {
+      url = "github:logos-co/nix-bundle-logos-module-install/55de9a6fce755387224ececd0493f46b028ee0a3";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-package-manager.follows = "logos-package-manager";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     logos-standalone-app = {
       url = "github:logos-co/logos-standalone-app/39f4f2b507846bf6383f60a4c61d8a9445009227";
       inputs.logos-capability-module.follows = "logos-capability-module";
@@ -218,7 +264,9 @@
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-mcp.follows = "logos-qt-mcp";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -236,10 +284,13 @@
       inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
       inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-mcp.follows = "logos-qt-mcp";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
+      inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
       inputs.nix-bundle-macos-app.follows = "nix-bundle-macos-app";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -348,6 +399,16 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
+    logos-lez-indexer-module = {
+      url = "github:logos-blockchain/lez-indexer-module/62c1af660f5b2b57fe4fa0e7feb5ba3cd650c307";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
+    logos-lez-explorer-ui = {
+      url = "github:logos-blockchain/lez-explorer-ui/643999b67c76b192062959c59db5f723422c1f20";
+      inputs.lez_indexer_module.follows = "logos-lez-indexer-module";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
+    };
     logos-libp2p-module = {
       url = "github:logos-co/logos-libp2p-module/7b4b776b26d96e2a0c794827c77bb6eb89da5100";
       inputs.logos-module-builder.follows = "logos-module-builder";
@@ -375,23 +436,23 @@
     };
     logos-js-sdk = {
       url = "github:logos-co/logos-js-sdk/1847487178a90cdd316d00fb3faaf91b0c123d05";
+      inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-nim-sdk = {
       url = "github:logos-co/logos-nim-sdk/1f6a167e44f762eec98e403b261cfc0b6eb263e3";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/be0dedad0fbef00c497e2e5e83ef03a000abcee6";
-    # logos-rust-sdk was the last consumer still resolving logos-lidl from its
-    # own lock (8c95d4f0) — the sole root-level repo that this unification
-    # moves ACROSS the two-state-optionality commit.  Safe: lidl-gen reads the
-    # JSON wire form through serde with no deny_unknown_fields, and that
-    # commit only ADDS keys (isOptional/valueType/returnIsOptional), leaving
-    # every pre-existing key and the C ABI byte-identical.
-    logos-rust-sdk.inputs.logos-lidl.follows = "logos-lidl";
+    logos-rust-sdk = {
+      url = "github:logos-co/logos-rust-sdk/be0dedad0fbef00c497e2e5e83ef03a000abcee6";
+      inputs.logos-lidl.follows = "logos-lidl";
+    };
     logos-logoscore-py = {
       url = "github:logos-co/logos-logoscore-py/6e081b2d2fd87a909b958aa8a97be445229acf75";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
@@ -404,6 +465,36 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    logos-test-framework = {
+      url = "github:logos-co/logos-test-framework/c382ab1d069a1b44cac6adcfc9c53c4f17c02971";
+      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.logos-plugin-qt.follows = "logos-plugin-qt";
+      inputs.logos-protocol.follows = "logos-protocol";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    logos-doctest = {
+      url = "github:logos-co/logos-doctest/63cf147d400d7a226bac4c2d45f0bd42409aca87";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    logos-qt-mcp = {
+      url = "github:logos-co/logos-qt-mcp/1fea509485a48ab185fafae8dc21bdbcc808a07e";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    logos-dev-boost = {
+      url = "github:logos-co/logos-dev-boost/53f30d106ae2f41452169c3349453233496d3bba";
+      inputs.logos-nix.follows = "logos-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    logos-logoscore-tui = {
+      url = "github:logos-co/logos-logoscore-tui/285133685393cc480b6404061a9d7cac034acafc";
+      inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };

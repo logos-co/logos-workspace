@@ -80,6 +80,10 @@ REPOS=(
   "logos-nix|logos-nix|https://github.com/logos-co/logos-nix.git|yes"
 
   # Foundation
+  # logos-lidl is the language-neutral LIDL frontend that EVERY code generator
+  # links (cpp-sdk's, qt-sdk's, plugin-qt's, rust-sdk's, js-sdk's).  It must be
+  # a workspace input so all five follow ONE revision; see get_manual_follows.
+  "logos-lidl|logos-lidl|https://github.com/logos-co/logos-lidl.git|yes"
   "logos-protocol|logos-protocol|https://github.com/logos-co/logos-protocol.git|yes"
   "logos-qt-sdk|logos-qt-sdk|https://github.com/logos-co/logos-qt-sdk.git|yes"
   "logos-cpp-sdk|logos-cpp-sdk|https://github.com/logos-co/logos-cpp-sdk.git|yes"
@@ -99,6 +103,7 @@ REPOS=(
   "nix-bundle-lgx|nix-bundle-lgx|https://github.com/logos-co/nix-bundle-lgx.git|yes"
   "nix-bundle-appimage|nix-bundle-appimage|https://github.com/logos-co/nix-bundle-appimage.git|yes"
   "nix-bundle-macos-app|nix-bundle-macos-app|https://github.com/logos-co/nix-bundle-macos-app.git|yes"
+  "nix-bundle-logos-module-install|nix-bundle-logos-module-install|https://github.com/logos-co/nix-bundle-logos-module-install.git|yes"
 
   # App
   "logos-standalone-app|logos-standalone-app|https://github.com/logos-co/logos-standalone-app.git|yes"
@@ -136,6 +141,9 @@ REPOS=(
   "logos-blockchain-ui|logos-blockchain-ui|https://github.com/logos-blockchain/logos-blockchain-ui.git|yes"
   "logos-execution-zone-wallet-ui|logos-execution-zone-wallet-ui|https://github.com/logos-blockchain/logos-execution-zone-wallet-ui.git|yes"
   "logos-execution-zone-module|logos-execution-zone-module|https://github.com/logos-blockchain/logos-execution-zone-module.git|yes"
+  # GitHub slug drops the `logos-` prefix — see get_base_repo_url.
+  "logos-lez-indexer-module|logos-lez-indexer-module|https://github.com/logos-blockchain/lez-indexer-module.git|yes"
+  "logos-lez-explorer-ui|logos-lez-explorer-ui|https://github.com/logos-blockchain/lez-explorer-ui.git|yes"
 
   # Other modules
   "logos-libp2p-module|logos-libp2p-module|https://github.com/logos-co/logos-libp2p-module.git|yes"
@@ -155,6 +163,13 @@ REPOS=(
 
   # Testing
   "logos-test-modules|logos-test-modules|https://github.com/logos-co/logos-test-modules.git|yes"
+  "logos-test-framework|logos-test-framework|https://github.com/logos-co/logos-test-framework.git|yes"
+  "logos-doctest|logos-doctest|https://github.com/logos-co/logos-doctest.git|yes"
+
+  # Tooling / developer experience
+  "logos-qt-mcp|logos-qt-mcp|https://github.com/logos-co/logos-qt-mcp.git|yes"
+  "logos-dev-boost|logos-dev-boost|https://github.com/logos-co/logos-dev-boost.git|yes"
+  "logos-logoscore-tui|logos-logoscore-tui|https://github.com/logos-co/logos-logoscore-tui.git|yes"
 
   # Other
   "process-stats|process-stats|https://github.com/logos-co/process-stats.git|yes"
@@ -2370,6 +2385,12 @@ get_base_repo_url() {
     logos-blockchain-ui)            echo "github:logos-blockchain/logos-blockchain-ui" ;;
     logos-execution-zone-module)    echo "github:logos-blockchain/logos-execution-zone-module" ;;
     logos-execution-zone-wallet-ui) echo "github:logos-blockchain/logos-execution-zone-wallet-ui" ;;
+    # These two live under logos-blockchain AND their GitHub slug drops the
+    # `logos-` prefix the submodule dir carries (`lez-indexer-module`, not
+    # `logos-lez-indexer-module`).  Without these arms the default arm emits
+    # github:logos-co/logos-lez-* and every fetch 404s.
+    logos-lez-indexer-module)       echo "github:logos-blockchain/lez-indexer-module" ;;
+    logos-lez-explorer-ui)          echo "github:logos-blockchain/lez-explorer-ui" ;;
     *)                              echo "github:logos-co/$1" ;;
   esac
 }
@@ -2445,17 +2466,27 @@ get_manual_follows() {
     # workspace overrides it (version consistency with the rest of the tree).
     logos-evm-keystore-module|logos-evm-token-list-module)
       printf 'logos-module-builder\tlogos-module-builder\n' ;;
-    # logos-lidl is a workspace-level input declared BY HAND in flake.nix's
-    # manual block (it is deliberately not in the REPOS table below, so
-    # sync-graph would otherwise not know it is a follow target).  Without
-    # these entries each generator repo resolves the LIDL frontend from its
-    # own lock, and the closure ends up carrying several logos-lidl revisions
-    # at once — which is how three of them (8c95d4f0 / 35f33d87 / ffeebf2e)
+    # logos-lidl is now a first-class REPOS entry, so sync-graph auto-derives
+    # this follows for any consumer whose lock carries a `logos-lidl` root
+    # input.  These entries stay because (a) logos-rust-sdk is `follows_exempt`
+    # and therefore gets NO auto-derived follows at all, and (b) a consumer
+    # that ships no committed flake.lock would otherwise silently lose it.
+    # Without the follows each generator repo resolves the LIDL frontend from
+    # its own lock and the closure carries several logos-lidl revisions at
+    # once — which is how three of them (8c95d4f0 / 35f33d87 / ffeebf2e)
     # accumulated before this was added.  Codegen differences from a split
     # frontend do NOT show up as a build failure, so keep this list in sync
     # with the repos that declare a `logos-lidl` input.
     logos-cpp-sdk|logos-js-sdk|logos-plugin-qt|logos-qt-sdk|logos-rust-sdk)
       printf 'logos-lidl\tlogos-lidl\n' ;;
+    # logos-lez-explorer-ui declares the indexer as `lez_indexer_module`
+    # (underscores, no `logos-` prefix) AND fetches it as a bare
+    # `git+https://…?ref=main` URL.  sync-graph derives follows from the
+    # lock node's `original.repo`, which a git+https node does not have — so
+    # the auto pass emits NOTHING for this input and the UI would resolve a
+    # second, drifting copy of the indexer.  Declare it by hand.
+    logos-lez-explorer-ui)
+      printf 'lez_indexer_module\tlogos-lez-indexer-module\n' ;;
   esac
 }
 
