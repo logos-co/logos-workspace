@@ -72,7 +72,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-qt-sdk = {
-      url = "github:logos-co/logos-qt-sdk/e3ddbbde342286143ad2a4b4b8e09d839f3a7d19";
+      url = "github:logos-co/logos-qt-sdk/8a06b870e59afca3392de2bddf8eec5fe3b85225";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
@@ -86,26 +86,24 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/6fddbe8ec9b3413b15aaa90aa015edbe3208f735";
+      url = "github:logos-co/logos-cpp-sdk/a04b27888e1d126578f639ed46dae0c777990a10";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-view-module-runtime = {
-      url = "github:logos-co/logos-view-module-runtime/049978f144aa53d8b98ea2c0b164b0554c88c856";
+      url = "github:logos-co/logos-view-module-runtime/5510acd9eb7fcd49e420c9e530679edfa8f315ab";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-client = {
-      url = "github:logos-co/logos-module-client/351f282055659a9d8ccf0e6411c2683256906958";
+      url = "github:logos-co/logos-module-client/e0e58286ce2de85b9bf7b86c5472ccce68225dea";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module = {
@@ -123,7 +121,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-liblogos = {
-      url = "github:logos-co/logos-liblogos/52b5f636060081549a560072a9662482643d5d62";
+      url = "github:logos-co/logos-liblogos/f2a15ef3022d8fb71dac3d612c8edec839fc51e7";
       inputs.default-module-loader.follows = "logos-module-loader-qt";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
@@ -136,20 +134,19 @@
       inputs.process-stats.follows = "process-stats";
     };
     logos-logoscore-cli = {
-      url = "github:logos-co/logos-logoscore-cli/5750bf09d2c06c4df7e9154b342a3b96bc7715d4";
+      url = "github:logos-co/logos-logoscore-cli/e081c19a7700a4316b8cccfca29384b957f18fd7";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-capability-module = {
-      url = "github:logos-co/logos-capability-module/189b6045fdcf0cdc1f23467360415687f38f8425";
+      url = "github:logos-co/logos-capability-module/07dba1fb32ec889e28848c7730f0d5b3912a5b5b";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
@@ -157,8 +154,17 @@
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # cc24fa1c is the tip of feat/b4-qt-host-windows-target — the SUPERSET of
+    # the two branches carrying the qt-host split.  The sibling
+    # feat/b4-qt-host-windows-target-8ccb1fc (989f6ae) is a reduced
+    # re-baselining that omits the LogosModule.cmake/view-template unification;
+    # every consumer here (liblogos, qt-sdk, standalone-app, logoscore-cli,
+    # module-builder, test-modules, view-module-runtime, basecamp) pins
+    # cc24fa1c, so taking 989f6ae would put a SECOND logos-qt-host in the
+    # closure: two LogosAPIs, two TokenManager singletons.  repos/logos-plugin-qt
+    # is checked out on this same rev so `ws sync-graph` cannot walk it back.
     logos-plugin-qt = {
-      url = "github:logos-co/logos-plugin-qt/8ccb1fc81642ee52e843b69ac3f90a1ec7084299";
+      url = "github:logos-co/logos-plugin-qt/cc24fa1c0c43b2d96c1dc165ee545a0321318b59";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -166,7 +172,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/f4e2c1289c221ad43e4e0344e2914a87fcfd8b26";
+      url = "github:logos-co/logos-module-builder/c60d4a9cf32cb5281909e53159c9c4cfeb993847";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-module.follows = "logos-module";
@@ -206,20 +212,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-standalone-app = {
-      url = "github:logos-co/logos-standalone-app/1aa90d083c03679de1e2f0291adb818032d044fc";
+      url = "github:logos-co/logos-standalone-app/39f4f2b507846bf6383f60a4c61d8a9445009227";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/01d78e1443dca60d23e3b1d2d286b1ed95b41f71";
+      url = "github:logos-co/logos-basecamp/8bfc36915efff975812e5158c819671cfbf08e0d";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -232,7 +237,6 @@
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
       inputs.logos-protocol.follows = "logos-protocol";
-      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -286,7 +290,7 @@
       inputs.logos-package-downloader.follows = "logos-package-downloader";
     };
     logos-package-manager-ui = {
-      url = "github:logos-co/logos-package-manager-ui/d14f284ea73e47448bebc6841612e53123c585bb";
+      url = "github:logos-co/logos-package-manager-ui/c932e1c4bfb5e5e2e04abfb7e561ed19ba18ffca";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package.follows = "logos-package";
       inputs.package_downloader.follows = "logos-package-downloader-module";
@@ -328,7 +332,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-blockchain-ui = {
-      url = "github:logos-blockchain/logos-blockchain-ui/eb513b5a79f558f5718a5ca0eafac1d5fda7d832";
+      url = "github:logos-blockchain/logos-blockchain-ui/600d98bbbd01ac874eed48b4cacf4cd0609bfb2b";
       inputs.blockchain_module.follows = "logos-blockchain-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
@@ -358,7 +362,7 @@
     };
     counter_qml.url = "github:logos-co/counter_qml/8029a894f4221f9284efabbedcee7d9d18929777";
     counter = {
-      url = "github:logos-co/counter/204ec0d3f0ccffc5d40269db9e7253cba7c330d6";
+      url = "github:logos-co/counter/47edd6bad49e4129d6c7c169246de7ba5c67d8a9";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-design-system = {
@@ -370,18 +374,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-js-sdk = {
-      url = "github:logos-co/logos-js-sdk/6b6ccb5f10ea358ae8c9bee4264722dfb0aed76b";
-      inputs.logos-capability-module.follows = "logos-capability-module";
-      inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-liblogos.follows = "logos-liblogos";
-      inputs.logos-module.follows = "logos-module";
-      inputs.logos-module-builder.follows = "logos-module-builder";
-      inputs.logos-module-client.follows = "logos-module-client";
+      url = "github:logos-co/logos-js-sdk/1847487178a90cdd316d00fb3faaf91b0c123d05";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-nim-sdk = {
-      url = "github:logos-co/logos-nim-sdk/df1f21906e661d96f5e4bda172cb9a619292b603";
+      url = "github:logos-co/logos-nim-sdk/1f6a167e44f762eec98e403b261cfc0b6eb263e3";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -402,7 +400,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/d4054248d3da13dd73569e07ee1189cbce3faeed";
+      url = "github:logos-co/logos-test-modules/a639b93475bf135d283288c31b8499b7f4d09f92";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
