@@ -148,12 +148,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module = {
-      url = "github:logos-co/logos-module/2ec64c4a65f8966b5137cdba3a19a6498ce17b6d";
+      url = "github:logos-co/logos-module/9812dc8c69cfbfed3eea06510a5c1ff33c1fcf7f";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-loader-qt = {
-      url = "github:logos-co/logos-module-loader-qt/06134bfcb726a53b889ffa56e43b08e94938b6cf";
+      url = "github:logos-co/logos-module-loader-qt/b4529e0d3c6ba59eb35d5fcb401df8cc315e0f29";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -162,7 +162,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-liblogos = {
-      url = "github:logos-co/logos-liblogos/f2a15ef3022d8fb71dac3d612c8edec839fc51e7";
+      url = "github:logos-co/logos-liblogos/7b032e9029d48ccdfaa7c82515ba4b82a1433729";
       inputs.default-module-loader.follows = "logos-module-loader-qt";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
@@ -196,7 +196,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
-      url = "github:logos-co/logos-package/8d4236f9453bce8b44dfd2f85a5006af993b7ed2";
+      url = "github:logos-co/logos-package/3cb520c8eadde3d6d7810dee74bdd243f73f34e9";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -227,31 +227,31 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-dir = {
-      url = "github:logos-co/nix-bundle-dir/4f72d7a64dd83979d771c17161f23ebc9dbedb40";
+      url = "github:logos-co/nix-bundle-dir/ffc410b7f2bab32b1c2ceb347c56902e7321049c";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-lgx = {
-      url = "github:logos-co/nix-bundle-lgx/b49074a8e1157832002b11d3d254c1aaa4b96680";
+      url = "github:logos-co/nix-bundle-lgx/62277ea64abed4165f3cf6028f3fc3e95a919384";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-appimage = {
-      url = "github:logos-co/nix-bundle-appimage/8fcc56b5afcc313ca917cf3487be082ae2f0184c";
+      url = "github:logos-co/nix-bundle-appimage/04a3cf89f8ba3dc20f08a8e2b6c337a672bceda7";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-macos-app = {
-      url = "github:logos-co/nix-bundle-macos-app/d6b0cc518e599ab7a52258bf3e1f8123c8a01d31";
+      url = "github:logos-co/nix-bundle-macos-app/140f4ec32ebfb9790c1e5b1f6e46dff3d2b20cfd";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-logos-module-install = {
-      url = "github:logos-co/nix-bundle-logos-module-install/55de9a6fce755387224ececd0493f46b028ee0a3";
+      url = "github:logos-co/nix-bundle-logos-module-install/e1947b07a88548cfff605bf335e0342c2e98bbaf";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package-manager.follows = "logos-package-manager";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
@@ -272,7 +272,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/8bfc36915efff975812e5158c819671cfbf08e0d";
+      url = "github:logos-co/logos-basecamp/7e684e9136cd81dc9b22171e431ee7e596890110";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -285,6 +285,7 @@
       inputs.logos-package-manager-module.follows = "logos-package-manager-module";
       inputs.logos-package-manager-ui.follows = "logos-package-manager-ui";
       inputs.logos-plugin-qt.follows = "logos-plugin-qt";
+      inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-qt-mcp.follows = "logos-qt-mcp";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
@@ -315,7 +316,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package-manager = {
-      url = "github:logos-co/logos-package-manager/202af6fa0f0f4493bc59c8a609dff9326f78a18d";
+      url = "github:logos-co/logos-package-manager/3ceabe25a2d4733c23517099e0fa0f11ea8861eb";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -323,7 +324,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-downloader = {
-      url = "github:logos-co/logos-package-downloader/6fcf682539c501e927d72393872a4f36d6b1d2a9";
+      url = "github:logos-co/logos-package-downloader/8a0651528e85fa20a0698c9ffedd0275e1eeabe4";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -331,12 +332,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-manager-module = {
-      url = "github:logos-co/logos-package-manager-module/cad6bab044d09eb54fe9a8efb20ed94694eb44ff";
+      url = "github:logos-co/logos-package-manager-module/63a6f8abd6cfc20f72cfc205383c86dd59a73f9f";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package-manager.follows = "logos-package-manager";
     };
     logos-package-downloader-module = {
-      url = "github:logos-co/logos-package-downloader-module/2298842e8d5e8118d2268952fb08017152b8d433";
+      url = "github:logos-co/logos-package-downloader-module/26651fb2d8cf4b9844a928625acadb7f8257f702";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package-downloader.follows = "logos-package-downloader";
     };
@@ -427,7 +428,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-design-system = {
-      url = "github:logos-co/logos-design-system/fd4978713921e087c40f4a6a52a3e5f60f6104bd";
+      url = "github:logos-co/logos-design-system/73989c83e11c4250b30d12534908e40d8baa8fc6";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -499,7 +500,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     process-stats = {
-      url = "github:logos-co/process-stats/33ace1270f90c89b3565e803139c0970fcd1ce8f";
+      url = "github:logos-co/process-stats/3e58e1c94b45803a15b29b29a112427efb2764ca";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -559,7 +560,12 @@
 
   outputs = { self, nixpkgs, ... }@inputs:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      # "x86_64-windows" is a pseudo-system for the mingw cross target: a cross
+      # derivation's `system` attribute is its BUILD platform, so these
+      # outputs evaluate anywhere and realise on x86_64-linux. Repos that have
+      # not been ported yet simply expose nothing under it, and the generic
+      # forwarder below skips them.
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" "x86_64-windows" ];
       forAllSystems = fn: nixpkgs.lib.genAttrs systems fn;
 
       depGraph = import ./nix/dep-graph.nix;
