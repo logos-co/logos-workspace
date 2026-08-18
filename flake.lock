@@ -98160,17 +98160,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787082381,
-        "narHash": "sha256-um/hXQHQlrxbX6DQyN0/muAtEY4yRwYqV+VgX1CbUFs=",
+        "lastModified": 1787094426,
+        "narHash": "sha256-nASztabMU4UCHoAMtd6acLX5eEo8TjN+y5eL7VU7aWE=",
         "owner": "logos-co",
         "repo": "logos-test-modules",
-        "rev": "f7a6ffeec34bc0ed247b2569832b0756d65636b1",
+        "rev": "0cc81164b59a14963584f4b67cac175e533ad70c",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-test-modules",
-        "rev": "f7a6ffeec34bc0ed247b2569832b0756d65636b1",
+        "rev": "0cc81164b59a14963584f4b67cac175e533ad70c",
         "type": "github"
       }
     },
