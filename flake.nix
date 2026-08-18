@@ -116,7 +116,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-qt-sdk = {
-      url = "github:logos-co/logos-qt-sdk/8a06b870e59afca3392de2bddf8eec5fe3b85225";
+      url = "github:logos-co/logos-qt-sdk/4d303bd94dcd4a70906d74f507c2a1d4b3211719";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
@@ -125,7 +125,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/a04b27888e1d126578f639ed46dae0c777990a10";
+      url = "github:logos-co/logos-cpp-sdk/d27927aba51ae5cf351c81993a19e69da355a79b";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
@@ -201,7 +201,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-plugin-qt = {
-      url = "github:logos-co/logos-plugin-qt/cc24fa1c0c43b2d96c1dc165ee545a0321318b59";
+      url = "github:logos-co/logos-plugin-qt/2d2506907e7ffd37e7a5505748f0681d8d95cc0d";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
@@ -209,7 +209,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/c60d4a9cf32cb5281909e53159c9c4cfeb993847";
+      url = "github:logos-co/logos-module-builder/5081088a62e73161199f6080b0da6b57e9b922bc";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-module.follows = "logos-module";
@@ -462,7 +462,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/a639b93475bf135d283288c31b8499b7f4d09f92";
+      url = "github:logos-co/logos-test-modules/c221e1128f234efaf4d1c7b2a89add8110d8d3cb";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
