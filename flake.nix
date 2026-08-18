@@ -305,7 +305,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-chat-module = {
-      url = "github:logos-co/logos-chat-module/33c624d0e6ea8444486d6bfe68aa07450315bdb6";
+      url = "github:logos-co/logos-chat-module/f0d3608132e08a31b2b17b42e59dc691beea0b54";
       inputs.logos-delivery-module.follows = "logos-delivery-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
@@ -451,7 +451,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-rust-sdk = {
-      url = "github:logos-co/logos-rust-sdk/be0dedad0fbef00c497e2e5e83ef03a000abcee6";
+      url = "github:logos-co/logos-rust-sdk/571d570b9425a07bf484f36cc598fc194f83a400";
       inputs.logos-lidl.follows = "logos-lidl";
     };
     logos-logoscore-py = {
