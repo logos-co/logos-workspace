@@ -217,3 +217,15 @@
 [submodule "repos/logos-module-loader-qt"]
 	path = repos/logos-module-loader-qt
 	url = https://github.com/logos-co/logos-module-loader-qt.git
+[submodule "repos/logos-view-module"]
+	path = repos/logos-view-module
+	url = https://github.com/logos-co/logos-view-module.git
+[submodule "repos/logos-container"]
+	path = repos/logos-container
+	url = https://github.com/logos-co/logos-container.git
+[submodule "repos/logos-container-subprocess"]
+	path = repos/logos-container-subprocess
+	url = https://github.com/logos-co/logos-container-subprocess.git
+[submodule "repos/logos-module-loader"]
+	path = repos/logos-module-loader
+	url = https://github.com/logos-co/logos-module-loader.git
