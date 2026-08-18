@@ -2443,6 +2443,26 @@ follows_exempt() {
   esac
 }
 
+# ── Finer-grained twin of follows_exempt: exempt ONE input of ONE repo,
+# where the repo still WANTS the other workspace follows. Args: repo, input.
+# Each entry is a deliberate divergence and must say why.
+follows_input_exempt() {
+  case "$1/$2" in
+    # logos-js-sdk builds its koffi bindings against the lp_provider_* surface,
+    # which only exists on logos-protocol's unmerged feat/protocol-shared-lib
+    # stack (#12 -> #16). The workspace protocol pin carries the GROUNDWORK
+    # only: lp_provider_register() returns LP_OK and then serves nothing, so the
+    # SDK aborts at registration and the provider child dies before the consumer
+    # connects — `logos-js-sdk--e2e` red. Overriding protocol workspace-wide is
+    # not the fix: it drags the whole closure back to protocol 0.2.0 from 0.4.0.
+    # The repo's OTHER follows are wanted and proven harmless — with only this
+    # one reverted, the codegen half of the e2e passes — so this exempts the
+    # single input rather than the repo. Revisit when the stack merges.
+    logos-js-sdk/logos-protocol) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # ── Workspace-level follows that override what each repo's lock would
 # otherwise produce.  Every entry is a deliberate divergence from upstream
 # and should have a comment explaining why.  Returns tab-separated
@@ -2692,8 +2712,9 @@ HEADER
           ws_id="$iname"
         fi
 
-        # Skip self-references and non-workspace targets
+        # Skip self-references, non-workspace targets, and per-input exemptions
         [[ -z "$ws_id" || "$ws_id" == "$input_name" ]] && continue
+        follows_input_exempt "$input_name" "$iname" && continue
         case "$ws_names_set" in
           *" $ws_id "*) follows_pairs+="${iname}	${ws_id}
 " ;;

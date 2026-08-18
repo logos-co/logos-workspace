@@ -439,7 +439,7 @@
       url = "github:logos-co/logos-js-sdk/1847487178a90cdd316d00fb3faaf91b0c123d05";
       inputs.logos-lidl.follows = "logos-lidl";
       inputs.logos-nix.follows = "logos-nix";
-      inputs.logos-protocol.follows = "logos-protocol";
+      # NO logos-protocol follows — see follows_input_exempt in scripts/ws.
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-nim-sdk = {
