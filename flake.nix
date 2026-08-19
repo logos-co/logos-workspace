@@ -243,6 +243,7 @@
       inputs.logos-rust-sdk.follows = "logos-rust-sdk";
       inputs.logos-standalone-app.follows = "logos-standalone-app";
       inputs.logos-test-framework.follows = "logos-test-framework";
+      inputs.logos-view-module.follows = "logos-view-module";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nix-bundle-logos-module-install.follows = "nix-bundle-logos-module-install";
