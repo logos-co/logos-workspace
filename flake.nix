@@ -132,7 +132,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-view-module = {
-      url = "github:logos-co/logos-view-module/f5df363e50806b159673f973646b7bc528cb1070";
+      url = "github:logos-co/logos-view-module/1f95a75f836a7601bde3b488dc2e773c4ebb9068";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
