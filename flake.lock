@@ -14929,17 +14929,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787059715,
+        "lastModified": 1787104807,
         "narHash": "sha256-iTLarq/X3J2B1K/xJN0lgOdXRwDbVDPFbUwV59aT3Jw=",
         "owner": "logos-co",
         "repo": "logos-dev-boost",
-        "rev": "31cbcd304a8afce316f64f40edecc1813351f029",
+        "rev": "4fb867a72a9ae987941523708a2e4e03097bc026",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-dev-boost",
-        "rev": "31cbcd304a8afce316f64f40edecc1813351f029",
+        "rev": "4fb867a72a9ae987941523708a2e4e03097bc026",
         "type": "github"
       }
     },
@@ -88256,17 +88256,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787089543,
+        "lastModified": 1787104736,
         "narHash": "sha256-f60LaYVHbh36KdAScL8p2Vf7IZ6jJqqLIUcHwQFmeL8=",
         "owner": "logos-co",
         "repo": "logos-protocol",
-        "rev": "0af8e0c919bc903ab85e95decc62f26d19dec78c",
+        "rev": "988e0ba906072c47ee5f8f1c5a529b2ef7962894",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-protocol",
-        "rev": "0af8e0c919bc903ab85e95decc62f26d19dec78c",
+        "rev": "988e0ba906072c47ee5f8f1c5a529b2ef7962894",
         "type": "github"
       }
     },
@@ -93713,17 +93713,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786969603,
+        "lastModified": 1787104747,
         "narHash": "sha256-nA8hkAsb5ZrqyKKopmH2akCValN1T3xoW8+et84B+rc=",
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "571d570b9425a07bf484f36cc598fc194f83a400",
+        "rev": "671bcc6116b70f425a6d02a8601f161e1446e0f3",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "571d570b9425a07bf484f36cc598fc194f83a400",
+        "rev": "671bcc6116b70f425a6d02a8601f161e1446e0f3",
         "type": "github"
       }
     },

@@ -111,7 +111,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-protocol = {
-      url = "github:logos-co/logos-protocol/0af8e0c919bc903ab85e95decc62f26d19dec78c";
+      url = "github:logos-co/logos-protocol/988e0ba906072c47ee5f8f1c5a529b2ef7962894";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -473,7 +473,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-rust-sdk = {
-      url = "github:logos-co/logos-rust-sdk/571d570b9425a07bf484f36cc598fc194f83a400";
+      url = "github:logos-co/logos-rust-sdk/671bcc6116b70f425a6d02a8601f161e1446e0f3";
       inputs.logos-lidl.follows = "logos-lidl";
     };
     logos-logoscore-py = {
@@ -511,7 +511,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-dev-boost = {
-      url = "github:logos-co/logos-dev-boost/31cbcd304a8afce316f64f40edecc1813351f029";
+      url = "github:logos-co/logos-dev-boost/4fb867a72a9ae987941523708a2e4e03097bc026";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
