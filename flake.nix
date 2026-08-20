@@ -392,7 +392,7 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/842530128a4d40aeaf5f2c2979ce6a76e69b8ee3";
+    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/eb46a2f2d7742590d4306180fc8a5780fceb2ae9";
     logos-logoscore-py = {
       url = "github:logos-co/logos-logoscore-py/6e081b2d2fd87a909b958aa8a97be445229acf75";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
