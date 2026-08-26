@@ -211,8 +211,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-downloader = {
-      url = "github:logos-co/logos-package-downloader/6fcf682539c501e927d72393872a4f36d6b1d2a9";
-      inputs.logos-nix.follows = "logos-nix";
+      url = "github:logos-co/logos-package-downloader/52d3da82603555808f3cd1aaaf7138a75f7e0167";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";

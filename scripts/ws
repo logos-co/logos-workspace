@@ -2421,6 +2421,38 @@ get_manual_follows() {
   esac
 }
 
+# ── Workspace-level follows SUPPRESSIONS.  Returns the input names whose
+# auto-derived follows must NOT be emitted for a repo, one per line.
+#
+# A follows forces a repo's transitive input to the workspace's revision.
+# That is what we want almost always -- one Qt, one nixpkgs, one protocol --
+# but it is a DOWNGRADE whenever the repo needs an input NEWER than the
+# workspace pin, and the failure is an eval error, not a version warning.
+get_manual_follows_suppress() {
+  case "$1" in
+    # logos-package-downloader >= 52d3da8 calls `logos-nix.lib.forAllTargets`,
+    # added in logos-nix 6e0f4a7 (2026-08-10, the Windows cross overlay).  The
+    # workspace pins logos-nix at e637a1f (2026-03-25), so following it here
+    # fails at EVAL with `attribute 'forAllTargets' missing` -- the whole
+    # workspace flake stops resolving, not just this input.
+    #
+    # Suppressed rather than fixed by bumping the workspace's logos-nix,
+    # because that pin is shared by every repo in the tree and moving it onto
+    # the Windows-capable overlay changes eval for all of them.  lgpd keeps
+    # `nixpkgs.follows`, so only logos-nix's own helper lib diverges -- build
+    # infrastructure, not a runtime library.  Verified by building
+    # `#logos-package-downloader-module--lib` through this flake: it carries
+    # PackageDownloaderLib::signerPinMatches, the symbol the fix adds.  (It is
+    # NOT byte-identical to the standalone module build -- the workspace pins
+    # its own nixpkgs, so the toolchain differs.  Same source, different
+    # closure.)
+    #
+    # Drop this entry once the workspace's logos-nix is >= 6e0f4a7.
+    logos-package-downloader)
+      printf 'logos-nix\n' ;;
+  esac
+}
+
 # ── Workspace-level URL overrides for a downstream repo's TRANSITIVE inputs.
 # Unlike follows (which retarget a transitive input to a workspace input),
 # these pin a transitive input to an explicit flake ref.  Use when upstream
@@ -2669,6 +2701,25 @@ HEADER
         esac
       done <<< "$manual_follows"
       follows_pairs="$merged"
+    fi
+
+    # ── Apply workspace-level follows suppressions ───────────────────────
+    local suppress
+    suppress=$(get_manual_follows_suppress "$input_name")
+    if [[ -n "$suppress" && -n "$follows_pairs" ]]; then
+      local kept=""
+      while IFS=$'\t' read -r f_iname f_target; do
+        [[ -z "$f_iname" ]] && continue
+        local drop=""
+        while IFS= read -r s_iname; do
+          [[ -z "$s_iname" ]] && continue
+          [[ "$s_iname" == "$f_iname" ]] && drop=1
+        done <<< "$suppress"
+        [[ -n "$drop" ]] && continue
+        kept+="${f_iname}	${f_target}
+"
+      done <<< "$follows_pairs"
+      follows_pairs="$kept"
     fi
 
     # Sort follows pairs alphabetically by input name for deterministic output
