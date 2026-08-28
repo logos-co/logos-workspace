@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Execution Report</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --pass: #2ea043; --fail: #f85149; --info: #d29922;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .pill.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .pill.skip { background: rgba(210,153,34,.15); color: var(--info); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+  main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .tutorial-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; color: #fff; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden;
+  }
+  .row.preamble, .row.section { grid-template-columns: 1fr; }
+  .col { padding: 14px 18px; min-width: 0; }
+  .col.left { border-right: 1px solid var(--border); }
+  .row.preamble .col.left, .row.section .col.left { border-right: none; }
+  .col.right { background: var(--panel); }
+  /* A row containing any failed step is tinted red end-to-end so it's
+     impossible to miss when scanning the report. */
+  .row.has-fail { border-color: var(--fail); box-shadow: 0 0 0 1px var(--fail); }
+  .row.has-fail .col.left { background: rgba(248,81,73,.07); border-right-color: var(--fail); }
+  .row.has-fail .col.right { background: rgba(248,81,73,.12); }
+  .col-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .md :first-child { margin-top: 0; }
+  .md h1 { font-size: 22px; } .md h2 { font-size: 18px; } .md h3 { font-size: 15px; }
+  .md pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .md :not(pre) > code { background: rgba(110,118,129,.2); padding: .15em .4em; border-radius: 4px; }
+  .md table { border-collapse: collapse; margin: 8px 0; }
+  .md th, .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .md blockquote { border-left: 3px solid var(--border); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+  .md img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .exec { margin-bottom: 14px; }
+  .exec:last-child { margin-bottom: 0; }
+  .exec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+  .badge.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .badge.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .badge.info { background: rgba(210,153,34,.15); color: var(--info); }
+  .kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  pre.cmd { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 0 0 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.output { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; max-height: 360px; overflow-y: auto; color: #b9c1ca; }
+  pre.cmd, pre.output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
+  .empty { color: var(--muted); font-style: italic; font-size: 12.5px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 4px; }
+  /* GitHub-style permalinks: every heading carries a link icon in the left
+     gutter (revealed on hover/focus) that copies a deep link to that section.
+     scroll-margin-top keeps the target clear of the sticky header. */
+  .heading-anchored { position: relative; scroll-margin-top: 76px; }
+  a.anchor {
+    position: absolute; left: -18px; top: 0; width: 16px; height: 1.55em;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); opacity: 0; text-decoration: none;
+    transition: opacity .1s ease-in;
+  }
+  a.anchor svg { width: 14px; height: 14px; display: block; }
+  .heading-anchored:hover > a.anchor, a.anchor:focus { opacity: 1; }
+  a.anchor:hover { color: var(--accent); }
+  .heading-anchored.flash { animation: flash 1.4s ease-out; border-radius: 4px; }
+  @keyframes flash {
+    from { background: rgba(88,166,255,.28); box-shadow: 0 0 0 4px rgba(88,166,255,.28); }
+    to { background: transparent; box-shadow: 0 0 0 4px transparent; }
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 14px; font-size: 12.5px; z-index: 20;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease-in-out;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial Execution Report</h1>
+  <span id="summary"></span>
+  <label style="margin-left:auto; font-size:12px; color:var(--muted)">Tutorial
+    <select id="picker"></select>
+  </label>
+</header>
+<main id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="report-data" type="application/json">{"generated_platform": "Darwin", "summary": {"failed": 1, "passed": 1, "skipped": 0}, "tutorials": [{"meta": {"name": "Tutorial: The Logos Chat UI", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"execs": [], "md": "# Tutorial: The Logos Chat UI\n\n`chat_ui` is a Logos **UI module**: a QML view backed by a small C++ class\n(the *universal* typed-backend authoring model) that drives the Rust\n`chat_module` \u2014 end-to-end-encrypted conversations carried over\n`delivery_module`. You write a `.rep` view contract and a `*Backend` deriving\n`LogosUiPluginContext`; the plugin glue, the typed `modules().chat_module`\ncaller, and the QtRO wiring are generated.\n\nThis tour builds the app, watches it connect to the network, and shares your\naddress (what a peer needs to start a conversation with you).\n\n> **The two-party exchange has its own tutorial.** A message exchange is\n> inherently two-party, so it gets its own walkthrough \u2014 *Run the automated\n> message-exchange test* \u2014 which drives the real round-trip between two windows\n> and shows the result, with the step-by-step flow in\n> [docs/two-instance-exchange.md](../docs/two-instance-exchange.md). This\n> tutorial covers everything a single window shows: connecting, and sharing\n> your own address.\n\n**What you'll build:** A running Logos chat app, connected to the network and sharing your address from the GUI.\n\n**What you'll learn:**\n\n- How a `type: ui_qml`, `interface: universal` module is built and run\n- The connection lifecycle: init is non-blocking and the UI goes Online when delivery connects\n- Sharing your address \u2014 what a peer needs to open an encrypted conversation with you\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\n- **A Linux or macOS machine.** Nix provides every toolchain (Qt, CMake, Rust) during the builds.\n- **Network access.** The two delivery nodes discover each other over the configured network preset; an isolated sandbox won't complete the exchange."}, {"execs": [], "md": "## Step 1: Build the chat UI\n\nThe module builds with the standard `mkLogosQmlModule` flake output \u2014\n`chat_ui_plugin.so` (the C++ backend + generated glue) and\n`chat_ui_replica_factory.so` (the QtRO replica for the QML view)."}, {"execs": [{"cmd": "nix build 'github:logos-co/logos-chat-ui/64a090657e3379fcefab77bca870fbe4ce39a23a' -o result --override-input chat_module github:logos-co/logos-chat-module/a05d5119f71347979a012e2d998d5d6350b31847", "exit_code": 0, "kind": "run", "note": "", "output": "warning: ignoring untrusted flake configuration setting 'extra-substituters'.\nPass '--accept-flake-config' to trust it\nwarning: ignoring untrusted flake configuration setting 'extra-trusted-public-keys'.\nPass '--accept-flake-config' to trust it\nunpacking 'github:logos-co/logos-chat-module/a05d5119f71347979a012e2d998d5d6350b31847' into the Git cache...\nunpacking 'github:logos-co/logos-module-builder/2b59cb8e855894f7e7a064b15bfae409f288080b?narHash=sha256-7JFJQrUqy/uKiVKmYiiMUSSwDIrBZQEmN1x5R2JsmdA%3D' into the Git cache...\nunpacking 'github:logos-co/logos-cpp-sdk/2e31eeb1ac2c55245fbaa3030ff0a164fb68dd06?narHash=sha256-sFFXe4cprvrynEyfMi4TDLJPtDkd069YpwByhC3YbD8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-lidl/8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8?narHash=sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I%3D' into the Git cache...\nunpacking 'github:logos-co/logos-design-system/73e482bbfe9b946d19d7a70d7b80e6f94a588889?narHash=sha256-wMcOKRjx1u9WiSa31eR1Bm6O2zturwCvHLMpDGe7VDc%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/2ec64c4a65f8966b5137cdba3a19a6498ce17b6d?narHash=sha256-oYE7sMr7PS%2BkDoX//Cx90HmRiRHBnHONx6r4Ekkc7DI%3D' into the Git cache...\nunpacking 'github:logos-co/logos-plugin-qt/f33f264abb6d628cc78cf926f9f33c7cc8252151?narHash=sha256-C6SXkO2efD7rNK5iIbxqLZKtOOsUVSNxw2m3DVEhijE%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/194778491ef4dd36967ac40cc2fec6b8a8b1d660?narHash=sha256-ehePoUEd/u3Ng0TvCmjocXYJWWH6P61PA7tNpgV59lo%3D' into the Git cache...\nunpacking 'github:logos-co/logos-protocol/ae2f7e1b5842d62836091c6dc0c903508806456e?narHash=sha256-cp5Un0NBXwNoK/%2BatBLMl4NwCfDXzy0KMpyUOtK6pcc%3D' into the Git cache...\nunpacking 'github:logos-co/logos-qt-sdk/92bd4491041485efda6e1a2061629ea438af07ab?narHash=sha256-SozQr27TzKAk0WxNiXHC/CvXkuB2ovu81/VLsiDhvUg%3D' into the Git cache...\nunpacking 'github:logos-co/logos-rust-sdk/a55fdac1a202ff2a4cf9d562a263ab41db17d99f?narHash=sha256-hCrpy8F13nJuARMNP2ydqgJ0/GpGEc/A8oJYykcC3ek%3D' into the Git cache...\nunpacking 'github:logos-co/logos-standalone-app/e4eb3c00d2f1512c9043c88bd5f38dafd0f51b41?narHash=sha256-nc%2BICu6O9s8B9tA3OKyUI45j5Ro%2BKMPDFrRz04DD3%2BM%3D' into the Git cache...\nunpacking 'github:logos-co/logos-cpp-sdk/8a40a9832251840d96e121abdc9e6bd760bc5afd?narHash=sha256-7FRDx7SptIKxgj5ha39FfZ1DzOb43xabTZG/zXibJKw%3D' into the Git cache...\nunpacking 'github:logos-co/logos-liblogos/4ef9736a1e6a8c05de53fa13d9acf5f4d4570833?narHash=sha256-eRRAXlWcZs4gpK3Nny2CtvpD04bDE8OxA4baMZxhwBk%3D' into the Git cache...\nunpacking 'github:logos-co/logos-container-subprocess/f4860708a982b361a2e25c5260e13800bcee126e?narHash=sha256-PP/2tFfwrbqTzbZKVl46I96xz/ZZj7hi9C3/QeLHtQE%3D' into the Git cache...\nunpacking 'github:logos-co/logos-container/15adc74f829f0cc662bce4f0bfae917cd50e7db4?narHash=sha256-RJjquPiZz3/LkJaFUGpDxFbt1%2BpaBiVtbbxjVhDMR3o%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module-loader-qt/bc46dbfc5e2fbbe259fbd30982bf563a772b918b?narHash=sha256-0QVyGF6cpDz8RLozz1qypS7a/k0w6yBs9zGlkZMxZe4%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/a3e288a71d6f79445db598b0ffcca2ee435596b9?narHash=sha256-Ym3i52f5MWuZy8Qas3%2Bzfoxz%2BmxQUsyW%2BQol1no6kDs%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module-loader/7ed7a5a97e1ad9142187d755c4ce56ed17d69f18?narHash=sha256-v1eIGPXTnW0oCwEvEjEoBLeoidUh3ZomDGQY9m/ucNw%3D' into the Git cache...\nunpacking 'github:logos-co/logos-cpp-sdk/5f63af681ac4805d059332b63e6191c4a8e2820d?narHash=sha256-z8NPSvBNM7AxcNTqTc/DdvFAXLeHiZ12enSgjh3qU40%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/9fb81c52289ced9241e707c041f6bb2e96d66a64?narHash=sha256-1MEdhIIcg4LuMmigdbHhiIrl6qc9vjiMd9vdyBUt7/w%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package-manager/4871ed198d6e35f198af15c93afd184aa36788e0?narHash=sha256-65w2mEijAjUPVntS3kUKZygjRkZoj7dgCYtk8lD5jL8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/c207525d30f48620696668c38486884bad5384bc?narHash=sha256-Z5XUSB9wfdrmQhG/0fehJeBd9CjrlIEeO%2BmKDhE46H4%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-appimage/2428125a4a1b34ad9119efa97edb98676283e3da?narHash=sha256-S8IMfdDc%2B2Wwri0krLDsIUwSqmwanmvHAJWHOFo8ykk%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-dir/3d155cab09051703a0b02ff2de166a53c30cbca8?narHash=sha256-HrVJguPxhIoZMCH%2Bx8Wooa0tE6slUhgNOU6P89t2uQc%3D' into the Git cache...\nunpacking 'github:logos-co/logos-protocol/4ee85b26a65e331821823f6435135c088a1bf447?narHash=sha256-i5ynBtNk6Qe%2BYSHsa%2BO8DjnLpHXDVqyLGPxBAImipD8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-qt-sdk/af767b7ea7e083d7a67c712826fb71926e5393e0?narHash=sha256-Wp6Gmsk%2BGlpwrR1giqPvpkJqBaBsEKJ%2BpkmbziTD6kQ%3D' into the Git cache...\nunpacking 'github:logos-co/process-stats/33ace1270f90c89b3565e803139c0970fcd1ce8f?narHash=sha256-hTVAnDREBQOVHML6KU3K7Ge0CRBqnFIg7uYL7qDnD8o%3D' into the Git cache...\nunpacking 'github:logos-co/logos-qt-mcp/1fea509485a48ab185fafae8dc21bdbcc808a07e?narHash=sha256-dNZsL%2BqE%2BNFCHlpgUzlhbmXu13goEwgdJGbEbw5uOEM%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-lgx/b49074a8e1157832002b11d3d254c1aaa4b96680?narHash=sha256-zl9odZ1Tq7QBAYJVrXiLSC47FVYra3kIakb/TeGPoZI%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/ab885df3641e9adb61ff16e42d3e6f63b24db8f6?narHash=sha256-ZHh%2BkrtTbn6Qt7Hm3%2BshrhAAGCFa7FXt8ajYqx%2BNt1o%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-dir/4937262f55cf8be942263255dd0801e3e3878bc9?narHash=sha256-lQ/tc/owFa7Yjh8MXe0Fn2GodQXVGmpOZwe5gBEcENA%3D' into the Git cache...\nunpacking 'github:logos-co/logos-test-framework/eb1600cc6f61b66f6d75edd4773a58f0d1fa1ca4?narHash=sha256-1evVFg5awWJoxuLvtloKcRpbtGF%2Bgbg5Y/nQVYqqvDo%3D' into the Git cache...\nunpacking 'github:logos-co/logos-view-module-runtime/049978f144aa53d8b98ea2c0b164b0554c88c856?narHash=sha256-EaIDz65Xs1eRc%2Bqre0pWJh%2B53vFt2vqFqLYUhj2ixk8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-cpp-sdk/350a2891e60a40aba93f273d85e8accb4803ac29?narHash=sha256-Cfu9C6wMubyWTDLEh738rfCt3CuI91BZNWLj2GfTXAY%3D' into the Git cache...\nunpacking 'github:logos-co/logos-protocol/d5d58e7e230768505c683150f651358612abd442?narHash=sha256-IRHFIBa/%2Ba10tVNEexm6DDZ0JPF8YQgUbxWoNwIytt4%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-logos-module-install/55de9a6fce755387224ececd0493f46b028ee0a3?narHash=sha256-v5A%2Be%2B1Sk1BXbOkaPkc9Pc2BOozCN1cH4onkcV/jnUQ%3D' into the Git cache...\nwarning: not writing modified lock file of flake 'github:logos-co/logos-chat-ui/64a090657e3379fcefab77bca870fbe4ce39a23a':\n\u2022 Updated input 'chat_module':\n    'github:logos-co/logos-chat-module/dfe8ccf' (2026-08-04)\n  \u2192 'github:logos-co/logos-chat-module/a05d511' (2026-08-08)\ncopying path '/nix/store/jc3mfa7ybzh32bkvdj5xiib1vkx8jy6x-source' from 'https://cache.nixos.org'...\nthese 46 paths will be fetched (55.7 MiB download, 382.2 MiB unpacked):\n  /nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3\n  /nix/store/i0fy7kjl7pn4rbk67cvi1hf332yxydlz-boost-1.87.0\n  /nix/store/vs6s6pyvplqfydn5nc5bc65vk4kl2bam-brotli-1.1.0-lib\n  /nix/store/7q428fv2c4hy8qi1sj6n1djgrpc0i5ls-bzip2-1.0.8\n  /nix/store/kbq0liixw7m2zwq26sdav41m4blaxdwy-cups-2.4.12-lib\n  /nix/store/h02zsqlr12xcvvxqm5pfzs7v7pr23zxv-dns-root-data-2025-04-14\n  /nix/store/ryagpsd3yniv3gbsciwykwv6a2lv14l4-double-conversion-3.3.1\n  /nix/store/fq5vfwngsda7wnc0qfvnb73wx1zw75h6-freetype-2.13.3\n  /nix/store/cwdz2vy0kkc17aw2s1b3sw7wspy8rs7j-gettext-0.25.1\n  /nix/store/kqldrch5kkd3gli81iyqga4b5xahwayc-glib-2.84.4\n  /nix/store/fs5knwhd8fhm7gjj5wq39j5sc5rr15fv-gmp-with-cxx-6.3.0\n  /nix/store/8xb4mk3i9hzhdjr7wb8dgpz6pin42afx-gnutls-3.8.10\n  /nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1\n  /nix/store/2m9qm23q9pw260raj6gpgbmkabcly0lr-krb5-1.22.1-lib\n  /nix/store/gl76ki4d1zbdr2b0q4rm3r3milypy7vx-libb2-0.98.1\n  /nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7\n  /nix/store/2a46a4y1gzassmm0498ybdhj7i0fkvd9-libevent-2.1.12\n  /nix/store/vzzkad9sba320sc46r3bfadxf1z1cg7c-libffi-39\n  /nix/store/kd3szgd2rwcysjr9qp1wcv7fz8z6n20n-libiconv-1.17\n  /nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109\n  /nix/store/dlzsiqfwvwz13x3ql8zjjgz16ribdfg1-libidn2-2.3.8\n  /nix/store/1hzi3q31h7jr4wlpm8w91h4s90paj2wx-libjpeg-turbo-3.1.1\n  /nix/store/3phm5w9qv904sk76q4srxml0b8dc8iqp-libpng-apng-1.6.49\n  /nix/store/nq1slnkngwk353qfcfmglw0y8xxs677d-libpq-17.6\n  /nix/store/xbpw0yw65al9vrnskqw9zycxlw0r2h1c-libresolv-83\n  /nix/store/287gda10k7lpgij3qjk2rs9k7ridfqzs-libtasn1-4.20.0\n  /nix/store/bb660sql9f5ix965g8bwdqarar11v5xc-libunistring-1.3\n  /nix/store/d7f41cas0kczsdys7iwxhg9fimmihim8-libxml2-2.14.5\n  /nix/store/y4f1ci4wah4vgska0kk04qj7x176rj9v-logos-chat_ui-module\n  /nix/store/cb4hvwbjrf7q8rq8lfk9gm33f5lx3s68-md4c-0.5.2-lib\n  /nix/store/9saar1bhdgvvp0vxk46mzwzpm7vas91v-nettle-3.10.2\n  /nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1\n  /nix/store/0c5s1gnq8mr276cb8pk6n4n09q7h5fvn-p11-kit-0.25.5\n  /nix/store/9akz133p77hk9dn1q5j66pg5vnz0hj2k-pcre2-10.44\n  /nix/store/a9aq909fc6ymnawnk877qcs4gklzm1c1-qtbase-6.9.2\n  /nix/store/fn7iqppsl6z7ikbspxnjirwdz345w8mj-qtdeclarative-6.9.2\n  /nix/store/a0z4ipq0hcakknsi5f1icgpdmch3simf-qtremoteobjects-6.9.2\n  /nix/store/6mjqccb1hfr5mffqz80icfvh8w0lvqmf-qtsvg-6.9.2\n  /nix/store/zl2xd67ccxzn1mkhlxql04qjgs7y4274-qttranslations-6.9.2\n  /nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2\n  /nix/store/pzhlz6i8jzjk8fibz51jq9k4bnl0jlpc-unbound-1.23.1-lib\n  /nix/store/czicqca5jsi2qq2lah11h1p4abrrga8r-unixODBC-2.3.12\n  /nix/store/yj80w3ph1aj452z6bvc4gld85a1393aj-xcbuild-0.1.1-unstable-2019-11-20\n  /nix/store/5bqq0ws6akawcx31shp9bl2v1b2jdchv-xz-5.8.1\n  /nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1\n  /nix/store/lik04w1qipzcdpzclr8z44bzm9xfmvii-zstd-1.5.7\ncopying path '/nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7q428fv2c4hy8qi1sj6n1djgrpc0i5ls-bzip2-1.0.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gl76ki4d1zbdr2b0q4rm3r3milypy7vx-libb2-0.98.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1hzi3q31h7jr4wlpm8w91h4s90paj2wx-libjpeg-turbo-3.1.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xbpw0yw65al9vrnskqw9zycxlw0r2h1c-libresolv-83' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vs6s6pyvplqfydn5nc5bc65vk4kl2bam-brotli-1.1.0-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cb4hvwbjrf7q8rq8lfk9gm33f5lx3s68-md4c-0.5.2-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9akz133p77hk9dn1q5j66pg5vnz0hj2k-pcre2-10.44' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vzzkad9sba320sc46r3bfadxf1z1cg7c-libffi-39' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zl2xd67ccxzn1mkhlxql04qjgs7y4274-qttranslations-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5bqq0ws6akawcx31shp9bl2v1b2jdchv-xz-5.8.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/h02zsqlr12xcvvxqm5pfzs7v7pr23zxv-dns-root-data-2025-04-14' from 'https://cache.nixos.org'...\ncopying path '/nix/store/287gda10k7lpgij3qjk2rs9k7ridfqzs-libtasn1-4.20.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2a46a4y1gzassmm0498ybdhj7i0fkvd9-libevent-2.1.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kd3szgd2rwcysjr9qp1wcv7fz8z6n20n-libiconv-1.17' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3phm5w9qv904sk76q4srxml0b8dc8iqp-libpng-apng-1.6.49' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fq5vfwngsda7wnc0qfvnb73wx1zw75h6-freetype-2.13.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/bb660sql9f5ix965g8bwdqarar11v5xc-libunistring-1.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fs5knwhd8fhm7gjj5wq39j5sc5rr15fv-gmp-with-cxx-6.3.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ryagpsd3yniv3gbsciwykwv6a2lv14l4-double-conversion-3.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lik04w1qipzcdpzclr8z44bzm9xfmvii-zstd-1.5.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9saar1bhdgvvp0vxk46mzwzpm7vas91v-nettle-3.10.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dlzsiqfwvwz13x3ql8zjjgz16ribdfg1-libidn2-2.3.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2m9qm23q9pw260raj6gpgbmkabcly0lr-krb5-1.22.1-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pzhlz6i8jzjk8fibz51jq9k4bnl0jlpc-unbound-1.23.1-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nq1slnkngwk353qfcfmglw0y8xxs677d-libpq-17.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/i0fy7kjl7pn4rbk67cvi1hf332yxydlz-boost-1.87.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cwdz2vy0kkc17aw2s1b3sw7wspy8rs7j-gettext-0.25.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d7f41cas0kczsdys7iwxhg9fimmihim8-libxml2-2.14.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/czicqca5jsi2qq2lah11h1p4abrrga8r-unixODBC-2.3.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yj80w3ph1aj452z6bvc4gld85a1393aj-xcbuild-0.1.1-unstable-2019-11-20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kqldrch5kkd3gli81iyqga4b5xahwayc-glib-2.84.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0c5s1gnq8mr276cb8pk6n4n09q7h5fvn-p11-kit-0.25.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8xb4mk3i9hzhdjr7wb8dgpz6pin42afx-gnutls-3.8.10' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kbq0liixw7m2zwq26sdav41m4blaxdwy-cups-2.4.12-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a9aq909fc6ymnawnk877qcs4gklzm1c1-qtbase-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/6mjqccb1hfr5mffqz80icfvh8w0lvqmf-qtsvg-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fn7iqppsl6z7ikbspxnjirwdz345w8mj-qtdeclarative-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a0z4ipq0hcakknsi5f1icgpdmch3simf-qtremoteobjects-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/y4f1ci4wah4vgska0kk04qj7x176rj9v-logos-chat_ui-module' from 'https://logos-co.cachix.org'...\n", "status": "pass"}], "md": "### 1.1 Build the plugin\n\n```bash\nnix build 'github:logos-co/logos-chat-ui'\n```\n\nThe build runs the universal UI codegen (`logos-qt-generator --backend\nui`) over `src/ChatBackend.rep`, compiles `ChatBackend` (which derives\n`ChatBackendSimpleSource` + `LogosUiPluginContext`), and emits the\n`chat_ui_plugin` / replica-factory glue around it."}, {"execs": [], "md": "## What the chat UI does\n\nThe window is a two-pane messenger:\n\n- **Left:** your conversations, under a **New chat** button (start a\n  direct message from someone's address, or a group), with your own\n  account card at the foot: its short form, the delivery state\n  (`Stopped` \u2192 `Initialising...` \u2192 `Online`), and your address with a\n  copy button beside it.\n- **Right:** the message thread for the selected conversation, under a\n  header carrying its avatar, its description and who is in it, and a\n  composer with the send action at its end.\n\nUnder the hood the backend calls `modules().chat_module` \u2014 typed methods\n(`init`, `get_address`, `create_conversation`, `send_message`, \u2026)\nand string-keyed event subscriptions (`message_received`,\n`delivery_state_changed`, \u2026) that push updates into the view with no\npolling. `init` kicks off the delivery node asynchronously and returns\nimmediately; the UI flips to **Online** when the\n`delivery_state_changed` event reports the network is up."}, {"execs": [], "md": "## Step 2: Launch and connect, then share your address\n\nRun the app headless (offscreen Qt) and drive it: wait for the network to\ncome up, then copy your address \u2014 the everything-a-single-window-shows\nhalf of the tour."}, {"execs": [{"cmd": "nix run 'github:logos-co/logos-chat-ui/64a090657e3379fcefab77bca870fbe4ce39a23a' --override-input chat_module github:logos-co/logos-chat-module/a05d5119f71347979a012e2d998d5d6350b31847\n\n# test actions:\n- Window opens: wait for ['New chat']\n- Network connects: wait for ['Online']\n- Copy your address: click objectName='copyMyAddressButton'\n- Copied confirmation: wait for ['Copied to clipboard']", "kind": "ui_test", "note": "UI tests failed", "output": "\nRunning 1 test(s)...\n\n  \u001b[31m\u2717\u001b[0m Tutorial: The Logos Chat UI: Drive the app\n    Expected texts not found: [\"New chat\"]\n\n0 passed, 1 failed\n\n\n\n--- app log ---\nical] [logos] [chat_module] FATAL: module 'chat_module' crashed (signal 11). Backtrace (raw addresses; decode with atos/addr2line):\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x104bf4ee8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x18aae7744\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x1052541e0\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105278174\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105f13e9c\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105f13e9c\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105f13ee8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x1055c08d4\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x1055cb2fc\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105eb74e8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105eb7be8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x1060736d8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x106074100\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105ec2dac\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x105eb77e4\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x104bf53b8\n[2026-08-28 05:06:05.435] [info] [logos] [chat_module]   0x18a71fe00\n[2026-08-28 05:06:05.435] [critical] [logos] [chat_module] FATAL: end backtrace\n[2026-08-28 05:06:05.436] [critical] [logos] Module process crashed: chat_module\n[QmlInspector] Client disconnected", "status": "fail"}], "md": "### 2.1 Drive the app\n\n```bash\nnix run 'github:logos-co/logos-chat-ui/64a090657e3379fcefab77bca870fbe4ce39a23a'\n```\n\nThe chat window opens; the account card starts at **Stopped** while delivery boots.\n\n`init` returned right away and the delivery node bootstrapped in\nthe background. When it connects, the `delivery_state_changed`\nevent lands and the state flips to **Online** \u2014 **New chat**\nenables and the backend reads `get_address()` onto the account\ncard. That address is what a peer needs to open a conversation\nwith you; your key package was published to the registry during\n`init`, so the address alone is enough.\n\n![Network connects](images/connected.png)\n\nCopied \u2014 you'd send this to whoever you want to chat with."}]}], "version": 1}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  if (window.marked) { marked.setOptions({ gfm: true, breaks: false }); }
+  const mdToHtml = (s) => window.marked ? marked.parse(s || "") : ("<pre>" + (s || "") + "</pre>");
+
+  const sum = DATA.summary;
+  document.getElementById("summary").innerHTML =
+    `<span class="pill pass">${sum.passed} passed</span> ` +
+    (sum.failed ? `<span class="pill fail">${sum.failed} failed</span> ` : "") +
+    (sum.skipped ? `<span class="pill skip">${sum.skipped} skipped</span>` : "");
+
+  const picker = document.getElementById("picker");
+  DATA.tutorials.forEach((t, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = t.meta.name; picker.appendChild(o);
+  });
+
+  function execHtml(e) {
+    const badge = `<span class="badge ${e.status}">${e.status.toUpperCase()}</span>`;
+    const kind = `<span class="kind">${e.kind}${e.platform ? " · " + e.platform : ""}${e.exit_code !== undefined ? " · exit " + e.exit_code : ""}</span>`;
+    let h = `<div class="exec"><div class="exec-head">${badge}${kind}</div>`;
+    if (e.note) h += `<div class="note">${escapeHtml(e.note)}</div>`;
+    if (e.cmd) h += `<pre class="cmd">${escapeHtml(e.cmd)}</pre>`;
+    const out = (e.output || "").trim();
+    if (out) {
+      const long = out.split("\n").length > 12;
+      if (long) {
+        h += `<details><summary>output (${out.split("\n").length} lines)</summary><pre class="output">${escapeHtml(out)}</pre></details>`;
+      } else {
+        h += `<pre class="output">${escapeHtml(out)}</pre>`;
+      }
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  function render(idx) {
+    const t = DATA.tutorials[idx];
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const h = document.createElement("div");
+    h.className = "tutorial-title";
+    h.textContent = t.meta.name + "  —  " + t.meta.platform;
+    main.appendChild(h);
+
+    t.rows.forEach(row => {
+      const isStructural = row.execs.length === 0 &&
+        (/^#\s|^##\s/.test(row.md.trim()));
+      const div = document.createElement("div");
+      const hasExec = row.execs.length > 0;
+      const hasFail = row.execs.some(e => e.status === "fail");
+      div.className = "row" + (hasExec ? "" : (isStructural ? " section" : " preamble")) +
+        (hasFail ? " has-fail" : "");
+
+      const left = document.createElement("div");
+      left.className = "col left";
+      left.innerHTML = `<div class="md">${mdToHtml(row.md)}</div>`;
+      div.appendChild(left);
+
+      if (hasExec || !isStructural) {
+        const right = document.createElement("div");
+        right.className = "col right";
+        if (hasExec) {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            row.execs.map(execHtml).join("");
+        } else {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            `<div class="empty">No commands run for this step.</div>`;
+        }
+        div.appendChild(right);
+      }
+      main.appendChild(div);
+    });
+
+    addAnchors(main, slug(t.meta.name));
+  }
+
+  function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  // Octicon "link" — the same glyph GitHub puts next to markdown headings.
+  const LINK_ICON =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d=' +
+    '"M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 ' +
+    '.75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 ' +
+    '9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 ' +
+    '2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"></path></svg>';
+
+  // Give every heading a stable slug id (deduplicated the way GitHub does, with
+  // -1/-2 suffixes) and a permalink whose href is "#<tutorial>/<heading>".
+  function addAnchors(container, tutSlug) {
+    const used = new Map();
+    const nodes = container.querySelectorAll(
+      ".tutorial-title, .md h1, .md h2, .md h3, .md h4, .md h5, .md h6"
+    );
+    nodes.forEach(node => {
+      const text = node.textContent.trim();
+      const isTitle = node.classList.contains("tutorial-title");
+      let href = "#" + tutSlug;
+      if (!isTitle) {
+        const base = slug(text) || "section";
+        const n = (used.get(base) || 0) + 1;
+        used.set(base, n);
+        node.id = n > 1 ? base + "-" + n : base;
+        href += "/" + node.id;
+      }
+      node.classList.add("heading-anchored");
+      const a = document.createElement("a");
+      a.className = "anchor";
+      a.href = href;
+      a.title = "Copy link to this section";
+      a.setAttribute("aria-label", "Permalink: " + text);
+      a.innerHTML = LINK_ICON;
+      node.insertBefore(a, node.firstChild);
+    });
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+  }
+
+  // navigator.clipboard needs a secure context; reports are often opened over
+  // file://, so fall back to the old execCommand path there.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(
+        () => toast("Link copied"),
+        () => toast(text)
+      );
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    toast(ok ? "Link copied" : text);
+  }
+
+  function scrollToId(id) {
+    if (!id) { window.scrollTo(0, 0); return; }
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    el.classList.remove("flash");
+    void el.offsetWidth;  // restart the animation on a repeat click
+    el.classList.add("flash");
+  }
+
+  document.addEventListener("click", ev => {
+    const a = ev.target.closest && ev.target.closest("a.anchor");
+    if (!a) return;
+    ev.preventDefault();
+    const href = a.getAttribute("href");
+    copyText(location.href.split("#")[0] + href);
+    if (location.hash === href) scrollToId(a.parentNode.id);
+    else location.hash = href;  // hashchange scrolls
+  });
+
+  // "#<tutorial>" (name, slug, or index) optionally followed by "/<heading>".
+  function parseHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (!raw) return { idx: 0, frag: "" };
+    const cut = raw.indexOf("/");
+    const tut = cut >= 0 ? raw.slice(0, cut) : raw;
+    const frag = cut >= 0 ? raw.slice(cut + 1) : "";
+    if (/^\d+$/.test(tut) && +tut < DATA.tutorials.length) return { idx: +tut, frag };
+    const i = DATA.tutorials.findIndex(
+      t => slug(t.meta.name) === tut || t.meta.name === tut
+    );
+    if (i >= 0) return { idx: i, frag };
+    // No tutorial matched: treat a bare hash as a heading in the current one.
+    return { idx: currentIdx >= 0 ? currentIdx : 0, frag: cut >= 0 ? frag : raw };
+  }
+
+  let currentIdx = -1;
+  function show(idx, frag) {
+    if (idx !== currentIdx) {
+      picker.value = idx;
+      render(idx);
+      currentIdx = idx;
+    }
+    if (frag) requestAnimationFrame(() => scrollToId(frag));
+  }
+  picker.addEventListener("change", () => {
+    location.hash = slug(DATA.tutorials[+picker.value].meta.name);
+    show(+picker.value);
+  });
+  window.addEventListener("hashchange", () => {
+    const h = parseHash();
+    show(h.idx, h.frag);
+  });
+  const initial = parseHash();
+  show(initial.idx, initial.frag);
+  // Inlined screenshots have no intrinsic size until decoded, so the first
+  // scroll can land short; re-anchor once everything has loaded.
+  if (initial.frag) {
+    window.addEventListener("load", () => scrollToId(initial.frag), { once: true });
+  }
+</script>
+</body>
+</html>
