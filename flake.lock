@@ -776,17 +776,17 @@
         "nixpkgs": "nixpkgs_813"
       },
       "locked": {
-        "lastModified": 1782408105,
-        "narHash": "sha256-8x7ZG0hd29de47hNMaX4eP23gvbMdjD3hhW+nk5RyoM=",
+        "lastModified": 1786437902,
+        "narHash": "sha256-35Td/Bm/giVudIJPxPkT1fqqa/HrMd5HsrmvZAMHvbM=",
         "owner": "vacp2p",
         "repo": "nim-libp2p",
-        "rev": "7c73484cc0c57a5f649dd3d277cef1c7c4de28f0",
+        "rev": "01068c839e3ce4f04cd5307478e50c6816ba472c",
         "type": "github"
       },
       "original": {
         "owner": "vacp2p",
         "repo": "nim-libp2p",
-        "rev": "7c73484cc0c57a5f649dd3d277cef1c7c4de28f0",
+        "rev": "01068c839e3ce4f04cd5307478e50c6816ba472c",
         "type": "github"
       }
     },
@@ -16090,17 +16090,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1785174829,
-        "narHash": "sha256-Zaxcf9rqUnBODxXXIR0Mrw8S7oaqgrndTLE7UOjhVZk=",
+        "lastModified": 1786458410,
+        "narHash": "sha256-K41mxRFtq8oTT10sz5kb7626E3NPxRxmVV0sCrEINKc=",
         "owner": "logos-co",
         "repo": "logos-libp2p-module",
-        "rev": "7b4b776b26d96e2a0c794827c77bb6eb89da5100",
+        "rev": "1336d42d4c0a9417a9d3732a49ffa55f277a3407",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-libp2p-module",
-        "rev": "7b4b776b26d96e2a0c794827c77bb6eb89da5100",
+        "rev": "1336d42d4c0a9417a9d3732a49ffa55f277a3407",
         "type": "github"
       }
     },
@@ -17532,11 +17532,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781653473,
-        "narHash": "sha256-8l2tE2K5nY1grcFROQHC1By1jVI0NrfkS3k2v2y6R2I=",
+        "lastModified": 1785470541,
+        "narHash": "sha256-5fVAbSGMRhEfRXfhaoq26LZeJuziRT/NMFsfhtd0ogA=",
         "owner": "logos-co",
         "repo": "logos-lidl",
-        "rev": "8c95d4f0cc6a10195c70ed71e85b7a4cddca02f8",
+        "rev": "35f33d87b7d6c22d9d4658c58855ae887ce515f1",
         "type": "github"
       },
       "original": {
@@ -88299,17 +88299,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1785068100,
-        "narHash": "sha256-hRZTE8uHaUfLTaFjbBRAIcYpmM7BuOqVHgG4nhBukY4=",
+        "lastModified": 1786136791,
+        "narHash": "sha256-eJ9BeWRg0Ou+EjE2L1N0PbTsDebCbBqJvJC8MJYgI38=",
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "be0dedad0fbef00c497e2e5e83ef03a000abcee6",
+        "rev": "0b4b8edd5127378b78890297f5fcec738b81f8e2",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-rust-sdk",
-        "rev": "be0dedad0fbef00c497e2e5e83ef03a000abcee6",
+        "rev": "0b4b8edd5127378b78890297f5fcec738b81f8e2",
         "type": "github"
       }
     },
@@ -92501,17 +92501,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1784655731,
-        "narHash": "sha256-8/UIF8wPJP7wJstq6vdrR6R3O0w6I8b/XKYkhDT8bqo=",
+        "lastModified": 1785471133,
+        "narHash": "sha256-jBaBpivDtlN4i760xS/ic3FDYcN0gCxRxsY6qPsBy1E=",
         "owner": "logos-co",
         "repo": "logos-test-modules",
-        "rev": "fb773a564d16d6a273871a8f0d118008b841a736",
+        "rev": "966323d1b35ab5a13fd3e7f7e6b50043096f334a",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-test-modules",
-        "rev": "fb773a564d16d6a273871a8f0d118008b841a736",
+        "rev": "966323d1b35ab5a13fd3e7f7e6b50043096f334a",
         "type": "github"
       }
     },
@@ -150198,11 +150198,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782225255,
-        "narHash": "sha256-pb7p1NFlne9I+oIUMbk9+MgvSl8lLMwCaNFMK8li5Hc=",
+        "lastModified": 1785068786,
+        "narHash": "sha256-U9YycqwZ2eft87A/3CV/DJ29A1CXk6R2nurPcRBn+GE=",
         "owner": "logos-co",
         "repo": "openmetrics-module",
-        "rev": "c50e9d39262a5fe17443a79a25f6437b19123416",
+        "rev": "f8da2a025cc2ff0ee2e284df5dc227fcfb0d6b68",
         "type": "github"
       },
       "original": {
