@@ -67455,17 +67455,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1789077039,
+        "lastModified": 1789077644,
         "narHash": "sha256-ROMJ9/nkkU3yNbMua/ebnJ46L3Lno3K71bEVkETH2Ls=",
         "owner": "logos-co",
         "repo": "logos-package-downloader-module",
-        "rev": "ab89cbce8ed900c4ffcc2858c4b355bfd0696c27",
+        "rev": "848e035fac35719ac751b869044ebb9043cfa379",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-package-downloader-module",
-        "rev": "ab89cbce8ed900c4ffcc2858c4b355bfd0696c27",
+        "rev": "848e035fac35719ac751b869044ebb9043cfa379",
         "type": "github"
       }
     },
