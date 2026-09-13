@@ -3,6 +3,7 @@ result-*
 .direnv/
 .dev-shell-cache/
 .build-stamps/
+repos/build/
 .dev-shell-cache/
 .dev-shell-cache/
 .dev-shell-cache/
