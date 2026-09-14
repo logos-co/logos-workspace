@@ -1252,8 +1252,13 @@ _test_one_repo() {
   outputs=$(_discover_test_outputs "$repo_path" "$system" "$override_flags")
 
   local checks_json test_pkgs_json
-  checks_json=$(echo "$outputs" | sed 's/.*"checks":\([^,}]*\).*/\1/')
-  test_pkgs_json=$(echo "$outputs" | sed 's/.*"testPkgs":\([^}]*\).*/\1/')
+  if command -v jq &>/dev/null; then
+    checks_json=$(echo "$outputs" | jq -c '.checks // []')
+    test_pkgs_json=$(echo "$outputs" | jq -c '.testPkgs // []')
+  else
+    checks_json=$(echo "$outputs" | sed 's/.*"checks":\(\[[^]]*\]\).*/\1/')
+    test_pkgs_json=$(echo "$outputs" | sed 's/.*"testPkgs":\(\[[^]]*\]\).*/\1/')
+  fi
 
   # Build the flake ref for checks and packages.
   # When overrides are active (--local, --auto-local, --workspace), build from the
@@ -2430,12 +2435,10 @@ get_manual_follows() {
 # per repo.  Emitted into the flake.nix input block after the follows lines.
 get_manual_url_overrides() {
   case "$1" in
-    # logos-libp2p-module pins its `libp2p` input to the upstream
-    # `feat/cbind/xpr-decode` branch, which was deleted — so re-locking it
-    # 422s on branch resolution.  Pin to the exact SHA that branch last pointed
-    # at (never merged to master) until the module pins the SHA itself.
+    # logos-libp2p-module tracks nim-libp2p `master`; pin the SHA its own
+    # flake.lock records at the workspace pin so a relock cannot float ahead.
     logos-libp2p-module)
-      printf 'libp2p\tgithub:vacp2p/nim-libp2p/7c73484cc0c57a5f649dd3d277cef1c7c4de28f0\n' ;;
+      printf 'libp2p\tgithub:vacp2p/nim-libp2p/01068c839e3ce4f04cd5307478e50c6816ba472c\n' ;;
   esac
 }
 
