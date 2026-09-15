@@ -111,32 +111,19 @@ jobs:
       - name: Build changed repos and dependents
         if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra != 'true' && steps.changes.outputs.affected != ''
         run: |
-          failed=0
+          # Filter to flake repos only
+          repos=""
           for repo in ${{ steps.changes.outputs.affected }}; do
-            [[ ! -f "repos/$repo/flake.nix" ]] && continue
-            echo "::group::Build $repo"
-            if ! ws build "$repo" --quiet --workspace; then
-              echo "::error::Build failed: $repo"
-              failed=1
-            fi
-            echo "::endgroup::"
+            [[ -f "repos/$repo/flake.nix" ]] && repos="$repos $repo"
           done
-          exit $failed
+          if [[ -n "$repos" ]]; then
+            ws build $repos --quiet --workspace --parallel
+          fi
 
       - name: Build core chain (infrastructure changed)
         if: steps.filter.outputs.skip_build != 'true' && steps.changes.outputs.infra == 'true'
-        run: |
-          failed=0
-          for repo in logos-cpp-sdk logos-module logos-liblogos logos-package logos-basecamp; do
-            echo "::group::Build $repo"
-            if ! ws build "$repo" --quiet --workspace; then
-              echo "::error::Build failed: $repo"
-              failed=1
-            fi
-            echo "::endgroup::"
-          done
-          exit $failed
+        run: ws build logos-cpp-sdk logos-module logos-liblogos logos-package logos-basecamp --quiet --workspace --parallel
 
       - name: Run tests
         if: steps.filter.outputs.skip_build != 'true'
-        run: ws test --all --quiet --workspace
+        run: ws test --all --quiet --workspace --parallel
