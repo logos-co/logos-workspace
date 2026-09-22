@@ -20,15 +20,24 @@ The scoped migration is implemented across `logos-protocol`, `logos-plugin-qt`,
   the parent never has to load a Qt plugin.
 - `logos-liblogos` now discovers both formats and uses the plain protocol C ABI.
   Its core library and dependency closure were verified to contain no Qt.
-- The Windows transport uses named pipes and is plain-to-plain by design. Its
-  source is implemented, but this workstation could not realize a Windows
-  cross-build because the required compiler was not cached and network access
-  was unavailable. Windows CI remains the platform acceptance gate.
+- The Windows transport uses overlapped byte-mode named pipes and is
+  plain-to-plain by design. It was built and exercised on `winvm.lan` with no
+  Qt dependency: all 9 codec, transport, C ABI, event, reconnect, and manual
+  rearm tests passed. The real named-pipe method/event/shutdown test also
+  passed 25 consecutive runs, and the reconnect/manual-policy test passed 10.
 
-The protocol suite ran 626 cases. All new and interoperability cases passed;
-one existing TCP restart test could not establish its kernel-specific
+The complete protocol suite passed all 626 cases on `framework.lan`, including
+plain client to Qt host and Qt client to plain server. The Linux run exposed a
+C++17 argument-evaluation-order error in nested map decoding; that bug is now
+fixed and covered by the Qt-free wire test. On macOS, 625 of 626 passed; the
+remaining existing TCP restart test could not establish its kernel-specific
 precondition that a full accept queue drops SYN packets. The relevant failure
 occurred before the behavior under test and is unrelated to this transport.
+
+The Linux liblogos suite passed 251 cases and skipped 7 environment-dependent
+process-manager cases, with no failures. Both `liblogos_core.so` and a normal
+module-builder module configured with `transport: "qt_remote_plain"` were
+verified to have no Qt library in their runtime dependency closure.
 
 The Qt-based `logos-logoscore-cli` remains the separately scoped follow-on
 described below. Qt is removed from `liblogos` and retained in the compatibility
