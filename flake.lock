@@ -814,25 +814,22 @@
     },
     "logos-accounts-ui": {
       "inputs": {
-        "accounts_module": [
-          "logos-accounts-module"
-        ],
         "logos-module-builder": [
           "logos-module-builder"
         ]
       },
       "locked": {
-        "lastModified": 1784746919,
-        "narHash": "sha256-Waxbn32I2wx9ul77FxwtaCO0VS1IUYHVDj/MWfogewg=",
+        "lastModified": 1790605972,
+        "narHash": "sha256-00eCoTdwn/W3EOe0bS8RFBCSzsxJEB+Wa/xnFaBmMn4=",
         "owner": "logos-co",
         "repo": "logos-accounts-ui",
-        "rev": "324b2c6e0aa76ecbed3a2d2922fd16093539eb25",
+        "rev": "026565ee83587368ed07f64a6614bde2663f8869",
         "type": "github"
       },
       "original": {
         "owner": "logos-co",
         "repo": "logos-accounts-ui",
-        "rev": "324b2c6e0aa76ecbed3a2d2922fd16093539eb25",
+        "rev": "026565ee83587368ed07f64a6614bde2663f8869",
         "type": "github"
       }
     },

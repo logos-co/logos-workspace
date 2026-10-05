@@ -51,19 +51,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Initialize submodules
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git submodule update --init --depth 1 --jobs 4
-
       - name: Bump submodules to latest
         run: |
-          # Set origin/HEAD for each submodule so --remote resolves the correct
-          # default branch (master or main) rather than always assuming master.
-          git submodule foreach --quiet '
-            git remote set-head origin --auto 2>/dev/null || true
-          '
-          git submodule update --remote --depth 1 --jobs 4
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          # Clone straight at each remote's default branch (master or main).
+          # Never check out the pinned SHAs first: a force-pushed upstream makes
+          # its pin unfetchable and would fail the whole bump.
+          git submodule update --init --remote --depth 1 --jobs 4
 
       - name: Compute date
         id: meta

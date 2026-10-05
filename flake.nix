@@ -187,8 +187,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-accounts-ui = {
-      url = "github:logos-co/logos-accounts-ui/324b2c6e0aa76ecbed3a2d2922fd16093539eb25";
-      inputs.accounts_module.follows = "logos-accounts-module";
+      url = "github:logos-co/logos-accounts-ui/026565ee83587368ed07f64a6614bde2663f8869";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-chat-module = {
