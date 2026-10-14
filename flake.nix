@@ -304,7 +304,6 @@
       url = "github:logos-co/logos-libp2p-module/322ccd11d199902d304cd7cb80514b465f54f0ff";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.openmetrics-module.follows = "openmetrics-module";
-      inputs.libp2p.url = "github:vacp2p/nim-libp2p/7c73484cc0c57a5f649dd3d277cef1c7c4de28f0";
     };
     logos-webview-app = {
       url = "github:logos-co/logos-webview-app/b5d1bb40da6ba550076069a10cf9beaac45aa515";

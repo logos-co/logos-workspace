@@ -2490,12 +2490,7 @@ get_manual_follows() {
 # per repo.  Emitted into the flake.nix input block after the follows lines.
 get_manual_url_overrides() {
   case "$1" in
-    # logos-libp2p-module pins its `libp2p` input to the upstream
-    # `feat/cbind/xpr-decode` branch, which was deleted — so re-locking it
-    # 422s on branch resolution.  Pin to the exact SHA that branch last pointed
-    # at (never merged to master) until the module pins the SHA itself.
-    logos-libp2p-module)
-      printf 'libp2p\tgithub:vacp2p/nim-libp2p/7c73484cc0c57a5f649dd3d277cef1c7c4de28f0\n' ;;
+    *) ;;
   esac
 }
 
