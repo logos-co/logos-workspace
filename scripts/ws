@@ -171,12 +171,69 @@ REPOS=(
   "logos-evm-wallet-backend-module|logos-evm-wallet-backend-module|https://github.com/logos-co/logos-evm-wallet-backend-module.git|yes"
   "logos-evm-wallet-ui|logos-evm-wallet-ui|https://github.com/logos-co/logos-evm-wallet-ui.git|yes"
 
+  # Ethereum wallet (logos-eth-* / signer / token-list / uniswap / verified-proxy)
+  "logos-tx-decoder|logos-tx-decoder|https://github.com/logos-co/logos-tx-decoder.git|yes"
+  "logos-uniswap-backend|logos-uniswap-backend|https://github.com/logos-co/logos-uniswap-backend.git|yes"
+  "logos-evm-fee-module|logos-evm-fee-module|https://github.com/logos-co/logos-evm-fee-module.git|yes"
+  "logos-evm-assets-module|logos-evm-assets-module|https://github.com/logos-co/logos-evm-assets-module.git|yes"
+  "logos-evm-tx-sender-module|logos-evm-tx-sender-module|https://github.com/logos-co/logos-evm-tx-sender-module.git|yes"
+  "logos-signer-manager-module|logos-signer-manager-module|https://github.com/logos-co/logos-signer-manager-module.git|yes"
+  "logos-evm-keystore-cli|logos-evm-keystore-cli|https://github.com/logos-co/logos-evm-keystore-cli.git|yes"
+  "logos-evm-keystore-ui|logos-evm-keystore-ui|https://github.com/logos-co/logos-evm-keystore-ui.git|yes"
+  "logos-evm-signer-cli|logos-evm-signer-cli|https://github.com/logos-co/logos-evm-signer-cli.git|yes"
+  "logos-evm-signer-ui|logos-evm-signer-ui|https://github.com/logos-co/logos-evm-signer-ui.git|yes"
+  "logos-eth-wallet-backend|logos-eth-wallet-backend|https://github.com/logos-co/logos-eth-wallet-backend.git|yes"
+  "logos-eth-wallet-ui|logos-eth-wallet-ui|https://github.com/logos-co/logos-eth-wallet-ui.git|yes"
+  "logos-eth-rpc-ui|logos-eth-rpc-ui|https://github.com/logos-co/logos-eth-rpc-ui.git|yes"
+  "logos-token-list-ui|logos-token-list-ui|https://github.com/logos-co/logos-token-list-ui.git|yes"
+  "logos-uniswap-ui|logos-uniswap-ui|https://github.com/logos-co/logos-uniswap-ui.git|yes"
+  "logos-verified-proxy-module|logos-verified-proxy-module|https://github.com/logos-co/logos-verified-proxy-module.git|yes"
+  "logos-verified-proxy-ui|logos-verified-proxy-ui|https://github.com/logos-co/logos-verified-proxy-ui.git|yes"
+
+  # Keycard
+  "logos-keycard-module|logos-keycard-module|https://github.com/logos-co/logos-keycard-module.git|yes"
+  "logos-keycard-ui|logos-keycard-ui|https://github.com/logos-co/logos-keycard-ui.git|yes"
+  "logos-keycard-shell-module|logos-keycard-shell-module|https://github.com/logos-co/logos-keycard-shell-module.git|yes"
+  "logos-keycard-shell-ui|logos-keycard-shell-ui|https://github.com/logos-co/logos-keycard-shell-ui.git|yes"
+
+  # Monero
+  "logos-monero-nix|logos-monero-nix|https://github.com/logos-co/logos-monero-nix.git|yes"
+  "logos-monerod-module|logos-monerod-module|https://github.com/logos-co/logos-monerod-module.git|yes"
+  "logos-monerod-ui|logos-monerod-ui|https://github.com/logos-co/logos-monerod-ui.git|yes"
+  "logos-monero-node-module|logos-monero-node-module|https://github.com/logos-co/logos-monero-node-module.git|yes"
+  "logos-monero-wallet-core-module|logos-monero-wallet-core-module|https://github.com/logos-co/logos-monero-wallet-core-module.git|yes"
+  "logos-monero-wallet-backend|logos-monero-wallet-backend|https://github.com/logos-co/logos-monero-wallet-backend.git|yes"
+  "logos-monero-wallet-cli|logos-monero-wallet-cli|https://github.com/logos-co/logos-monero-wallet-cli.git|yes"
+  "logos-monero-wallet-ui|logos-monero-wallet-ui|https://github.com/logos-co/logos-monero-wallet-ui.git|yes"
+
+  # Zcash
+  "logos-zebra-nix|logos-zebra-nix|https://github.com/logos-co/logos-zebra-nix.git|yes"
+  "logos-zebrad-module|logos-zebrad-module|https://github.com/logos-co/logos-zebrad-module.git|yes"
+  "logos-zebrad-ui|logos-zebrad-ui|https://github.com/logos-co/logos-zebrad-ui.git|yes"
+  "logos-zcash-node-module|logos-zcash-node-module|https://github.com/logos-co/logos-zcash-node-module.git|yes"
+  "logos-zcash-wallet-core-module|logos-zcash-wallet-core-module|https://github.com/logos-co/logos-zcash-wallet-core-module.git|yes"
+  "logos-zcash-wallet-backend|logos-zcash-wallet-backend|https://github.com/logos-co/logos-zcash-wallet-backend.git|yes"
+  "logos-zcash-wallet-cli|logos-zcash-wallet-cli|https://github.com/logos-co/logos-zcash-wallet-cli.git|yes"
+  "logos-zcash-wallet-ui|logos-zcash-wallet-ui|https://github.com/logos-co/logos-zcash-wallet-ui.git|yes"
+
+  # Other apps / modules
+  "logos-modules-state-module|logos-modules-state-module|https://github.com/logos-co/logos-modules-state-module.git|yes"
+  "logos-view-module|logos-view-module|https://github.com/logos-co/logos-view-module.git|yes"
+  "openmetrics-module|openmetrics-module|https://github.com/logos-co/openmetrics-module.git|yes"
+  "logos-libp2p-ui|logos-libp2p-ui|https://github.com/logos-co/logos-libp2p-ui.git|yes"
+  "logos-uplink-app|logos-uplink-app|https://github.com/logos-co/logos-uplink-app.git|yes"
+
   # Non-flake repos (submodules only)
   "|logos-template-module|https://github.com/logos-co/logos-template-module.git|no"
   "|logos-docs|https://github.com/logos-co/logos-docs.git|no"
   "|logos-website|https://github.com/logos-co/logos-website.git|no"
   "|logos-tutorial|https://github.com/logos-co/logos-tutorial.git|no"
   "|node-configs|https://github.com/logos-co/node-configs.git|no"
+  "|logos-evm-tx-kit|https://github.com/logos-co/logos-evm-tx-kit.git|no"
+  "|logos-signer-interface|https://github.com/logos-co/logos-signer-interface.git|no"
+  "|logos-modules-release-action|https://github.com/logos-co/logos-modules-release-action.git|no"
+  "|logos-modules-release-base|https://github.com/logos-co/logos-modules-release-base.git|no"
+  "|logos-modules-release-tool|https://github.com/logos-co/logos-modules-release-tool.git|no"
 )
 
 # ── Repo groups ──────────────────────────────────────────────────────────────
@@ -188,7 +245,10 @@ REPO_GROUPS=(
   "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
-  "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-railgun-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui"
+  "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-railgun-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui,logos-tx-decoder,logos-uniswap-backend,logos-evm-fee-module,logos-evm-assets-module,logos-evm-tx-sender-module,logos-signer-manager-module,logos-evm-keystore-cli,logos-evm-keystore-ui,logos-evm-signer-cli,logos-evm-signer-ui,logos-eth-wallet-backend,logos-eth-wallet-ui,logos-eth-rpc-ui,logos-token-list-ui,logos-uniswap-ui,logos-verified-proxy-module,logos-verified-proxy-ui"
+  "keycard|logos-keycard-module,logos-keycard-ui,logos-keycard-shell-module,logos-keycard-shell-ui"
+  "monero|logos-monero-nix,logos-monerod-module,logos-monerod-ui,logos-monero-node-module,logos-monero-wallet-core-module,logos-monero-wallet-backend,logos-monero-wallet-cli,logos-monero-wallet-ui"
+  "zcash|logos-zebra-nix,logos-zebrad-module,logos-zebrad-ui,logos-zcash-node-module,logos-zcash-wallet-core-module,logos-zcash-wallet-backend,logos-zcash-wallet-cli,logos-zcash-wallet-ui"
 )
 
 # ── Helper functions ─────────────────────────────────────────────────────────
@@ -2430,12 +2490,7 @@ get_manual_follows() {
 # per repo.  Emitted into the flake.nix input block after the follows lines.
 get_manual_url_overrides() {
   case "$1" in
-    # logos-libp2p-module pins its `libp2p` input to the upstream
-    # `feat/cbind/xpr-decode` branch, which was deleted — so re-locking it
-    # 422s on branch resolution.  Pin to the exact SHA that branch last pointed
-    # at (never merged to master) until the module pins the SHA itself.
-    logos-libp2p-module)
-      printf 'libp2p\tgithub:vacp2p/nim-libp2p/7c73484cc0c57a5f649dd3d277cef1c7c4de28f0\n' ;;
+    *) ;;
   esac
 }
 

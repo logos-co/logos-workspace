@@ -214,3 +214,144 @@
 [submodule "repos/logos-qt-mcp"]
 	path = repos/logos-qt-mcp
 	url = https://github.com/logos-co/logos-qt-mcp.git
+[submodule "repos/logos-eth-wallet-backend"]
+	path = repos/logos-eth-wallet-backend
+	url = git@github.com:logos-co/logos-eth-wallet-backend.git
+[submodule "repos/logos-eth-wallet-ui"]
+	path = repos/logos-eth-wallet-ui
+	url = git@github.com:logos-co/logos-eth-wallet-ui.git
+[submodule "repos/logos-eth-rpc-ui"]
+	path = repos/logos-eth-rpc-ui
+	url = git@github.com:logos-co/logos-eth-rpc-ui.git
+[submodule "repos/logos-token-list-ui"]
+	path = repos/logos-token-list-ui
+	url = git@github.com:logos-co/logos-token-list-ui.git
+[submodule "repos/logos-uniswap-ui"]
+	path = repos/logos-uniswap-ui
+	url = git@github.com:logos-co/logos-uniswap-ui.git
+[submodule "repos/logos-evm-assets-module"]
+	path = repos/logos-evm-assets-module
+	url = git@github.com:logos-co/logos-evm-assets-module.git
+[submodule "repos/logos-evm-fee-module"]
+	path = repos/logos-evm-fee-module
+	url = git@github.com:logos-co/logos-evm-fee-module.git
+[submodule "repos/logos-evm-tx-sender-module"]
+	path = repos/logos-evm-tx-sender-module
+	url = git@github.com:logos-co/logos-evm-tx-sender-module.git
+[submodule "repos/logos-evm-keystore-ui"]
+	path = repos/logos-evm-keystore-ui
+	url = git@github.com:logos-co/logos-evm-keystore-ui.git
+[submodule "repos/logos-evm-keystore-cli"]
+	path = repos/logos-evm-keystore-cli
+	url = git@github.com:logos-co/logos-evm-keystore-cli.git
+[submodule "repos/logos-evm-signer-ui"]
+	path = repos/logos-evm-signer-ui
+	url = git@github.com:logos-co/logos-evm-signer-ui.git
+[submodule "repos/logos-evm-signer-cli"]
+	path = repos/logos-evm-signer-cli
+	url = git@github.com:logos-co/logos-evm-signer-cli.git
+[submodule "repos/logos-signer-manager-module"]
+	path = repos/logos-signer-manager-module
+	url = git@github.com:logos-co/logos-signer-manager-module.git
+[submodule "repos/logos-verified-proxy-module"]
+	path = repos/logos-verified-proxy-module
+	url = git@github.com:logos-co/logos-verified-proxy-module.git
+[submodule "repos/logos-verified-proxy-ui"]
+	path = repos/logos-verified-proxy-ui
+	url = git@github.com:logos-co/logos-verified-proxy-ui.git
+[submodule "repos/logos-keycard-module"]
+	path = repos/logos-keycard-module
+	url = git@github.com:logos-co/logos-keycard-module.git
+[submodule "repos/logos-keycard-ui"]
+	path = repos/logos-keycard-ui
+	url = git@github.com:logos-co/logos-keycard-ui.git
+[submodule "repos/logos-keycard-shell-module"]
+	path = repos/logos-keycard-shell-module
+	url = git@github.com:logos-co/logos-keycard-shell-module.git
+[submodule "repos/logos-keycard-shell-ui"]
+	path = repos/logos-keycard-shell-ui
+	url = git@github.com:logos-co/logos-keycard-shell-ui.git
+[submodule "repos/logos-monero-node-module"]
+	path = repos/logos-monero-node-module
+	url = git@github.com:logos-co/logos-monero-node-module.git
+[submodule "repos/logos-monero-wallet-backend"]
+	path = repos/logos-monero-wallet-backend
+	url = git@github.com:logos-co/logos-monero-wallet-backend.git
+[submodule "repos/logos-monero-wallet-cli"]
+	path = repos/logos-monero-wallet-cli
+	url = git@github.com:logos-co/logos-monero-wallet-cli.git
+[submodule "repos/logos-monero-wallet-core-module"]
+	path = repos/logos-monero-wallet-core-module
+	url = git@github.com:logos-co/logos-monero-wallet-core-module.git
+[submodule "repos/logos-monero-wallet-ui"]
+	path = repos/logos-monero-wallet-ui
+	url = git@github.com:logos-co/logos-monero-wallet-ui.git
+[submodule "repos/logos-monerod-module"]
+	path = repos/logos-monerod-module
+	url = git@github.com:logos-co/logos-monerod-module.git
+[submodule "repos/logos-monerod-ui"]
+	path = repos/logos-monerod-ui
+	url = git@github.com:logos-co/logos-monerod-ui.git
+[submodule "repos/logos-zcash-node-module"]
+	path = repos/logos-zcash-node-module
+	url = git@github.com:logos-co/logos-zcash-node-module.git
+[submodule "repos/logos-zcash-wallet-backend"]
+	path = repos/logos-zcash-wallet-backend
+	url = git@github.com:logos-co/logos-zcash-wallet-backend.git
+[submodule "repos/logos-zcash-wallet-cli"]
+	path = repos/logos-zcash-wallet-cli
+	url = git@github.com:logos-co/logos-zcash-wallet-cli.git
+[submodule "repos/logos-zcash-wallet-core-module"]
+	path = repos/logos-zcash-wallet-core-module
+	url = git@github.com:logos-co/logos-zcash-wallet-core-module.git
+[submodule "repos/logos-zcash-wallet-ui"]
+	path = repos/logos-zcash-wallet-ui
+	url = git@github.com:logos-co/logos-zcash-wallet-ui.git
+[submodule "repos/logos-zebrad-module"]
+	path = repos/logos-zebrad-module
+	url = git@github.com:logos-co/logos-zebrad-module.git
+[submodule "repos/logos-zebrad-ui"]
+	path = repos/logos-zebrad-ui
+	url = git@github.com:logos-co/logos-zebrad-ui.git
+[submodule "repos/logos-modules-state-module"]
+	path = repos/logos-modules-state-module
+	url = git@github.com:logos-co/logos-modules-state-module.git
+[submodule "repos/logos-view-module"]
+	path = repos/logos-view-module
+	url = git@github.com:logos-co/logos-view-module.git
+[submodule "repos/openmetrics-module"]
+	path = repos/openmetrics-module
+	url = git@github.com:logos-co/openmetrics-module.git
+[submodule "repos/logos-libp2p-ui"]
+	path = repos/logos-libp2p-ui
+	url = git@github.com:logos-co/logos-libp2p-ui.git
+[submodule "repos/logos-uplink-app"]
+	path = repos/logos-uplink-app
+	url = git@github.com:logos-co/logos-uplink-app.git
+[submodule "repos/logos-evm-tx-kit"]
+	path = repos/logos-evm-tx-kit
+	url = git@github.com:logos-co/logos-evm-tx-kit.git
+[submodule "repos/logos-uniswap-backend"]
+	path = repos/logos-uniswap-backend
+	url = git@github.com:logos-co/logos-uniswap-backend.git
+[submodule "repos/logos-tx-decoder"]
+	path = repos/logos-tx-decoder
+	url = git@github.com:logos-co/logos-tx-decoder.git
+[submodule "repos/logos-signer-interface"]
+	path = repos/logos-signer-interface
+	url = git@github.com:logos-co/logos-signer-interface.git
+[submodule "repos/logos-monero-nix"]
+	path = repos/logos-monero-nix
+	url = git@github.com:logos-co/logos-monero-nix.git
+[submodule "repos/logos-zebra-nix"]
+	path = repos/logos-zebra-nix
+	url = git@github.com:logos-co/logos-zebra-nix.git
+[submodule "repos/logos-modules-release-action"]
+	path = repos/logos-modules-release-action
+	url = git@github.com:logos-co/logos-modules-release-action.git
+[submodule "repos/logos-modules-release-base"]
+	path = repos/logos-modules-release-base
+	url = git@github.com:logos-co/logos-modules-release-base.git
+[submodule "repos/logos-modules-release-tool"]
+	path = repos/logos-modules-release-tool
+	url = git@github.com:logos-co/logos-modules-release-tool.git
