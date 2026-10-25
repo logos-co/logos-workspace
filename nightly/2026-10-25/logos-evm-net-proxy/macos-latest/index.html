@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Execution Report</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --pass: #2ea043; --fail: #f85149; --info: #d29922;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .pill.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .pill.skip { background: rgba(210,153,34,.15); color: var(--info); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+  main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .tutorial-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; color: #fff; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden;
+  }
+  .row.preamble, .row.section { grid-template-columns: 1fr; }
+  .col { padding: 14px 18px; min-width: 0; }
+  .col.left { border-right: 1px solid var(--border); }
+  .row.preamble .col.left, .row.section .col.left { border-right: none; }
+  .col.right { background: var(--panel); }
+  /* A row containing any failed step is tinted red end-to-end so it's
+     impossible to miss when scanning the report. */
+  .row.has-fail { border-color: var(--fail); box-shadow: 0 0 0 1px var(--fail); }
+  .row.has-fail .col.left { background: rgba(248,81,73,.07); border-right-color: var(--fail); }
+  .row.has-fail .col.right { background: rgba(248,81,73,.12); }
+  .col-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .md :first-child { margin-top: 0; }
+  .md h1 { font-size: 22px; } .md h2 { font-size: 18px; } .md h3 { font-size: 15px; }
+  .md pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .md :not(pre) > code { background: rgba(110,118,129,.2); padding: .15em .4em; border-radius: 4px; }
+  .md table { border-collapse: collapse; margin: 8px 0; }
+  .md th, .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .md blockquote { border-left: 3px solid var(--border); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+  .md img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .exec { margin-bottom: 14px; }
+  .exec:last-child { margin-bottom: 0; }
+  .exec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+  .badge.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .badge.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .badge.info { background: rgba(210,153,34,.15); color: var(--info); }
+  .badge.not_run { background: var(--bg); color: var(--muted); white-space: nowrap; }
+  .badge.running { background: rgba(248,81,73,.15); color: var(--fail); }
+  .ui-actions { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  .ui-actions td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .ui-actions td:last-child { white-space: nowrap; color: var(--muted); }
+  .kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  pre.cmd { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 0 0 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.output { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; max-height: 360px; overflow-y: auto; color: #b9c1ca; }
+  pre.cmd, pre.output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
+  .empty { color: var(--muted); font-style: italic; font-size: 12.5px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 4px; }
+  /* GitHub-style permalinks: every heading carries a link icon in the left
+     gutter (revealed on hover/focus) that copies a deep link to that section.
+     scroll-margin-top keeps the target clear of the sticky header. */
+  .heading-anchored { position: relative; scroll-margin-top: 76px; }
+  a.anchor {
+    position: absolute; left: -18px; top: 0; width: 16px; height: 1.55em;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); opacity: 0; text-decoration: none;
+    transition: opacity .1s ease-in;
+  }
+  a.anchor svg { width: 14px; height: 14px; display: block; }
+  .heading-anchored:hover > a.anchor, a.anchor:focus { opacity: 1; }
+  a.anchor:hover { color: var(--accent); }
+  .heading-anchored.flash { animation: flash 1.4s ease-out; border-radius: 4px; }
+  @keyframes flash {
+    from { background: rgba(88,166,255,.28); box-shadow: 0 0 0 4px rgba(88,166,255,.28); }
+    to { background: transparent; box-shadow: 0 0 0 4px transparent; }
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 14px; font-size: 12.5px; z-index: 20;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease-in-out;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial Execution Report</h1>
+  <span id="summary"></span>
+  <label style="margin-left:auto; font-size:12px; color:var(--muted)">Tutorial
+    <select id="picker"></select>
+  </label>
+</header>
+<main id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="report-data" type="application/json">{"generated_platform": "Darwin", "summary": {"failed": 0, "passed": 1, "skipped": 0}, "tutorials": [{"meta": {"name": "Proving the Fail-Closed Invariant of logos-net-proxy", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"execs": [], "md": "# Proving the Fail-Closed Invariant of logos-net-proxy\n\n`logos-net-proxy` is the wallet's **single outbound chokepoint**: the only\nplace an HTTP client is constructed. It is **fail-closed** \u2014 `build_client`\nreturns an error when a proxy is *required* but unset or unusable, so no code\npath can ever yield a cleartext client behind the user's back. It is built on\n`reqwest` with `rustls-tls` (pure-Rust at link) and `socks` for\n`socks5h://` (remote DNS through the proxy \u2014 what Tor needs).\n\nThe crate is consumed by inlining (`eth_rpc_module` / `token_list_module` carry\nit as `src/proxy.rs`), and its end-to-end refusal is already exercised by those\nmodules' doc-tests. This doc-test pins down the **invariant at the source**: it\nruns the crate's fail-closed test suite in a reproducible Nix toolchain and\nshows every case passing.\n\n**What you'll build:** The `logos-net-proxy` crate's fail-closed test suite, run in a reproducible Nix dev shell.\n\n**What you'll learn:**\n\n- Why a single fail-closed client constructor is the wallet's privacy chokepoint\n- Which conditions force a refusal (proxy required + unset/blank/garbage/unsupported scheme)\n- Which conditions are allowed (no proxy required, or a valid socks5h:// proxy)\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then enable flakes:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\n- **A Linux or macOS machine** with `python3` available (used to locate the pinned crate source)."}, {"execs": [], "md": "## Step 1: The invariant\n\n`build_client(cfg)` is the only constructor of a `reqwest::Client` in the\nwallet. It refuses \u2014 returns `Err` \u2014 whenever a proxy is required but cannot\nbe honored, and otherwise returns a usable client:\n\n| Case | `proxy_required` | `proxy` | Result |\n|---|---|---|---|\n| `fail_closed_when_required_and_unset`  | `true`  | `None`            | **refuse** |\n| `fail_closed_when_required_and_blank`  | `true`  | `\"\"`              | **refuse** |\n| `rejects_unsupported_scheme`           | `true`  | `https://\u2026`       | **refuse** |\n| `rejects_garbage_proxy`                | `true`  | not a URL         | **refuse** |\n| `ok_when_not_required_and_unset`       | `false` | `None`            | allow |\n| `ok_with_socks5h_proxy`                | `true`  | `socks5h://\u2026`     | allow |"}, {"execs": [], "md": "## Step 2: Run the fail-closed suite\n\nThe crate's Nix build runs the test suite in its `checkPhase`\n(`rustPlatform` sets `doCheck = true`), so building it *is* a reproducible,\ngreen run of the fail-closed invariant \u2014 and `-L` streams the `cargo test`\noutput into the build log."}, {"execs": [{"cmd": "nix build github:logos-co/logos-evm-net-proxy/e2d0c01bf066d2a8cd085d6bdc04ab1263e00c42#default --no-write-lock-file -L -o result", "exit_code": 0, "kind": "run", "note": "", "output": "warning: not writing modified lock file of flake 'github:logos-co/logos-evm-net-proxy/e2d0c01bf066d2a8cd085d6bdc04ab1263e00c42':\n\u2022 Added input 'nixpkgs':\n    'github:NixOS/nixpkgs/3ec6363' (2026-10-23)\nthis derivation will be built:\n  /nix/store/bx0y97cykrny9ixbvzkdv4rw5ghggcrr-logos-net-proxy-0.1.0.drv\nthese 226 paths will be fetched (594.7 MiB download, 2.5 GiB unpacked):\n  /nix/store/svkkgla6ini4hg035ka7wb8idm301r1i-apple-sdk-14.4\n  /nix/store/7851jdxa34v6szgbighvkz19sx990r1i-atomic-waker-1.1.2\n  /nix/store/2pcw0nbchbpnk2bhfqsvy0537d5jk80m-auditable-cargo-1.99.0\n  /nix/store/ngnagyfsxccd328i1nzwq5wsx40lb75k-base64-0.22.1\n  /nix/store/i1pdjlwb27ki88zssg5q2h696v1r1m15-bash-5.3p20\n  /nix/store/zb27pphh4f43m6i9ahhz01bf866h5k2j-bitflags-2.13.0\n  /nix/store/cry7qbrbdqdd1qak8a0dcw70dcm4cshj-brotli-1.2.0-lib\n  /nix/store/wa19fvqyj4xd3wh9sbmkp4cvvzy75xpq-bumpalo-3.20.3\n  /nix/store/xwv515dll5sf139nlrh67x5nimscjnlf-bytes-1.11.1\n  /nix/store/rks97mrv4i0rk9l9knj027zhgmy4yb38-bzip2-1.0.8\n  /nix/store/kds0dhsl4gp9fy71n612pykqarqpygca-bzip2-1.0.8-bin\n  /nix/store/yyhrcj8z06lw33h4kln41zsgxp5kd14g-cargo-1.99.0\n  /nix/store/xi0z777jzp4pinfh0kxwinvvq0pzw8fs-cargo-auditable-0.7.6\n  /nix/store/i7byqy0saxyqqfy9bdidq04rn2q1lgpy-cargo-build-hook.sh\n  /nix/store/56n13agj6nk4h9jhgcjl4kg2lipsj831-cargo-check-hook.sh\n  /nix/store/fha7sqqygvd5vgx016aghc63izqr6a3s-cargo-install-hook.sh\n  /nix/store/f6aydsf759kksgr2xnyr2l94a37ny7hz-cargo-setup-hook.sh\n  /nix/store/rb1j99qp9rqwy9cx4srxymrmq8g9y51v-cargo-vendor-dir\n  /nix/store/3ba4nazbh4mahlzj85cx8f9sm28la98c-cc-1.2.64\n  /nix/store/m9x2il13sywj54296ddwksmx72lbv950-cctools-1010.6\n  /nix/store/b2c9gg3dvy4nnr5d11bj2cby37k5j8m7-cctools-1010.6-libtool\n  /nix/store/c9risrjiq2jy4piadiy7l2nl92vgb1bm-cctools-binutils-darwin-1010.6\n  /nix/store/3j53paxbcd4k06zk75jzv018798wjrjm-cctools-binutils-darwin-wrapper-1010.6\n  /nix/store/zsfz7fp0l7llr34gby6cyk4h6i157g1x-cfg-if-1.0.4\n  /nix/store/0dyzfdivpci1w0kr9405m0h763gkw42h-cfg_aliases-0.2.1\n  /nix/store/hbj4a922mmhd5nlg34fsybyw439iz09p-clang-21.1.8\n  /nix/store/0va26r8nlb0h1bd6iyx9yrmi4py1947m-clang-21.1.8-lib\n  /nix/store/8z7gv889g2cxbvmwcibdzvmikllc51qv-clang-wrapper-21.1.8\n  /nix/store/wbqczzx4vd907aiclk4f5jf71dhv4y8d-compiler-rt-libc-21.1.8\n  /nix/store/4bi4z2fpwbp8yhx2sqghmf8iskrsh9fq-compiler-rt-libc-21.1.8-dev\n  /nix/store/913158w9ykwyzyhs2rgzr8rd45244qs6-coreutils-9.12\n  /nix/store/aaxz8hjksxp76f15j9biw2r1179fzvy7-cups-headers-2.4.19\n  /nix/store/dkv7hd5fx8rnhyg59hy7yw8pah3swglp-curl-8.22.0\n  /nix/store/gy0qyg8p2vbzyq5zb2p601i2n0m5xnk6-diffutils-3.12\n  /nix/store/d4yajd9k8dnjdcpsxpb17s4vw0wzsn7h-displaydoc-0.2.6\n  /nix/store/gcikcxrsjw61fpd8jlvvzniaxq2b1b6s-ed-1.22.6\n  /nix/store/iplkski62k0y611i4m5h3v0dk2d87db1-expand-response-params\n  /nix/store/my66hfzlnfn7w0l99jydlmfxxddjd6kx-file-5.48\n  /nix/store/a80q286rpnxjfhw96sb71sf8ld013a2v-find-msvc-tools-0.1.9\n  /nix/store/14nzy6b98s1xi2q4w6anj9civfdp1jcq-findutils-4.11.0\n  /nix/store/c98zirv7llnr4wb8jjkgpdy9240ip7gj-form_urlencoded-1.2.2\n  /nix/store/4aickvs1zaiwr1y4xqyn15byhf6xwsd7-futures-channel-0.3.32\n  /nix/store/74i4gvvyjzf25z202s2ji7w2xz8md9f5-futures-core-0.3.32\n  /nix/store/lxxq2s87c996snyd9vs5qi0pfp7cgkbl-futures-io-0.3.32\n  /nix/store/cxz42ly4n3mfxi0j9qczj9jwqa9lj1xk-futures-sink-0.3.32\n  /nix/store/9mvakg3w227qcxdjfld4ss5p4g2s7nsg-futures-task-0.3.32\n  /nix/store/pjmrankh4szpypddnkr2gb94n1zk2q4f-futures-util-0.3.32\n  /nix/store/nksa7zv2dxx8vdxqci27iiwqnzxl72ys-gawk-5.4.1\n  /nix/store/nmra3mq0yg8gaig1kgzxyp9vcvkdajil-getrandom-0.2.17\n  /nix/store/x9al61vlrz78ap9qbv4mb0kv8v738vix-getrandom-0.3.4\n  /nix/store/36c168mc93w4mlmqknam03ffyi6qg0w6-gettext-1.0\n  /nix/store/5ax2pwqqw46gi7izsx195rk20fw6g04n-gmp-with-cxx-6.3.0\n  /nix/store/3xmkpz6hvyjcgd81llmlng9dv0m4b8pf-gnu-config-2024-01-01\n  /nix/store/7ihxb15yxm8345fdazx323iljjsi1i5i-gnugrep-3.12\n  /nix/store/306s97mvw5slpgg7hnb26xy37dhy4xk0-gnumake-4.4.1\n  /nix/store/8fyr2rna4vqibkqsbzyfd4z6fna5c09p-gnused-4.10\n  /nix/store/k5zhhnxn3pa7d8fgs7glys6hwl96q5cm-gnutar-1.35\n  /nix/store/x4nl6d72j5jdncz8vip5h5g8dxgcdfhy-gzip-1.15\n  /nix/store/0585f7zgmf05ckndiym2zsszm2djw8gj-http-1.4.2\n  /nix/store/g7f1rm2prb86i13dddaaznj5xfwh71nk-http-body-1.0.1\n  /nix/store/7ck4sx5wqhggy4yqwhhq12b7a17v5dzv-http-body-util-0.1.3\n  /nix/store/3xn33ijwc9796l716a30dbsj6lqwmxpi-httparse-1.10.1\n  /nix/store/fgj89mfg2yydgyv3dy8qb2fl6v28mig1-hyper-1.10.1\n  /nix/store/8xvmkdl6gdlnmg2373vgrs570k5rli1m-hyper-rustls-0.27.9\n  /nix/store/0gvchawl29cn1pw5ajwi7spq7mnbqbz4-hyper-util-0.1.20\n  /nix/store/jnmdwrly7f4305nw80pa7f8pkg30kw0z-icu_collections-2.2.0\n  /nix/store/mkkb2xrjhjw61nfbw5yy33na1sbj2221-icu_locale_core-2.2.0\n  /nix/store/mdyb64pdgxzirhy5s2l3fw5rqsi95jzw-icu_normalizer-2.2.0\n  /nix/store/n47ari897844qyjrpm0gpi7avbyrk2ln-icu_normalizer_data-2.2.0\n  /nix/store/ipqz8a729aa32hrx5nhgpvkzza89vrpr-icu_properties-2.2.0\n  /nix/store/vqqnb2rp41jgi8gxljamskws5l241jz5-icu_properties_data-2.2.0\n  /nix/store/pvp6jcpdmlsq78akcq6403af9rjgc0kg-icu_provider-2.2.0\n  /nix/store/r79i1q09n70mr4rj4xzgp47vmav8r47m-idna-1.1.0\n  /nix/store/yzijkqvb7fkxzb5kwm8xwm7xx1z6vw2c-idna_adapter-1.2.2\n  /nix/store/iwszbfzq10ggl1cl4h1di4a57r553ik8-ipnet-2.12.0\n  /nix/store/ggbkscwbxdq899ar11xki645nirjwdcq-itoa-1.0.18\n  /nix/store/1i517araac494rllzvnsyjhmbmlf29l1-js-sys-0.3.102\n  /nix/store/d9plqh0j9sr8dzzbvz2g1ih4vdq8xr3r-krb5-1.22.2-lib\n  /nix/store/myr0bvpz8blxr9rn55cmcb7a05wwk7pz-ld64-957.1\n  /nix/store/iq8g1j0q7pp4livckzg3pycq4k9nwr3v-ld64-957.1-lib\n  /nix/store/x4163vs8djgppcmghh5zkr3srmfzagff-libSystem-B\n  /nix/store/csy3z8bl88jmd634gnirhv7vss9wy42k-libc-0.2.186\n  /nix/store/x1x1gm4vkysqvi93wndbzskipgqy0nc0-libcxx-21.1.6+apple-sdk-26.5\n  /nix/store/ny6fr09ndka7swhqrgnkri2n36vr7nsq-libffi-40\n  /nix/store/viw0q4bs6c2h1fqsd66p2j2fdj25xzbz-libiconv-1.19\n  /nix/store/jaixg82zxmqjbn2s6grpd31jq0yygzc1-libiconv-115.100.1\n  /nix/store/2qdvsdwv916cnkzilrdx479d13ipfccd-libiconv-115.100.1-dev\n  /nix/store/qp0jgrbbzia0g5h2n1k50bcad7h3rh9m-libidn2-2.3.8\n  /nix/store/dv3gqilrzcdl2w97kmsn9pkq9ds2k2dn-libpsl-0.21.5\n  /nix/store/kis5x3k1r9nx8bz6xf6yk7gmnmk72gf7-libresolv-96\n  /nix/store/hinisg78q3l0jscpn7mpm5zbn17fnxqg-libresolv-96-dev\n  /nix/store/rs13lm1lidm0z6644f0hm3n6ils9wmrh-libsbuf-14.1.0\n  /nix/store/r7k5j80fmj2s86vifq147qwxczfs057h-libsbuf-14.1.0-dev\n  /nix/store/8fz03pzq1xvk0pl7li1w909gbpcmwifm-libssh2-1.11.1\n  /nix/store/lfwvqpn0k7rc07977ab98n3xdr3k5vyg-libunistring-1.4.2\n  /nix/store/a3m4hbgv43cykrsjvha06kfsj7nhc0g2-libutil-73\n  /nix/store/5pdi5bq35qs6av37wsaf6qkkbghwhhvz-libxml2-2.15.4\n  /nix/store/jh3m98xq4v423y62qhhyw709jjwravhp-litemap-0.8.2\n  /nix/store/dkn2518z5jkdgp2n2i8zm9i9ll5xl3py-llvm-21.1.8\n  /nix/store/780w4ih6zr6kj37mildxrc9fn6nxmc4c-llvm-21.1.8-lib\n  /nix/store/gzpbhwqzd2jrbgdc5c7sxgqambgz0wb0-locale-118\n  /nix/store/qwdxvkyq9cl8qkhfp35lxd0a7xa2lzx1-log-0.4.32\n  /nix/store/5g3m1ha2vsbjw47sj5q8m21yp8r4r9s7-lru-slab-0.1.2\n  /nix/store/50fi6vpg0kdx6g0idcqqyka3sgxbs464-memchr-2.8.2\n  /nix/store/ildm9aqjzw92aczgcp1x1ks79zzz5k2l-mio-1.2.1\n  /nix/store/zdslvbbhrpilsyqvcwxywqrwla35h68p-ncurses-6.6\n  /nix/store/qjisxvjgpnpk6f2ypf6irfyzi16ay7yf-ncurses-6.6-dev\n  /nix/store/rfv1rw727jcmf340dydlkzmz3qzky78p-ncurses-6.6-man\n  /nix/store/g0278qlsdqkcgciqylpq95g6v6bjxbhb-nghttp2-1.70.0-lib\n  /nix/store/57s5d87yy7ll1fpkk2xgrjhkpcp8dwz6-nghttp3-1.18.0\n  /nix/store/jnydv03kl75vfnyzb7lyb63kl2kqmwwh-ngtcp2-1.23.0\n  /nix/store/s6m22a40w2amri67y65qavxh10fyzzcj-once_cell-1.21.4\n  /nix/store/pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9\n  /nix/store/y8g50am7v50c9hlz50cl489vig0kl7aj-patch-2.8\n  /nix/store/9xb95psp964k4fwf5sabazj3k9zbi8jq-pcre2-10.49\n  /nix/store/4ysvv4qqqx8id2zf3jc754aqvvkgswzq-percent-encoding-2.3.2\n  /nix/store/gab0jzic3isqjqm95nyjzswi24qv6im1-pin-project-lite-0.2.17\n  /nix/store/qq26yhznrf9sbiy8kxzar4vwaffgsiw8-potential_utf-0.1.5\n  /nix/store/2dj2d5gmpm831hxm1rmp3f2mxswwkkwk-ppv-lite86-0.2.21\n  /nix/store/l53bfxj1pzhysdn373hfvcvivxglwh6f-proc-macro2-1.0.106\n  /nix/store/4r0vc481js1rxvb3f9015ii7p9xbij9r-publicsuffix-list-0-unstable-2026-09-02\n  /nix/store/jbfrj20p0frs67ngm9gbpx1b96p02k93-quinn-0.11.9\n  /nix/store/jfhqmizyhqhjinqhrvxkb0qzag8vbwx3-quinn-proto-0.11.14\n  /nix/store/h4z0gz81qxiza2x2mdrxgcih3jwzfhqj-quinn-udp-0.5.14\n  /nix/store/jnh3qmk7ngg18a2g806mbzcb5b7xf5yf-quote-1.0.45\n  /nix/store/zbd8vnza7fsknaxpagjr8x6hdsdnhr5x-r-efi-5.3.0\n  /nix/store/9p7xpbw5vsr745a2v10ypixjnxch9gif-rand-0.9.4\n  /nix/store/2rmpc4m9nw2smk5m9jdzjzn43gdd805v-rand_chacha-0.9.0\n  /nix/store/krxk2iaggk7ii6jcj2jrs7gkdip6269m-rand_core-0.9.5\n  /nix/store/jrkch26l05d5gaw9z03dnfqz3g3s711p-reqwest-0.12.28\n  /nix/store/2jr3s0b56dq25l0gzvdw3hs0hjbwfcq7-ring-0.17.14\n  /nix/store/mirkpd3aaivsdpnlw2f67bn81fr067hg-rustc-1.99.0\n  /nix/store/vikqwwqm3q893q2jk2rwd3shkva89aql-rustc-hash-2.1.2\n  /nix/store/kivknb4q8cs9z7fjl5gjz4v9n1vm0gi4-rustc-wrapper-1.99.0\n  /nix/store/gka8vi6izqp39k5lq78fadn766rlmfcq-rustls-0.23.40\n  /nix/store/wkmkjpsahrgnsm4ma1m0f82baybcilfx-rustls-pki-types-1.14.1\n  /nix/store/wrdr50q73w2d4w2pn30r60kdl2wvq97j-rustls-webpki-0.103.13\n  /nix/store/p302mv1zmh8j6qkfkqsrawha90gys7ki-rustversion-1.0.22\n  /nix/store/srvl42wis4mn46fjc753rpxqsv3drfw4-ryu-1.0.23\n  /nix/store/5pjj93x3pf9qjm6ij9dl7ili6xlqzy3h-serde-1.0.228\n  /nix/store/6z40351qckd3gffyi227y003n1brgkyk-serde_core-1.0.228\n  /nix/store/vhzg4dv1ifpsvmfvfhi6z54jbp2685v5-serde_derive-1.0.228\n  /nix/store/d5pq7m3l5dnsyin9c62i18383n2xlisd-serde_json-1.0.150\n  /nix/store/03qa6pyl1qccw1j9v78x382d20294m21-serde_urlencoded-0.7.1\n  /nix/store/n8jd4sfjj8nrvpnbw1fw4mldgmcav9mp-shlex-2.0.1\n  /nix/store/ni020z8nnlsd7rx6wryv5nnk17ah2llv-slab-0.4.12\n  /nix/store/k0b6zvml0jvy55pxddjdd4pfb10n7cbc-smallvec-1.15.2\n  /nix/store/n3lfz6z0r78ig1dsqrzarf6b11ip1mx8-socket2-0.6.4\n  /nix/store/s1mazymgcnnfaj14cdzhy4n08wkisbsy-stable_deref_trait-1.2.1\n  /nix/store/4gqzn5ia76rp74p8fb6nvry3arbn3l7j-stdenv-darwin\n  /nix/store/j12jyrc97v9v26w5xfqn8w364klrcj8y-subtle-2.6.1\n  /nix/store/qr3226nk2xjgcm0bfj8rrxizz1mhy9x3-syn-2.0.118\n  /nix/store/jarc418mrwpza7q4f71ag14i5iwxd80b-sync_wrapper-1.0.2\n  /nix/store/p3c595csrf4kk20hl7gaq45l1fc5rr2i-synstructure-0.13.2\n  /nix/store/0pq99468jrs8mbvz6x83swjirwaq7pf8-thiserror-2.0.18\n  /nix/store/h8wp585s0ajrbfm46v7py6gcn2jlvcbr-thiserror-impl-2.0.18\n  /nix/store/d9n8pqf3xbjz4xv4wchqg8zlkkv4wx9h-tinystr-0.8.3\n  /nix/store/pvdjvcsk81lm4gpypgzcf0xyp3jc1mxs-tinyvec-1.11.0\n  /nix/store/s6b1l5f7x2mj8598phb2s5xfvjvi3m52-tinyvec_macros-0.1.1\n  /nix/store/2n6dznghdbsz0afai6yrlzv4rglh89rv-tokio-1.52.3\n  /nix/store/0lg19m49p8j5z3sznpjgfhp74p8gxzk8-tokio-rustls-0.26.4\n  /nix/store/m6z1zbg2nb6c2nasffx1xdlfz70rvayz-tower-0.5.3\n  /nix/store/dlaxdnx2dwsjxv1km41qsjc213zjqxvy-tower-http-0.6.11\n  /nix/store/mig1336k2wiaji61024vi1wxh6ifdawq-tower-layer-0.3.3\n  /nix/store/8vp5pv3ll38zz2vg00ykqhyzc4jcga48-tower-service-0.3.3\n  /nix/store/1c9yik8an28b2rxy5h1p6mrb5av3y04a-tracing-0.1.44\n  /nix/store/96s11bwg9wncqsvvzsyl36d9m8ssxfiw-tracing-core-0.1.36\n  /nix/store/lg9z1nsyajrqxifqz02vnwg5qsv1dkm5-try-lock-0.2.5\n  /nix/store/5wjq2h51wk6nnsj37vmwq1ahhvsy55s2-unicode-ident-1.0.24\n  /nix/store/gw8fdinb41ahgdwbc835n0nmzv7sgbd5-untrusted-0.9.0\n  /nix/store/zjnxj0kan4y2gwb3kqf8ynd4klzminx6-update-autotools-gnu-config-scripts-hook\n  /nix/store/y3jfdn2975zzldafv9sppa5nk46zl1c5-url-2.5.8\n  /nix/store/zr2c7y3flkw3lhwg0wv4k8gvpg28x4jh-utf8_iter-1.0.4\n  /nix/store/aggzfl17g5pwsjjgxpi9ws9kcka6r52b-want-0.3.1\n  /nix/store/bfb39kbrhm8ic0qq8ad43p6jqxr9kin1-wasi-0.11.1+wasi-snapshot-preview1\n  /nix/store/89p5w8j390vnkf9617kdhbd03f7x4ad1-wasip2-1.0.4+wasi-0.2.12\n  /nix/store/1hsyx4rrzwwx5h1vrrdh0525d9m8pv50-wasm-bindgen-0.2.125\n  /nix/store/2nn8lw9vzgx6x1i4biz925d1hzchz4xk-wasm-bindgen-futures-0.4.75\n  /nix/store/zkgk3fiav01ihv7y9n7m76ymv0lcswjj-wasm-bindgen-macro-0.2.125\n  /nix/store/bc53maw1fg64kgn2slv37cndncvias1h-wasm-bindgen-macro-support-0.2.125\n  /nix/store/7dmiszpbzrar4idxf1ppi1v07x8iad39-wasm-bindgen-shared-0.2.125\n  /nix/store/h5b1bx59ja93zkv2byhpb98m487qpxvi-web-sys-0.3.102\n  /nix/store/lkk2g7x6v8qhap8v8ny8mn54nb7fhjdd-web-time-1.1.0\n  /nix/store/hx9hm1ah5ma4wnn47wxyzwn2y26h43zm-webpki-roots-1.0.7\n  /nix/store/11wvf810f4jyrf68clf993f7x460lsyj-windows-link-0.2.1\n  /nix/store/crc8nlggh4khwfmf9w9q48jmbprk4w16-windows-sys-0.52.0\n  /nix/store/djwa6z4yzd94as7prdkj8xpip65z1lcj-windows-sys-0.60.2\n  /nix/store/vkwa45fr2gzphih5jl04yga0g9fcmabs-windows-sys-0.61.2\n  /nix/store/wgn0h2qypg7lb2im3dpgf35x1fzzx6mj-windows-targets-0.52.6\n  /nix/store/1hkdrzh1qcirl2n18nbaga7vqi6gh4l2-windows-targets-0.53.5\n  /nix/store/ac6zhyl7mgx45gyymqjddcv98bmpn6kr-windows_aarch64_gnullvm-0.52.6\n  /nix/store/1s99dj9s9nbln2f4wsdziqca15zbxpnf-windows_aarch64_gnullvm-0.53.1\n  /nix/store/cjz4kz6m0qyc7v39ql98qszmxcrpd6q6-windows_aarch64_msvc-0.52.6\n  /nix/store/9rbs0zybhp9a8s3c3cvhxigxlijp00lx-windows_aarch64_msvc-0.53.1\n  /nix/store/rvhg3np741xwixqflfkp8cbxf9d635fr-windows_i686_gnu-0.52.6\n  /nix/store/qw90q00fs5qjrwb67iyhzfzr891nwfj5-windows_i686_gnu-0.53.1\n  /nix/store/yvkqqgaxfxv1q7zhz0vnlwnnb22mx30q-windows_i686_gnullvm-0.52.6\n  /nix/store/g6k6n7nmn48v80s4dl17cvfwvyj38zqy-windows_i686_gnullvm-0.53.1\n  /nix/store/z8w2hmim2hkzmpclyc94mcl271gy50k9-windows_i686_msvc-0.52.6\n  /nix/store/2hydbcbx5rbyjcbx2xq2d902wxvskc21-windows_i686_msvc-0.53.1\n  /nix/store/pn5hlllb4spvqgbklf3kd6m27dmx5zrn-windows_x86_64_gnu-0.52.6\n  /nix/store/fp0xnyxf2mmx5h3b9b12zlbpbqkhdx70-windows_x86_64_gnu-0.53.1\n  /nix/store/94zs48hb73vary1ashlm9s0b7qrcw4z6-windows_x86_64_gnullvm-0.52.6\n  /nix/store/l290vnf0dlq8vrawxbw04n664rvw9n77-windows_x86_64_gnullvm-0.53.1\n  /nix/store/nmrfx9k93pkdxx5wbmk1h7sdvy0c7d0l-windows_x86_64_msvc-0.52.6\n  /nix/store/69xiwby6hahj1s35ly4xd971k8dzz0a8-windows_x86_64_msvc-0.53.1\n  /nix/store/xv91r3j3f022nn02x9xbc2j2sx5fgrfa-wit-bindgen-0.57.1\n  /nix/store/zn4j8hy5ya8d7p2afqs2m4788qgyvysh-writeable-0.6.3\n  /nix/store/1y3hanpz5hwijkd86aidrikjlsp6lhc9-xar-minimal-503-lib\n  /nix/store/vzkhr8v7x35z2p6kwr0rbv8267r8gjcz-xcbuild-0.1.1-unstable-2019-11-20\n  /nix/store/3j7f0im9vb3mfmi4y0s7y6b6alj3c025-xcbuild-0.1.1-unstable-2019-11-20-xcrun\n  /nix/store/5047bgcpicg9kkjliq2q6lmm35davs2c-xz-5.8.4\n  /nix/store/zcj9x8w3pvajyjj48gm16fq8zzij0vlv-xz-5.8.4-bin\n  /nix/store/yb8ya4rkk6iml8bhcm5p1p84qy9csjwh-yoke-0.8.3\n  /nix/store/gyx03v6kgji3667ffgbsx31zp5zr16cm-yoke-derive-0.8.2\n  /nix/store/5kxa6jqgf5vc3wbfcsc8pb6rhw1kdlxj-zerocopy-0.8.52\n  /nix/store/28jr68nms1l8mhryg6hxmf0ks7l0l654-zerocopy-derive-0.8.52\n  /nix/store/yvc065nxlypv5cykw3vh7pbsivzj963p-zerofrom-0.1.8\n  /nix/store/vsixv76risr99jxgafhj42gc0hqi8rkr-zerofrom-derive-0.1.7\n  /nix/store/7mxnrzdfx631px9x1fzjgg8ql5p30wm2-zeroize-1.9.0\n  /nix/store/c6q6l5vakqp3fyzjg3cp88s4d6h3qr7g-zerotrie-0.2.4\n  /nix/store/xj64xi2px61rgiyryjbsh4yz3nsy6y1f-zerovec-0.11.6\n  /nix/store/ayzp2a8ficwkyng4hr54x8rcg04dmi0v-zerovec-derive-0.11.3\n  /nix/store/arspcb0pa15f9f2b079k1kpqik297fxz-zlib-1.3.2\n  /nix/store/fkm818d0j6dhxwa2qzf5dwhvdakc34m3-zmij-1.0.21\n  /nix/store/qa3j5zvp29rdwfs7ykb4cnx6wzacn1lr-zstd-1.5.7\ncopying path '/nix/store/i1pdjlwb27ki88zssg5q2h696v1r1m15-bash-5.3p20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fha7sqqygvd5vgx016aghc63izqr6a3s-cargo-install-hook.sh' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nksa7zv2dxx8vdxqci27iiwqnzxl72ys-gawk-5.4.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/306s97mvw5slpgg7hnb26xy37dhy4xk0-gnumake-4.4.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8fyr2rna4vqibkqsbzyfd4z6fna5c09p-gnused-4.10' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jaixg82zxmqjbn2s6grpd31jq0yygzc1-libiconv-115.100.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gzpbhwqzd2jrbgdc5c7sxgqambgz0wb0-locale-118' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cry7qbrbdqdd1qak8a0dcw70dcm4cshj-brotli-1.2.0-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7851jdxa34v6szgbighvkz19sx990r1i-atomic-waker-1.1.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ngnagyfsxccd328i1nzwq5wsx40lb75k-base64-0.22.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zb27pphh4f43m6i9ahhz01bf866h5k2j-bitflags-2.13.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/wa19fvqyj4xd3wh9sbmkp4cvvzy75xpq-bumpalo-3.20.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xwv515dll5sf139nlrh67x5nimscjnlf-bytes-1.11.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/rks97mrv4i0rk9l9knj027zhgmy4yb38-bzip2-1.0.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zsfz7fp0l7llr34gby6cyk4h6i157g1x-cfg-if-1.0.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3ba4nazbh4mahlzj85cx8f9sm28la98c-cc-1.2.64' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/1c9yik8an28b2rxy5h1p6mrb5av3y04a-tracing-0.1.44' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0585f7zgmf05ckndiym2zsszm2djw8gj-http-1.4.2' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/0dyzfdivpci1w0kr9405m0h763gkw42h-cfg_aliases-0.2.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/11wvf810f4jyrf68clf993f7x460lsyj-windows-link-0.2.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1hsyx4rrzwwx5h1vrrdh0525d9m8pv50-wasm-bindgen-0.2.125' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/03qa6pyl1qccw1j9v78x382d20294m21-serde_urlencoded-0.7.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kds0dhsl4gp9fy71n612pykqarqpygca-bzip2-1.0.8-bin' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0pq99468jrs8mbvz6x83swjirwaq7pf8-thiserror-2.0.18' from 'https://cache.nixos.org'...\ncopying path '/nix/store/aaxz8hjksxp76f15j9biw2r1179fzvy7-cups-headers-2.4.19' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a3m4hbgv43cykrsjvha06kfsj7nhc0g2-libutil-73' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1i517araac494rllzvnsyjhmbmlf29l1-js-sys-0.3.102' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/28jr68nms1l8mhryg6hxmf0ks7l0l654-zerocopy-derive-0.8.52' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/x4nl6d72j5jdncz8vip5h5g8dxgcdfhy-gzip-1.15' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0lg19m49p8j5z3sznpjgfhp74p8gxzk8-tokio-rustls-0.26.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1hkdrzh1qcirl2n18nbaga7vqi6gh4l2-windows-targets-0.53.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1s99dj9s9nbln2f4wsdziqca15zbxpnf-windows_aarch64_gnullvm-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2hydbcbx5rbyjcbx2xq2d902wxvskc21-windows_i686_msvc-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0gvchawl29cn1pw5ajwi7spq7mnbqbz4-hyper-util-0.1.20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2dj2d5gmpm831hxm1rmp3f2mxswwkkwk-ppv-lite86-0.2.21' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2jr3s0b56dq25l0gzvdw3hs0hjbwfcq7-ring-0.17.14' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2n6dznghdbsz0afai6yrlzv4rglh89rv-tokio-1.52.3' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/2nn8lw9vzgx6x1i4biz925d1hzchz4xk-wasm-bindgen-futures-0.4.75' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/2rmpc4m9nw2smk5m9jdzjzn43gdd805v-rand_chacha-0.9.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3xn33ijwc9796l716a30dbsj6lqwmxpi-httparse-1.10.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4aickvs1zaiwr1y4xqyn15byhf6xwsd7-futures-channel-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4ysvv4qqqx8id2zf3jc754aqvvkgswzq-percent-encoding-2.3.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/50fi6vpg0kdx6g0idcqqyka3sgxbs464-memchr-2.8.2' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/5g3m1ha2vsbjw47sj5q8m21yp8r4r9s7-lru-slab-0.1.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5kxa6jqgf5vc3wbfcsc8pb6rhw1kdlxj-zerocopy-0.8.52' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/5pjj93x3pf9qjm6ij9dl7ili6xlqzy3h-serde-1.0.228' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5wjq2h51wk6nnsj37vmwq1ahhvsy55s2-unicode-ident-1.0.24' from 'https://cache.nixos.org'...\ncopying path '/nix/store/69xiwby6hahj1s35ly4xd971k8dzz0a8-windows_x86_64_msvc-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/6z40351qckd3gffyi227y003n1brgkyk-serde_core-1.0.228' from 'https://cache.nixos.org'...\ncopying path '/nix/store/74i4gvvyjzf25z202s2ji7w2xz8md9f5-futures-core-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7ck4sx5wqhggy4yqwhhq12b7a17v5dzv-http-body-util-0.1.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7dmiszpbzrar4idxf1ppi1v07x8iad39-wasm-bindgen-shared-0.2.125' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/7mxnrzdfx631px9x1fzjgg8ql5p30wm2-zeroize-1.9.0' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/89p5w8j390vnkf9617kdhbd03f7x4ad1-wasip2-1.0.4+wasi-0.2.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8vp5pv3ll38zz2vg00ykqhyzc4jcga48-tower-service-0.3.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8xvmkdl6gdlnmg2373vgrs570k5rli1m-hyper-rustls-0.27.9' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/94zs48hb73vary1ashlm9s0b7qrcw4z6-windows_x86_64_gnullvm-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/96s11bwg9wncqsvvzsyl36d9m8ssxfiw-tracing-core-0.1.36' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9mvakg3w227qcxdjfld4ss5p4g2s7nsg-futures-task-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9p7xpbw5vsr745a2v10ypixjnxch9gif-rand-0.9.4' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/9rbs0zybhp9a8s3c3cvhxigxlijp00lx-windows_aarch64_msvc-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a80q286rpnxjfhw96sb71sf8ld013a2v-find-msvc-tools-0.1.9' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ac6zhyl7mgx45gyymqjddcv98bmpn6kr-windows_aarch64_gnullvm-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/aggzfl17g5pwsjjgxpi9ws9kcka6r52b-want-0.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ayzp2a8ficwkyng4hr54x8rcg04dmi0v-zerovec-derive-0.11.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/bc53maw1fg64kgn2slv37cndncvias1h-wasm-bindgen-macro-support-0.2.125' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/bfb39kbrhm8ic0qq8ad43p6jqxr9kin1-wasi-0.11.1+wasi-snapshot-preview1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/c6q6l5vakqp3fyzjg3cp88s4d6h3qr7g-zerotrie-0.2.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/c98zirv7llnr4wb8jjkgpdy9240ip7gj-form_urlencoded-1.2.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cjz4kz6m0qyc7v39ql98qszmxcrpd6q6-windows_aarch64_msvc-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/crc8nlggh4khwfmf9w9q48jmbprk4w16-windows-sys-0.52.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/csy3z8bl88jmd634gnirhv7vss9wy42k-libc-0.2.186' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cxz42ly4n3mfxi0j9qczj9jwqa9lj1xk-futures-sink-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d4yajd9k8dnjdcpsxpb17s4vw0wzsn7h-displaydoc-0.2.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d5pq7m3l5dnsyin9c62i18383n2xlisd-serde_json-1.0.150' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d9n8pqf3xbjz4xv4wchqg8zlkkv4wx9h-tinystr-0.8.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/djwa6z4yzd94as7prdkj8xpip65z1lcj-windows-sys-0.60.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dlaxdnx2dwsjxv1km41qsjc213zjqxvy-tower-http-0.6.11' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fgj89mfg2yydgyv3dy8qb2fl6v28mig1-hyper-1.10.1' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/fkm818d0j6dhxwa2qzf5dwhvdakc34m3-zmij-1.0.21' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fp0xnyxf2mmx5h3b9b12zlbpbqkhdx70-windows_x86_64_gnu-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/g6k6n7nmn48v80s4dl17cvfwvyj38zqy-windows_i686_gnullvm-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/g7f1rm2prb86i13dddaaznj5xfwh71nk-http-body-1.0.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gab0jzic3isqjqm95nyjzswi24qv6im1-pin-project-lite-0.2.17' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ggbkscwbxdq899ar11xki645nirjwdcq-itoa-1.0.18' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gka8vi6izqp39k5lq78fadn766rlmfcq-rustls-0.23.40' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/gw8fdinb41ahgdwbc835n0nmzv7sgbd5-untrusted-0.9.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gyx03v6kgji3667ffgbsx31zp5zr16cm-yoke-derive-0.8.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/h4z0gz81qxiza2x2mdrxgcih3jwzfhqj-quinn-udp-0.5.14' from 'https://cache.nixos.org'...\ncopying path '/nix/store/h8wp585s0ajrbfm46v7py6gcn2jlvcbr-thiserror-impl-2.0.18' from 'https://cache.nixos.org'...\ncopying path '/nix/store/h5b1bx59ja93zkv2byhpb98m487qpxvi-web-sys-0.3.102' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/hx9hm1ah5ma4wnn47wxyzwn2y26h43zm-webpki-roots-1.0.7' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/ildm9aqjzw92aczgcp1x1ks79zzz5k2l-mio-1.2.1' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/ipqz8a729aa32hrx5nhgpvkzza89vrpr-icu_properties-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/iwszbfzq10ggl1cl4h1di4a57r553ik8-ipnet-2.12.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/j12jyrc97v9v26w5xfqn8w364klrcj8y-subtle-2.6.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jarc418mrwpza7q4f71ag14i5iwxd80b-sync_wrapper-1.0.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jbfrj20p0frs67ngm9gbpx1b96p02k93-quinn-0.11.9' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jfhqmizyhqhjinqhrvxkb0qzag8vbwx3-quinn-proto-0.11.14' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jh3m98xq4v423y62qhhyw709jjwravhp-litemap-0.8.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jnh3qmk7ngg18a2g806mbzcb5b7xf5yf-quote-1.0.45' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jnmdwrly7f4305nw80pa7f8pkg30kw0z-icu_collections-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jrkch26l05d5gaw9z03dnfqz3g3s711p-reqwest-0.12.28' from 'https://cache.nixos.org'...\ncopying path '/nix/store/k0b6zvml0jvy55pxddjdd4pfb10n7cbc-smallvec-1.15.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/krxk2iaggk7ii6jcj2jrs7gkdip6269m-rand_core-0.9.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/l290vnf0dlq8vrawxbw04n664rvw9n77-windows_x86_64_gnullvm-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/l53bfxj1pzhysdn373hfvcvivxglwh6f-proc-macro2-1.0.106' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lg9z1nsyajrqxifqz02vnwg5qsv1dkm5-try-lock-0.2.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lkk2g7x6v8qhap8v8ny8mn54nb7fhjdd-web-time-1.1.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lxxq2s87c996snyd9vs5qi0pfp7cgkbl-futures-io-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/m6z1zbg2nb6c2nasffx1xdlfz70rvayz-tower-0.5.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mdyb64pdgxzirhy5s2l3fw5rqsi95jzw-icu_normalizer-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mig1336k2wiaji61024vi1wxh6ifdawq-tower-layer-0.3.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mkkb2xrjhjw61nfbw5yy33na1sbj2221-icu_locale_core-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/n3lfz6z0r78ig1dsqrzarf6b11ip1mx8-socket2-0.6.4' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/n8jd4sfjj8nrvpnbw1fw4mldgmcav9mp-shlex-2.0.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/n47ari897844qyjrpm0gpi7avbyrk2ln-icu_normalizer_data-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ni020z8nnlsd7rx6wryv5nnk17ah2llv-slab-0.4.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nmrfx9k93pkdxx5wbmk1h7sdvy0c7d0l-windows_x86_64_msvc-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nmra3mq0yg8gaig1kgzxyp9vcvkdajil-getrandom-0.2.17' from 'https://cache.nixos.org'...\ncopying path '/nix/store/p302mv1zmh8j6qkfkqsrawha90gys7ki-rustversion-1.0.22' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pjmrankh4szpypddnkr2gb94n1zk2q4f-futures-util-0.3.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/p3c595csrf4kk20hl7gaq45l1fc5rr2i-synstructure-0.13.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pn5hlllb4spvqgbklf3kd6m27dmx5zrn-windows_x86_64_gnu-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pvdjvcsk81lm4gpypgzcf0xyp3jc1mxs-tinyvec-1.11.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pvp6jcpdmlsq78akcq6403af9rjgc0kg-icu_provider-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qq26yhznrf9sbiy8kxzar4vwaffgsiw8-potential_utf-0.1.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qr3226nk2xjgcm0bfj8rrxizz1mhy9x3-syn-2.0.118' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qw90q00fs5qjrwb67iyhzfzr891nwfj5-windows_i686_gnu-0.53.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qwdxvkyq9cl8qkhfp35lxd0a7xa2lzx1-log-0.4.32' from 'https://cache.nixos.org'...\ncopying path '/nix/store/r79i1q09n70mr4rj4xzgp47vmav8r47m-idna-1.1.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xi0z777jzp4pinfh0kxwinvvq0pzw8fs-cargo-auditable-0.7.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2qdvsdwv916cnkzilrdx479d13ipfccd-libiconv-115.100.1-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/rvhg3np741xwixqflfkp8cbxf9d635fr-windows_i686_gnu-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/s1mazymgcnnfaj14cdzhy4n08wkisbsy-stable_deref_trait-1.2.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/s6b1l5f7x2mj8598phb2s5xfvjvi3m52-tinyvec_macros-0.1.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/s6m22a40w2amri67y65qavxh10fyzzcj-once_cell-1.21.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/srvl42wis4mn46fjc753rpxqsv3drfw4-ryu-1.0.23' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vhzg4dv1ifpsvmfvfhi6z54jbp2685v5-serde_derive-1.0.228' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vikqwwqm3q893q2jk2rwd3shkva89aql-rustc-hash-2.1.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vkwa45fr2gzphih5jl04yga0g9fcmabs-windows-sys-0.61.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vqqnb2rp41jgi8gxljamskws5l241jz5-icu_properties_data-2.2.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vsixv76risr99jxgafhj42gc0hqi8rkr-zerofrom-derive-0.1.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/wgn0h2qypg7lb2im3dpgf35x1fzzx6mj-windows-targets-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/wkmkjpsahrgnsm4ma1m0f82baybcilfx-rustls-pki-types-1.14.1' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/wrdr50q73w2d4w2pn30r60kdl2wvq97j-rustls-webpki-0.103.13' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/x9al61vlrz78ap9qbv4mb0kv8v738vix-getrandom-0.3.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xj64xi2px61rgiyryjbsh4yz3nsy6y1f-zerovec-0.11.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xv91r3j3f022nn02x9xbc2j2sx5fgrfa-wit-bindgen-0.57.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/y3jfdn2975zzldafv9sppa5nk46zl1c5-url-2.5.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yb8ya4rkk6iml8bhcm5p1p84qy9csjwh-yoke-0.8.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yvc065nxlypv5cykw3vh7pbsivzj963p-zerofrom-0.1.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yvkqqgaxfxv1q7zhz0vnlwnnb22mx30q-windows_i686_gnullvm-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yzijkqvb7fkxzb5kwm8xwm7xx1z6vw2c-idna_adapter-1.2.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/z8w2hmim2hkzmpclyc94mcl271gy50k9-windows_i686_msvc-0.52.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zkgk3fiav01ihv7y9n7m76ymv0lcswjj-wasm-bindgen-macro-0.2.125' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/zn4j8hy5ya8d7p2afqs2m4788qgyvysh-writeable-0.6.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zbd8vnza7fsknaxpagjr8x6hdsdnhr5x-r-efi-5.3.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zr2c7y3flkw3lhwg0wv4k8gvpg28x4jh-utf8_iter-1.0.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/iplkski62k0y611i4m5h3v0dk2d87db1-expand-response-params' from 'https://cache.nixos.org'...\ncopying path '/nix/store/wbqczzx4vd907aiclk4f5jf71dhv4y8d-compiler-rt-libc-21.1.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/x1x1gm4vkysqvi93wndbzskipgqy0nc0-libcxx-21.1.6+apple-sdk-26.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/x4163vs8djgppcmghh5zkr3srmfzagff-libSystem-B' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5ax2pwqqw46gi7izsx195rk20fw6g04n-gmp-with-cxx-6.3.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/57s5d87yy7ll1fpkk2xgrjhkpcp8dwz6-nghttp3-1.18.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/g0278qlsdqkcgciqylpq95g6v6bjxbhb-nghttp2-1.70.0-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jnydv03kl75vfnyzb7lyb63kl2kqmwwh-ngtcp2-1.23.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kis5x3k1r9nx8bz6xf6yk7gmnmk72gf7-libresolv-96' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qa3j5zvp29rdwfs7ykb4cnx6wzacn1lr-zstd-1.5.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/arspcb0pa15f9f2b079k1kpqik297fxz-zlib-1.3.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9xb95psp964k4fwf5sabazj3k9zbi8jq-pcre2-10.49' from 'https://cache.nixos.org'...\ncopying path '/nix/store/913158w9ykwyzyhs2rgzr8rd45244qs6-coreutils-9.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/36c168mc93w4mlmqknam03ffyi6qg0w6-gettext-1.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gcikcxrsjw61fpd8jlvvzniaxq2b1b6s-ed-1.22.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4bi4z2fpwbp8yhx2sqghmf8iskrsh9fq-compiler-rt-libc-21.1.8-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3xmkpz6hvyjcgd81llmlng9dv0m4b8pf-gnu-config-2024-01-01' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5047bgcpicg9kkjliq2q6lmm35davs2c-xz-5.8.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/viw0q4bs6c2h1fqsd66p2j2fdj25xzbz-libiconv-1.19' from 'https://cache.nixos.org'...\ncopying path '/nix/store/hinisg78q3l0jscpn7mpm5zbn17fnxqg-libresolv-96-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/my66hfzlnfn7w0l99jydlmfxxddjd6kx-file-5.48' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8fz03pzq1xvk0pl7li1w909gbpcmwifm-libssh2-1.11.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7ihxb15yxm8345fdazx323iljjsi1i5i-gnugrep-3.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/14nzy6b98s1xi2q4w6anj9civfdp1jcq-findutils-4.11.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gy0qyg8p2vbzyq5zb2p601i2n0m5xnk6-diffutils-3.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d9plqh0j9sr8dzzbvz2g1ih4vdq8xr3r-krb5-1.22.2-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zjnxj0kan4y2gwb3kqf8ynd4klzminx6-update-autotools-gnu-config-scripts-hook' from 'https://cache.nixos.org'...\ncopying path '/nix/store/y8g50am7v50c9hlz50cl489vig0kl7aj-patch-2.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/rs13lm1lidm0z6644f0hm3n6ils9wmrh-libsbuf-14.1.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4r0vc481js1rxvb3f9015ii7p9xbij9r-publicsuffix-list-0-unstable-2026-09-02' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zcj9x8w3pvajyjj48gm16fq8zzij0vlv-xz-5.8.4-bin' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5pdi5bq35qs6av37wsaf6qkkbghwhhvz-libxml2-2.15.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lfwvqpn0k7rc07977ab98n3xdr3k5vyg-libunistring-1.4.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ny6fr09ndka7swhqrgnkri2n36vr7nsq-libffi-40' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zdslvbbhrpilsyqvcwxywqrwla35h68p-ncurses-6.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/rfv1rw727jcmf340dydlkzmz3qzky78p-ncurses-6.6-man' from 'https://cache.nixos.org'...\ncopying path '/nix/store/iq8g1j0q7pp4livckzg3pycq4k9nwr3v-ld64-957.1-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qp0jgrbbzia0g5h2n1k50bcad7h3rh9m-libidn2-2.3.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/r7k5j80fmj2s86vifq147qwxczfs057h-libsbuf-14.1.0-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/780w4ih6zr6kj37mildxrc9fn6nxmc4c-llvm-21.1.8-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1y3hanpz5hwijkd86aidrikjlsp6lhc9-xar-minimal-503-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vzkhr8v7x35z2p6kwr0rbv8267r8gjcz-xcbuild-0.1.1-unstable-2019-11-20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dv3gqilrzcdl2w97kmsn9pkq9ds2k2dn-libpsl-0.21.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3j7f0im9vb3mfmi4y0s7y6b6alj3c025-xcbuild-0.1.1-unstable-2019-11-20-xcrun' from 'https://cache.nixos.org'...\ncopying path '/nix/store/k5zhhnxn3pa7d8fgs7glys6hwl96q5cm-gnutar-1.35' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dkv7hd5fx8rnhyg59hy7yw8pah3swglp-curl-8.22.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/rb1j99qp9rqwy9cx4srxymrmq8g9y51v-cargo-vendor-dir' from 'https://logos-co.cachix.org'...\ncopying path '/nix/store/qjisxvjgpnpk6f2ypf6irfyzi16ay7yf-ncurses-6.6-dev' from 'https://cache.nixos.org'...\ncopying path '/nix/store/myr0bvpz8blxr9rn55cmcb7a05wwk7pz-ld64-957.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dkn2518z5jkdgp2n2i8zm9i9ll5xl3py-llvm-21.1.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0va26r8nlb0h1bd6iyx9yrmi4py1947m-clang-21.1.8-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/b2c9gg3dvy4nnr5d11bj2cby37k5j8m7-cctools-1010.6-libtool' from 'https://cache.nixos.org'...\ncopying path '/nix/store/m9x2il13sywj54296ddwksmx72lbv950-cctools-1010.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mirkpd3aaivsdpnlw2f67bn81fr067hg-rustc-1.99.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/hbj4a922mmhd5nlg34fsybyw439iz09p-clang-21.1.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/c9risrjiq2jy4piadiy7l2nl92vgb1bm-cctools-binutils-darwin-1010.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/svkkgla6ini4hg035ka7wb8idm301r1i-apple-sdk-14.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kivknb4q8cs9z7fjl5gjz4v9n1vm0gi4-rustc-wrapper-1.99.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yyhrcj8z06lw33h4kln41zsgxp5kd14g-cargo-1.99.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2pcw0nbchbpnk2bhfqsvy0537d5jk80m-auditable-cargo-1.99.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3j53paxbcd4k06zk75jzv018798wjrjm-cctools-binutils-darwin-wrapper-1010.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8z7gv889g2cxbvmwcibdzvmikllc51qv-clang-wrapper-21.1.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/i7byqy0saxyqqfy9bdidq04rn2q1lgpy-cargo-build-hook.sh' from 'https://cache.nixos.org'...\ncopying path '/nix/store/56n13agj6nk4h9jhgcjl4kg2lipsj831-cargo-check-hook.sh' from 'https://cache.nixos.org'...\ncopying path '/nix/store/f6aydsf759kksgr2xnyr2l94a37ny7hz-cargo-setup-hook.sh' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4gqzn5ia76rp74p8fb6nvry3arbn3l7j-stdenv-darwin' from 'https://cache.nixos.org'...\nbuilding '/nix/store/bx0y97cykrny9ixbvzkdv4rw5ghggcrr-logos-net-proxy-0.1.0.drv'...\nlogos-net-proxy> Running phase: unpackPhase\nlogos-net-proxy> unpacking source archive /nix/store/74jh7pl9m9ph39l854qgk0iah491zjiz-nnlxnq1s9qfc5jfg5mv8q8m3ihpbrka2-source\nlogos-net-proxy> source root is nnlxnq1s9qfc5jfg5mv8q8m3ihpbrka2-source\nlogos-net-proxy> Executing cargoSetupPostUnpackHook\nlogos-net-proxy> Finished cargoSetupPostUnpackHook\nlogos-net-proxy> Running phase: patchPhase\nlogos-net-proxy> Executing cargoSetupPostPatchHook\nlogos-net-proxy> Validating consistency between /nix/var/nix/builds/nix-9194-994984496/nnlxnq1s9qfc5jfg5mv8q8m3ihpbrka2-source/Cargo.lock and /nix/var/nix/builds/nix-9194-994984496/cargo-vendor-dir/Cargo.lock\nlogos-net-proxy> Finished cargoSetupPostPatchHook\nlogos-net-proxy> Running phase: updateAutotoolsGnuConfigScriptsPhase\nlogos-net-proxy> Running phase: configurePhase\nlogos-net-proxy> Running phase: buildPhase\nlogos-net-proxy> Executing cargoBuildHook\nlogos-net-proxy> cargoBuildHook flags: -j 3 --target aarch64-apple-darwin --offline --profile release\nlogos-net-proxy>    Compiling proc-macro2 v1.0.106\nlogos-net-proxy>    Compiling quote v1.0.45\nlogos-net-proxy>    Compiling unicode-ident v1.0.24\nlogos-net-proxy>    Compiling libc v0.2.186\nlogos-net-proxy>    Compiling stable_deref_trait v1.2.1\nlogos-net-proxy>    Compiling bytes v1.11.1\nlogos-net-proxy>    Compiling syn v2.0.118\nlogos-net-proxy>    Compiling pin-project-lite v0.2.17\nlogos-net-proxy>    Compiling find-msvc-tools v0.1.9\nlogos-net-proxy>    Compiling itoa v1.0.18\nlogos-net-proxy>    Compiling shlex v2.0.1\nlogos-net-proxy>    Compiling futures-core v0.3.32\nlogos-net-proxy>    Compiling cc v1.2.64\nlogos-net-proxy>    Compiling litemap v0.8.2\nlogos-net-proxy>    Compiling smallvec v1.15.2\nlogos-net-proxy>    Compiling writeable v0.6.3\nlogos-net-proxy>    Compiling socket2 v0.6.4\nlogos-net-proxy>    Compiling ring v0.17.14\nlogos-net-proxy>    Compiling synstructure v0.13.2\nlogos-net-proxy>    Compiling mio v1.2.1\nlogos-net-proxy>    Compiling icu_properties_data v2.2.0\nlogos-net-proxy>    Compiling futures-sink v0.3.32\nlogos-net-proxy>    Compiling icu_normalizer_data v2.2.0\nlogos-net-proxy>    Compiling zerofrom-derive v0.1.7\nlogos-net-proxy>    Compiling yoke-derive v0.8.2\nlogos-net-proxy>    Compiling zerovec-derive v0.11.3\nlogos-net-proxy>    Compiling zerofrom v0.1.8\nlogos-net-proxy>    Compiling displaydoc v0.2.6\nlogos-net-proxy>    Compiling yoke v0.8.3\nlogos-net-proxy>    Compiling utf8_iter v1.0.4\nlogos-net-proxy>    Compiling tokio v1.52.3\nlogos-net-proxy>    Compiling zerovec v0.11.6\nlogos-net-proxy>    Compiling zerotrie v0.2.4\nlogos-net-proxy>    Compiling tinystr v0.8.3\nlogos-net-proxy>    Compiling potential_utf v0.1.5\nlogos-net-proxy>    Compiling icu_locale_core v2.2.0\nlogos-net-proxy>    Compiling icu_collections v2.2.0\nlogos-net-proxy>    Compiling icu_provider v2.2.0\nlogos-net-proxy>    Compiling http v1.4.2\nlogos-net-proxy>    Compiling cfg-if v1.0.4\nlogos-net-proxy>    Compiling once_cell v1.21.4\nlogos-net-proxy>    Compiling percent-encoding v2.3.2\nlogos-net-proxy>    Compiling memchr v2.8.2\nlogos-net-proxy>    Compiling zeroize v1.9.0\nlogos-net-proxy>    Compiling rustls-pki-types v1.14.1\nlogos-net-proxy>    Compiling getrandom v0.2.17\nlogos-net-proxy>    Compiling http-body v1.0.1\nlogos-net-proxy>    Compiling slab v0.4.12\nlogos-net-proxy>    Compiling futures-io v0.3.32\nlogos-net-proxy>    Compiling untrusted v0.9.0\nlogos-net-proxy>    Compiling httparse v1.10.1\nlogos-net-proxy>    Compiling futures-task v0.3.32\nlogos-net-proxy>    Compiling serde_core v1.0.228\nlogos-net-proxy>    Compiling futures-util v0.3.32\nlogos-net-proxy>    Compiling icu_normalizer v2.2.0\nlogos-net-proxy>    Compiling icu_properties v2.2.0\nlogos-net-proxy>    Compiling try-lock v0.2.5\nlogos-net-proxy>    Compiling rustls v0.23.40\nlogos-net-proxy>    Compiling tower-service v0.3.3\nlogos-net-proxy>    Compiling want v0.3.1\nlogos-net-proxy>    Compiling idna_adapter v1.2.2\nlogos-net-proxy>    Compiling rustls-webpki v0.103.13\nlogos-net-proxy>    Compiling form_urlencoded v1.2.2\nlogos-net-proxy>    Compiling tracing-core v0.1.36\nlogos-net-proxy>    Compiling futures-channel v0.3.32\nlogos-net-proxy>    Compiling atomic-waker v1.1.2\nlogos-net-proxy>    Compiling zmij v1.0.21\nlogos-net-proxy>    Compiling serde v1.0.228\nlogos-net-proxy>    Compiling subtle v2.6.1\nlogos-net-proxy>    Compiling hyper v1.10.1\nlogos-net-proxy>    Compiling tracing v0.1.44\nlogos-net-proxy>    Compiling idna v1.1.0\nlogos-net-proxy>    Compiling sync_wrapper v1.0.2\nlogos-net-proxy>    Compiling tower-layer v0.3.3\nlogos-net-proxy>    Compiling serde_json v1.0.150\nlogos-net-proxy>    Compiling ipnet v2.12.0\nlogos-net-proxy>    Compiling base64 v0.22.1\nlogos-net-proxy>    Compiling hyper-util v0.1.20\nlogos-net-proxy>    Compiling tokio-rustls v0.26.4\nlogos-net-proxy>    Compiling tower v0.5.3\nlogos-net-proxy>    Compiling url v2.5.8\nlogos-net-proxy>    Compiling webpki-roots v1.0.7\nlogos-net-proxy>    Compiling bitflags v2.13.0\nlogos-net-proxy>    Compiling thiserror v2.0.18\nlogos-net-proxy>    Compiling ryu v1.0.23\nlogos-net-proxy>    Compiling serde_urlencoded v0.7.1\nlogos-net-proxy>    Compiling tower-http v0.6.11\nlogos-net-proxy>    Compiling hyper-rustls v0.27.9\nlogos-net-proxy>    Compiling http-body-util v0.1.3\nlogos-net-proxy>    Compiling thiserror-impl v2.0.18\nlogos-net-proxy>    Compiling log v0.4.32\nlogos-net-proxy>    Compiling reqwest v0.12.28\nlogos-net-proxy>    Compiling logos-net-proxy v0.1.0 (/nix/var/nix/builds/nix-9194-994984496/nnlxnq1s9qfc5jfg5mv8q8m3ihpbrka2-source)\nlogos-net-proxy>     Finished `release` profile [optimized] target(s) in 32.63s\nlogos-net-proxy> Executing cargoInstallPostBuildHook\nlogos-net-proxy> Finished cargoInstallPostBuildHook\nlogos-net-proxy> Finished cargoBuildHook\nlogos-net-proxy> buildPhase completed in 33 seconds\nlogos-net-proxy> Running phase: checkPhase\nlogos-net-proxy> Executing cargoCheckHook\nlogos-net-proxy> cargoCheckHook flags: -j 3 --profile release --target aarch64-apple-darwin --offline --\nlogos-net-proxy>    Compiling logos-net-proxy v0.1.0 (/nix/var/nix/builds/nix-9194-994984496/nnlxnq1s9qfc5jfg5mv8q8m3ihpbrka2-source)\nlogos-net-proxy>     Finished `release` profile [optimized] target(s) in 0.69s\nlogos-net-proxy>      Running unittests src/lib.rs (target/aarch64-apple-darwin/release/deps/logos_net_proxy-3f23b3e10632989b)\nlogos-net-proxy> \nlogos-net-proxy> running 6 tests\nlogos-net-proxy> test tests::fail_closed_when_required_and_unset ... ok(B\nlogos-net-proxy> test tests::fail_closed_when_required_and_blank ... ok(B\nlogos-net-proxy> test tests::rejects_garbage_proxy ... ok(B\nlogos-net-proxy> test tests::rejects_unsupported_scheme ... ok(B\nlogos-net-proxy> test tests::ok_when_not_required_and_unset ... ok(B\nlogos-net-proxy> test tests::ok_with_socks5h_proxy ... ok(B\nlogos-net-proxy> \nlogos-net-proxy> test result: ok(B. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nlogos-net-proxy> \nlogos-net-proxy>    Doc-tests logos_net_proxy\nlogos-net-proxy> \nlogos-net-proxy> running 0 tests\nlogos-net-proxy> \nlogos-net-proxy> test result: ok(B. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nlogos-net-proxy> \nlogos-net-proxy> Finished cargoCheckHook\nlogos-net-proxy> Running phase: installPhase\nlogos-net-proxy> Executing cargoInstallHook\nlogos-net-proxy> Finished cargoInstallHook\nlogos-net-proxy> Running phase: fixupPhase\nlogos-net-proxy> checking for references to /nix/var/nix/builds/nix-9194-994984496/ in /nix/store/6s41cc6ps68z6hfcxkr19gfk9m22kdc6-logos-net-proxy-0.1.0...\nlogos-net-proxy> patching script interpreter paths in /nix/store/6s41cc6ps68z6hfcxkr19gfk9m22kdc6-logos-net-proxy-0.1.0\n", "status": "pass"}], "md": "### 2.1 Build the crate \u2014 its checkPhase runs cargo test\n\n```bash\nnix build github:logos-co/logos-evm-net-proxy#default -L   # checkPhase = cargo test\n```\n\nA successful build is a green run: `checkPhase` executes `cargo test`, so\nall six cases above passed \u2014 every \"proxy required but unhonorable\"\nconfiguration refused, and only a missing-and-not-required proxy or a\nvalid `socks5h://` proxy yielded a client. The `-L` flag streams that\noutput (`running 6 tests \u2026 test result: ok. 6 passed`) into the log\nabove. That is the guarantee every wallet module inherits by building its\noutbound client through this one crate."}]}], "version": 1}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  if (window.marked) { marked.setOptions({ gfm: true, breaks: false }); }
+  const mdToHtml = (s) => window.marked ? marked.parse(s || "") : ("<pre>" + (s || "") + "</pre>");
+
+  const sum = DATA.summary;
+  document.getElementById("summary").innerHTML =
+    `<span class="pill pass">${sum.passed} passed</span> ` +
+    (sum.failed ? `<span class="pill fail">${sum.failed} failed</span> ` : "") +
+    (sum.skipped ? `<span class="pill skip">${sum.skipped} skipped</span>` : "");
+
+  const picker = document.getElementById("picker");
+  DATA.tutorials.forEach((t, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = t.meta.name; picker.appendChild(o);
+  });
+
+  function execHtml(e) {
+    const badge = `<span class="badge ${e.status}">${e.status.toUpperCase()}</span>`;
+    const kind = `<span class="kind">${e.kind}${e.platform ? " · " + e.platform : ""}${e.exit_code !== undefined ? " · exit " + e.exit_code : ""}</span>`;
+    let h = `<div class="exec"><div class="exec-head">${badge}${kind}</div>`;
+    if (e.note) h += `<div class="note">${escapeHtml(e.note)}</div>`;
+    if (e.cmd) h += `<pre class="cmd">${escapeHtml(e.cmd)}</pre>`;
+    if (e.runner_cmd) h += `<pre class="cmd">${escapeHtml(e.runner_cmd)}</pre>`;
+    if (e.actions) {
+      const passed = e.actions.filter(a => a.status === "pass").length;
+      h += `<div class="kind">UI actions: ${passed}/${e.actions.length} passed</div>`;
+      h += `<table class="ui-actions"><tbody>`;
+      for (const a of e.actions) {
+        const label = a.status === "not_run" ? "NOT RUN" :
+          a.status === "running" ? "INTERRUPTED" : a.status.toUpperCase();
+        h += `<tr><td>${a.index}</td><td><span class="badge ${a.status}">${label}</span></td>`;
+        h += `<td>${escapeHtml(a.description)}`;
+        if (a.error) h += `<div class="note">${escapeHtml(a.error)}</div>`;
+        h += `</td><td>${a.duration_ms !== undefined ? a.duration_ms + " ms" : ""}</td></tr>`;
+      }
+      h += `</tbody></table>`;
+    }
+    const out = (e.output || "").trim();
+    if (out) {
+      const long = out.split("\n").length > 12;
+      if (long) {
+        h += `<details><summary>output (${out.split("\n").length} lines)</summary><pre class="output">${escapeHtml(out)}</pre></details>`;
+      } else {
+        h += `<pre class="output">${escapeHtml(out)}</pre>`;
+      }
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  function render(idx) {
+    const t = DATA.tutorials[idx];
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const h = document.createElement("div");
+    h.className = "tutorial-title";
+    h.textContent = t.meta.name + "  —  " + t.meta.platform;
+    main.appendChild(h);
+
+    t.rows.forEach(row => {
+      const isStructural = row.execs.length === 0 &&
+        (/^#\s|^##\s/.test(row.md.trim()));
+      const div = document.createElement("div");
+      const hasExec = row.execs.length > 0;
+      const hasFail = row.execs.some(e => e.status === "fail");
+      div.className = "row" + (hasExec ? "" : (isStructural ? " section" : " preamble")) +
+        (hasFail ? " has-fail" : "");
+
+      const left = document.createElement("div");
+      left.className = "col left";
+      left.innerHTML = `<div class="md">${mdToHtml(row.md)}</div>`;
+      div.appendChild(left);
+
+      if (hasExec || !isStructural) {
+        const right = document.createElement("div");
+        right.className = "col right";
+        if (hasExec) {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            row.execs.map(execHtml).join("");
+        } else {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            `<div class="empty">No commands run for this step.</div>`;
+        }
+        div.appendChild(right);
+      }
+      main.appendChild(div);
+    });
+
+    addAnchors(main, slug(t.meta.name));
+  }
+
+  function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  // Octicon "link" — the same glyph GitHub puts next to markdown headings.
+  const LINK_ICON =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d=' +
+    '"M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 ' +
+    '.75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 ' +
+    '9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 ' +
+    '2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"></path></svg>';
+
+  // Give every heading a stable slug id (deduplicated the way GitHub does, with
+  // -1/-2 suffixes) and a permalink whose href is "#<tutorial>/<heading>".
+  function addAnchors(container, tutSlug) {
+    const used = new Map();
+    const nodes = container.querySelectorAll(
+      ".tutorial-title, .md h1, .md h2, .md h3, .md h4, .md h5, .md h6"
+    );
+    nodes.forEach(node => {
+      const text = node.textContent.trim();
+      const isTitle = node.classList.contains("tutorial-title");
+      let href = "#" + tutSlug;
+      if (!isTitle) {
+        const base = slug(text) || "section";
+        const n = (used.get(base) || 0) + 1;
+        used.set(base, n);
+        node.id = n > 1 ? base + "-" + n : base;
+        href += "/" + node.id;
+      }
+      node.classList.add("heading-anchored");
+      const a = document.createElement("a");
+      a.className = "anchor";
+      a.href = href;
+      a.title = "Copy link to this section";
+      a.setAttribute("aria-label", "Permalink: " + text);
+      a.innerHTML = LINK_ICON;
+      node.insertBefore(a, node.firstChild);
+    });
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+  }
+
+  // navigator.clipboard needs a secure context; reports are often opened over
+  // file://, so fall back to the old execCommand path there.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(
+        () => toast("Link copied"),
+        () => toast(text)
+      );
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    toast(ok ? "Link copied" : text);
+  }
+
+  function scrollToId(id) {
+    if (!id) { window.scrollTo(0, 0); return; }
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    el.classList.remove("flash");
+    void el.offsetWidth;  // restart the animation on a repeat click
+    el.classList.add("flash");
+  }
+
+  document.addEventListener("click", ev => {
+    const a = ev.target.closest && ev.target.closest("a.anchor");
+    if (!a) return;
+    ev.preventDefault();
+    const href = a.getAttribute("href");
+    copyText(location.href.split("#")[0] + href);
+    if (location.hash === href) scrollToId(a.parentNode.id);
+    else location.hash = href;  // hashchange scrolls
+  });
+
+  // "#<tutorial>" (name, slug, or index) optionally followed by "/<heading>".
+  function parseHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (!raw) return { idx: 0, frag: "" };
+    const cut = raw.indexOf("/");
+    const tut = cut >= 0 ? raw.slice(0, cut) : raw;
+    const frag = cut >= 0 ? raw.slice(cut + 1) : "";
+    if (/^\d+$/.test(tut) && +tut < DATA.tutorials.length) return { idx: +tut, frag };
+    const i = DATA.tutorials.findIndex(
+      t => slug(t.meta.name) === tut || t.meta.name === tut
+    );
+    if (i >= 0) return { idx: i, frag };
+    // No tutorial matched: treat a bare hash as a heading in the current one.
+    return { idx: currentIdx >= 0 ? currentIdx : 0, frag: cut >= 0 ? frag : raw };
+  }
+
+  let currentIdx = -1;
+  function show(idx, frag) {
+    if (idx !== currentIdx) {
+      picker.value = idx;
+      render(idx);
+      currentIdx = idx;
+    }
+    if (frag) requestAnimationFrame(() => scrollToId(frag));
+  }
+  picker.addEventListener("change", () => {
+    location.hash = slug(DATA.tutorials[+picker.value].meta.name);
+    show(+picker.value);
+  });
+  window.addEventListener("hashchange", () => {
+    const h = parseHash();
+    show(h.idx, h.frag);
+  });
+  const initial = parseHash();
+  show(initial.idx, initial.frag);
+  // Inlined screenshots have no intrinsic size until decoded, so the first
+  // scroll can land short; re-anchor once everything has loaded.
+  if (initial.frag) {
+    window.addEventListener("load", () => scrollToId(initial.frag), { once: true });
+  }
+</script>
+</body>
+</html>
