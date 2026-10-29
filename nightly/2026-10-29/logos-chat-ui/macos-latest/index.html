@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Execution Report</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --pass: #2ea043; --fail: #f85149; --info: #d29922;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .pill.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .pill.skip { background: rgba(210,153,34,.15); color: var(--info); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+  main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .tutorial-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; color: #fff; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden;
+  }
+  .row.preamble, .row.section { grid-template-columns: 1fr; }
+  .col { padding: 14px 18px; min-width: 0; }
+  .col.left { border-right: 1px solid var(--border); }
+  .row.preamble .col.left, .row.section .col.left { border-right: none; }
+  .col.right { background: var(--panel); }
+  /* A row containing any failed step is tinted red end-to-end so it's
+     impossible to miss when scanning the report. */
+  .row.has-fail { border-color: var(--fail); box-shadow: 0 0 0 1px var(--fail); }
+  .row.has-fail .col.left { background: rgba(248,81,73,.07); border-right-color: var(--fail); }
+  .row.has-fail .col.right { background: rgba(248,81,73,.12); }
+  .col-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .md :first-child { margin-top: 0; }
+  .md h1 { font-size: 22px; } .md h2 { font-size: 18px; } .md h3 { font-size: 15px; }
+  .md pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+  .md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .md :not(pre) > code { background: rgba(110,118,129,.2); padding: .15em .4em; border-radius: 4px; }
+  .md table { border-collapse: collapse; margin: 8px 0; }
+  .md th, .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .md blockquote { border-left: 3px solid var(--border); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+  .md img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+  .exec { margin-bottom: 14px; }
+  .exec:last-child { margin-bottom: 0; }
+  .exec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+  .badge.pass { background: rgba(46,160,67,.15); color: var(--pass); }
+  .badge.fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .badge.info { background: rgba(210,153,34,.15); color: var(--info); }
+  .badge.not_run { background: var(--bg); color: var(--muted); white-space: nowrap; }
+  .badge.running { background: rgba(248,81,73,.15); color: var(--fail); }
+  .ui-actions { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  .ui-actions td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .ui-actions td:last-child { white-space: nowrap; color: var(--muted); }
+  .kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  pre.cmd { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 0 0 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.output { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 0; overflow-x: auto; max-height: 360px; overflow-y: auto; color: #b9c1ca; }
+  pre.cmd, pre.output { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
+  .empty { color: var(--muted); font-style: italic; font-size: 12.5px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 4px; }
+  /* GitHub-style permalinks: every heading carries a link icon in the left
+     gutter (revealed on hover/focus) that copies a deep link to that section.
+     scroll-margin-top keeps the target clear of the sticky header. */
+  .heading-anchored { position: relative; scroll-margin-top: 76px; }
+  a.anchor {
+    position: absolute; left: -18px; top: 0; width: 16px; height: 1.55em;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); opacity: 0; text-decoration: none;
+    transition: opacity .1s ease-in;
+  }
+  a.anchor svg { width: 14px; height: 14px; display: block; }
+  .heading-anchored:hover > a.anchor, a.anchor:focus { opacity: 1; }
+  a.anchor:hover { color: var(--accent); }
+  .heading-anchored.flash { animation: flash 1.4s ease-out; border-radius: 4px; }
+  @keyframes flash {
+    from { background: rgba(88,166,255,.28); box-shadow: 0 0 0 4px rgba(88,166,255,.28); }
+    to { background: transparent; box-shadow: 0 0 0 4px transparent; }
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 14px; font-size: 12.5px; z-index: 20;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease-in-out;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tutorial Execution Report</h1>
+  <span id="summary"></span>
+  <label style="margin-left:auto; font-size:12px; color:var(--muted)">Tutorial
+    <select id="picker"></select>
+  </label>
+</header>
+<main id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="report-data" type="application/json">{"generated_platform": "Darwin", "summary": {"failed": 1, "passed": 1, "skipped": 2}, "tutorials": [{"meta": {"name": "Tutorial: The Logos Chat UI", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"execs": [], "md": "# Tutorial: The Logos Chat UI\n\n`chat_ui` is a Logos **UI module**: a QML view backed by a small C++ class\n(the *universal* typed-backend authoring model) that drives the Rust\n`chat_module` \u2014 end-to-end-encrypted conversations carried over\n`delivery_module`. You write a `.rep` view contract and a `*Backend` deriving\n`LogosUiPluginContext`; the plugin glue, the typed `modules().chat_module`\ncaller, and the QtRO wiring are generated.\n\nThis tour builds the app, watches it connect to the network, and shares your\naddress (what a peer needs to start a conversation with you).\n\n> **The two-party exchange has its own tutorial.** A message exchange is\n> inherently two-party, so it gets its own walkthrough \u2014 *Run the automated\n> message-exchange test* \u2014 which drives the real round-trip between two windows\n> and shows the result, with the step-by-step flow in\n> [docs/two-instance-exchange.md](../docs/two-instance-exchange.md). This\n> tutorial covers everything a single window shows: connecting, and sharing\n> your own address.\n\n**What you'll build:** A running Logos chat app, connected to the network and sharing your address from the GUI.\n\n**What you'll learn:**\n\n- How a `type: ui_qml`, `interface: universal` module is built and run\n- The connection lifecycle: init is non-blocking and the UI goes Online when delivery connects\n- Sharing your address \u2014 what a peer needs to open an encrypted conversation with you\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\n- **A Linux or macOS machine.** Nix provides every toolchain (Qt, CMake, Rust) during the builds.\n- **Network access.** The delivery node connects over the configured network preset; an isolated sandbox never goes Online."}, {"execs": [], "md": "## Step 1: Build the chat UI\n\nThe module builds with the standard `mkLogosQmlModule` flake output \u2014\n`chat_ui_plugin.so` (the C++ backend + generated glue) and\n`chat_ui_replica_factory.so` (the QtRO replica for the QML view)."}, {"execs": [{"cmd": "nix build 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d' -o result --override-input chat_module github:logos-co/logos-chat-module/8e5b68d95647527d406e1780d75b64b1aa7818e2", "exit_code": 0, "kind": "run", "note": "", "output": "warning: ignoring untrusted flake configuration setting 'extra-substituters'.\nPass '--accept-flake-config' to trust it\nwarning: ignoring untrusted flake configuration setting 'extra-trusted-public-keys'.\nPass '--accept-flake-config' to trust it\nunpacking 'github:logos-co/logos-chat-module/8e5b68d95647527d406e1780d75b64b1aa7818e2' into the Git cache...\nunpacking 'github:logos-co/logos-module-builder/16e2f6bd3c06a5119f8c34448933de183205646c?narHash=sha256-LqzM1X8N2FrKEfslUQnoAr1BMVlEXOsrdTB%2BwdV%2BQhE%3D' into the Git cache...\nunpacking 'github:logos-co/logos-cpp-sdk/3f34c0b216c8fbdbf2093056b9f0fc53d89f05a1?narHash=sha256-sGek%2BVwjpygEDqGHYA1oC1yrlWpfr1l5%2BCtdJcsJ8iQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-lidl/9df8e00372a07e073a17096fd92a62d69c5a21cd?narHash=sha256-LwoG/6AN7QwSiOqEiTnx55Mvrc4eTGBomo%2BDBVqG8FQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-design-system/88330d04968954be956311b0be429048a41da2ea?narHash=sha256-58ZfV4SeZaFenjgzlDoBVy4aH3qcMFAgcUkIKUKs2W0%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/9812dc8c69cfbfed3eea06510a5c1ff33c1fcf7f?narHash=sha256-7zcTkY6r0iXXaFnZaWKNBMHh53RkQh2P455421TX7Gk%3D' into the Git cache...\nunpacking 'github:logos-co/logos-plugin-qt/3a471be14af66d099827ee712ec8c40ead701340?narHash=sha256-2kQrRoC5Ev76RCgvBYPTQhP04ny8sL4MtWwPZlbI4I4%3D' into the Git cache...\nunpacking 'github:logos-co/logos-protocol/8bbc027c99505c3c2f043265f8c1ae8ff899bdff?narHash=sha256-9Ie1cgBx3tSJt/w58mHQIw4b61mxcEFGsuksWSyhmso%3D' into the Git cache...\nunpacking 'github:logos-co/logos-qt-sdk/03e489b16f9401526e52c0fdbc1e72cbf9fb1144?narHash=sha256-GI8EO2WuEMThVE3iVboEZwipR23TtE7W1tD9vVDfMDQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-rust-sdk/b572e8172ca512b41c102d555f00258b859629c0?narHash=sha256-mB4LKBtJJPqakXCnx4f4jdMqhzX1SdfPAzVxLb%2B%2BsEQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-protocol/677c660692c8f9a9aace8596ee6abbeb86ff2fb8?narHash=sha256-ausAm190Qj1ZtcZcMhxT10h%2Bm/hGgFkHB6FB7SUWDyU%3D' into the Git cache...\nunpacking 'github:logos-co/logos-standalone-app/fdc5ff120a7e493749d7969af6b9f8cd137a0f71?narHash=sha256-vNLVbGgn4M5L2XMpMIbrYKfZrJaI8pBdX2ir/5HiQ/I%3D' into the Git cache...\nunpacking 'github:logos-co/logos-liblogos/c5ae8ecda886d31ee73d78469c43099791ba6640?narHash=sha256-DNuk6FHlVknqNa%2BAZO/63ItzDjZT08idvIZ5W4Tdyy8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-container-subprocess/697c1805eae689fc5945d2afe7038a4b608df07f?narHash=sha256-U9zILMsphmT6/oZ12jB%2B6vjcJBbuhAl4QhHk46iY/6s%3D' into the Git cache...\nunpacking 'github:logos-co/logos-container/641d21108781a353eed9f0567f15776fee06af40?narHash=sha256-5v%2BcBtuoYoywVn6OquuuwJRRIxqWQGBFvru9%2BIhfrJw%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module-loader-qt/56359d958ebb936fe578b7339f1c3b56194d4a3a?narHash=sha256-qshqF60hYsTMrZp3//Ncv/1ls2ol/Ni%2BNalh75dsvcY%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module-loader/3628b97a32cb2edb30e7d26c0c5113a487e3e993?narHash=sha256-91JadGkNDW05TfyDvRbOD9rVsn6iG3VsuLt9Fo64F90%3D' into the Git cache...\nunpacking 'github:logos-co/logos-container/06d43aeda169fffe1bb07a7cf9f375d5bc049184?narHash=sha256-6odZMp0sV4EsZgwo6R8Sh%2BPvYCT2BvBsG79MQ5xDbuk%3D' into the Git cache...\nunpacking 'github:logos-co/logos-module/f71d16ddc5779b50b188b3a3928a37c9ce90b2a1?narHash=sha256-dZkwODDIDZzI06YTGiZ4fz/0MTlXFiqnPvYN1v%2BJ3gQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/542305b1040771997251418a6bd1d4ac4f457950?narHash=sha256-NFsVZMfGO0FNQWD%2BJplmZwRe4nwZOKVd0iBOF1y5GQQ%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package-manager/d88abaa1f3f5d4a4268d7cdfbec98d816e0a0385?narHash=sha256-mM6TxIbIxsFSHUe6Hd%2B718qksL2RSVyIJlOBifVJnDY%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/49151f003690333764d73f956d64e1245e2a0c38?narHash=sha256-v0Nbhy4YXm1d/luboCbIL4yNIgcfkRXVTs1jXucLoVY%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-appimage/04a3cf89f8ba3dc20f08a8e2b6c337a672bceda7?narHash=sha256-TYle4kdzZE3VgOuhHyE7qncyvjI7KEV7wCmL%2BKTm7/M%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-dir/ffc410b7f2bab32b1c2ceb347c56902e7321049c?narHash=sha256-iduzqfzw%2BKWeyt87Cnqmv07hFN7gZEL0gMM3pUNQHpA%3D' into the Git cache...\nunpacking 'github:logos-co/process-stats/6e0aade77db1b03cc08559c5700c687fa6f00269?narHash=sha256-IsMeD0j4u2FJgOcg8niie9RWLrdl0t9/fsBPqPcIWrY%3D' into the Git cache...\nunpacking 'github:logos-co/logos-qt-mcp/1fea509485a48ab185fafae8dc21bdbcc808a07e?narHash=sha256-dNZsL%2BqE%2BNFCHlpgUzlhbmXu13goEwgdJGbEbw5uOEM%3D' into the Git cache...\nunpacking 'github:logos-co/logos-test-framework/a366934197f5ee2c9009d88d4d0279431bd25c0b?narHash=sha256-vRspD1dz2cTHMCUEnCvGOzYmspUOVANXfiXyF8AwT9E%3D' into the Git cache...\nunpacking 'github:logos-co/logos-view-module/d6c8885494524504cc5ea9dcfdad54a98ed26ea4?narHash=sha256-dDbws6OlaOw5YTCHQfVLXqF%2BssD6Fs3vCrLqOthEYOI%3D' into the Git cache...\nunpacking 'github:logos-co/logos-view-module-runtime/42d9140811088f6ac0fcc3ccfc26d647afef1c35?narHash=sha256-kBkz68YXWj2gDdwtYRgZ0/7smTURYzrJlsp/%2BstlqcA%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-lgx/6ff94dba57e584b77a25c980ea0fb8a08ee3a7f2?narHash=sha256-lcVEwywH3OuR2cghlogeYrGYdc4oWk%2BknLvJlayDTB8%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/d96801faf144798fd498b4ba2de14453f0706a5d?narHash=sha256-SBAGB0KIviYinY13jJJPAmG6AuIU3BXW9U7%2BrijvqzI%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-dir/f843b8ec76974881ccf8619157ae63bfa2017a5e?narHash=sha256-0JUD%2B57%2BVTO25IfJjy92av5T88pmMSod8wMygW9OK3s%3D' into the Git cache...\nunpacking 'github:logos-co/nix-bundle-logos-module-install/19b27700762d37fd4011d7183efdd232f71646f8?narHash=sha256-NRzGt3ERKKgxG3exKikCb417CCG0zm93XaErJozP9Tw%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package-manager/d3af2972f51d9c542537d80d60ad8d20282ddcd1?narHash=sha256-pNRp9uNNT9fNf1jaV9f0YHm5189GKJopBgT2H8ch/aI%3D' into the Git cache...\nunpacking 'github:logos-co/logos-package/4cdb302051ebcd231eeaeeaa2011fcf857541ce4?narHash=sha256-EMV9DfMNBkcNoBQSFsfppl6yYA1Rh7Q3XA5Nt4HauYg%3D' into the Git cache...\nwarning: not writing modified lock file of flake 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d':\n\u2022 Updated input 'chat_module':\n    'github:logos-co/logos-chat-module/5053dd5' (2026-09-29)\n  \u2192 'github:logos-co/logos-chat-module/8e5b68d' (2026-10-23)\ncopying path '/nix/store/jc3mfa7ybzh32bkvdj5xiib1vkx8jy6x-source' from 'https://cache.nixos.org'...\nunpacking 'github:logos-co/logos-nix/7c1eb8bc390546f32aaf134866a1c7db8e9311cc?narHash=sha256-EOG96lY4KnZadh2lczZFMPnfPP9tWXdWt1p1CP8Gvww%3D' into the Git cache...\nunpacking 'github:logos-co/logos-delivery-module/5c0a658c954f7935250b79515113bf7410e45450?narHash=sha256-tm9wxUuAuj0Qgh63v11Sc9tK1%2BqvzDFIV%2BqmTiWmk7M%3D' into the Git cache...\nremote: Enumerating objects: 87, done.        \nremote: Counting objects:   1% (1/87)        \nremote: Counting objects:   2% (2/87)        \nremote: Counting objects:   3% (3/87)        \nremote: Counting objects:   4% (4/87)        \nremote: Counting objects:   5% (5/87)        \nremote: Counting objects:   6% (6/87)        \nremote: Counting objects:   8% (7/87)        \nremote: Counting objects:   9% (8/87)        \nremote: Counting objects:  10% (9/87)        \nremote: Counting objects:  11% (10/87)        \nremote: Counting objects:  12% (11/87)        \nremote: Counting objects:  13% (12/87)        \nremote: Counting objects:  14% (13/87)        \nremote: Counting objects:  16% (14/87)        \nremote: Counting objects:  17% (15/87)        \nremote: Counting objects:  18% (16/87)        \nremote: Counting objects:  19% (17/87)        \nremote: Counting objects:  20% (18/87)        \nremote: Counting objects:  21% (19/87)        \nremote: Counting objects:  22% (20/87)        \nremote: Counting objects:  24% (21/87)        \nremote: Counting objects:  25% (22/87)        \nremote: Counting objects:  26% (23/87)        \nremote: Counting objects:  27% (24/87)        \nremote: Counting objects:  28% (25/87)        \nremote: Counting objects:  29% (26/87)        \nremote: Counting objects:  31% (27/87)        \nremote: Counting objects:  32% (28/87)        \nremote: Counting objects:  33% (29/87)        \nremote: Counting objects:  34% (30/87)        \nremote: Counting objects:  35% (31/87)        \nremote: Counting objects:  36% (32/87)        \nremote: Counting objects:  37% (33/87)        \nremote: Counting objects:  39% (34/87)        \nremote: Counting objects:  40% (35/87)        \nremote: Counting objects:  41% (36/87)        \nremote: Counting objects:  42% (37/87)        \nremote: Counting objects:  43% (38/87)        \nremote: Counting objects:  44% (39/87)        \nremote: Counting objects:  45% (40/87)        \nremote: Counting objects:  47% (41/87)        \nremote: Counting objects:  48% (42/87)        \nremote: Counting objects:  49% (43/87)        \nremote: Counting objects:  50% (44/87)        \nremote: Counting objects:  51% (45/87)        \nremote: Counting objects:  52% (46/87)        \nremote: Counting objects:  54% (47/87)        \nremote: Counting objects:  55% (48/87)        \nremote: Counting objects:  56% (49/87)        \nremote: Counting objects:  57% (50/87)        \nremote: Counting objects:  58% (51/87)        \nremote: Counting objects:  59% (52/87)        \nremote: Counting objects:  60% (53/87)        \nremote: Counting objects:  62% (54/87)        \nremote: Counting objects:  63% (55/87)        \nremote: Counting objects:  64% (56/87)        \nremote: Counting objects:  65% (57/87)        \nremote: Counting objects:  66% (58/87)        \nremote: Counting objects:  67% (59/87)        \nremote: Counting objects:  68% (60/87)        \nremote: Counting objects:  70% (61/87)        \nremote: Counting objects:  71% (62/87)        \nremote: Counting objects:  72% (63/87)        \nremote: Counting objects:  73% (64/87)        \nremote: Counting objects:  74% (65/87)        \nremote: Counting objects:  75% (66/87)        \nremote: Counting objects:  77% (67/87)        \nremote: Counting objects:  78% (68/87)        \nremote: Counting objects:  79% (69/87)        \nremote: Counting objects:  80% (70/87)        \nremote: Counting objects:  81% (71/87)        \nremote: Counting objects:  82% (72/87)        \nremote: Counting objects:  83% (73/87)        \nremote: Counting objects:  85% (74/87)        \nremote: Counting objects:  86% (75/87)        \nremote: Counting objects:  87% (76/87)        \nremote: Counting objects:  88% (77/87)        \nremote: Counting objects:  89% (78/87)        \nremote: Counting objects:  90% (79/87)        \nremote: Counting objects:  91% (80/87)        \nremote: Counting objects:  93% (81/87)        \nremote: Counting objects:  94% (82/87)        \nremote: Counting objects:  95% (83/87)        \nremote: Counting objects:  96% (84/87)        \nremote: Counting objects:  97% (85/87)        \nremote: Counting objects:  98% (86/87)        \nremote: Counting objects: 100% (87/87)        \nremote: Counting objects: 100% (87/87), done.        \nremote: Compressing objects:   1% (1/81)        \nremote: Compressing objects:   2% (2/81)        \nremote: Compressing objects:   3% (3/81)        \nremote: Compressing objects:   4% (4/81)        \nremote: Compressing objects:   6% (5/81)        \nremote: Compressing objects:   7% (6/81)        \nremote: Compressing objects:   8% (7/81)        \nremote: Compressing objects:   9% (8/81)        \nremote: Compressing objects:  11% (9/81)        \nremote: Compressing objects:  12% (10/81)        \nremote: Compressing objects:  13% (11/81)        \nremote: Compressing objects:  14% (12/81)        \nremote: Compressing objects:  16% (13/81)        \nremote: Compressing objects:  17% (14/81)        \nremote: Compressing objects:  18% (15/81)        \nremote: Compressing objects:  19% (16/81)        \nremote: Compressing objects:  20% (17/81)        \nremote: Compressing objects:  22% (18/81)        \nremote: Compressing objects:  23% (19/81)        \nremote: Compressing objects:  24% (20/81)        \nremote: Compressing objects:  25% (21/81)        \nremote: Compressing objects:  27% (22/81)        \nremote: Compressing objects:  28% (23/81)        \nremote: Compressing objects:  29% (24/81)        \nremote: Compressing objects:  30% (25/81)        \nremote: Compressing objects:  32% (26/81)        \nremote: Compressing objects:  33% (27/81)        \nremote: Compressing objects:  34% (28/81)        \nremote: Compressing objects:  35% (29/81)        \nremote: Compressing objects:  37% (30/81)        \nremote: Compressing objects:  38% (31/81)        \nremote: Compressing objects:  39% (32/81)        \nremote: Compressing objects:  40% (33/81)        \nremote: Compressing objects:  41% (34/81)        \nremote: Compressing objects:  43% (35/81)        \nremote: Compressing objects:  44% (36/81)        \nremote: Compressing objects:  45% (37/81)        \nremote: Compressing objects:  46% (38/81)        \nremote: Compressing objects:  48% (39/81)        \nremote: Compressing objects:  49% (40/81)        \nremote: Compressing objects:  50% (41/81)        \nremote: Compressing objects:  51% (42/81)        \nremote: Compressing objects:  53% (43/81)        \nremote: Compressing objects:  54% (44/81)        \nremote: Compressing objects:  55% (45/81)        \nremote: Compressing objects:  56% (46/81)        \nremote: Compressing objects:  58% (47/81)        \nremote: Compressing objects:  59% (48/81)        \nremote: Compressing objects:  60% (49/81)        \nremote: Compressing objects:  61% (50/81)        \nremote: Compressing objects:  62% (51/81)        \nremote: Compressing objects:  64% (52/81)        \nremote: Compressing objects:  65% (53/81)        \nremote: Compressing objects:  66% (54/81)        \nremote: Compressing objects:  67% (55/81)        \nremote: Compressing objects:  69% (56/81)        \nremote: Compressing objects:  70% (57/81)        \nremote: Compressing objects:  71% (58/81)        \nremote: Compressing objects:  72% (59/81)        \nremote: Compressing objects:  74% (60/81)        \nremote: Compressing objects:  75% (61/81)        \nremote: Compressing objects:  76% (62/81)        \nremote: Compressing objects:  77% (63/81)        \nremote: Compressing objects:  79% (64/81)        \nremote: Compressing objects:  80% (65/81)        \nremote: Compressing objects:  81% (66/81)        \nremote: Compressing objects:  82% (67/81)        \nremote: Compressing objects:  83% (68/81)        \nremote: Compressing objects:  85% (69/81)        \nremote: Compressing objects:  86% (70/81)        \nremote: Compressing objects:  87% (71/81)        \nremote: Compressing objects:  88% (72/81)        \nremote: Compressing objects:  90% (73/81)        \nremote: Compressing objects:  91% (74/81)        \nremote: Compressing objects:  92% (75/81)        \nremote: Compressing objects:  93% (76/81)        \nremote: Compressing objects:  95% (77/81)        \nremote: Compressing objects:  96% (78/81)        \nremote: Compressing objects:  97% (79/81)        \nremote: Compressing objects:  98% (80/81)        \nremote: Compressing objects: 100% (81/81)        \nremote: Compressing objects: 100% (81/81), done.        \nremote: Total 87 (delta 7), reused 29 (delta 3), pack-reused 0 (from 0)        \nFrom https://github.com/logos-co/logos-libp2p-module\n * [new ref]         33e3c7a7c57f5c190781d0910a520742a4822e5f -> refs/__nix_internal_fetchers_48ae34d6b380c5ec__/tip-33\n * [new tag]         v1.0.0     -> v1.0.0\nremote: Enumerating objects: 111, done.        \nremote: Counting objects:   0% (1/111)        \nremote: Counting objects:   1% (2/111)        \nremote: Counting objects:   2% (3/111)        \nremote: Counting objects:   3% (4/111)        \nremote: Counting objects:   4% (5/111)        \nremote: Counting objects:   5% (6/111)        \nremote: Counting objects:   6% (7/111)        \nremote: Counting objects:   7% (8/111)        \nremote: Counting objects:   8% (9/111)        \nremote: Counting objects:   9% (10/111)        \nremote: Counting objects:  10% (12/111)        \nremote: Counting objects:  11% (13/111)        \nremote: Counting objects:  12% (14/111)        \nremote: Counting objects:  13% (15/111)        \nremote: Counting objects:  14% (16/111)        \nremote: Counting objects:  15% (17/111)        \nremote: Counting objects:  16% (18/111)        \nremote: Counting objects:  17% (19/111)        \nremote: Counting objects:  18% (20/111)        \nremote: Counting objects:  19% (22/111)        \nremote: Counting objects:  20% (23/111)        \nremote: Counting objects:  21% (24/111)        \nremote: Counting objects:  22% (25/111)        \nremote: Counting objects:  23% (26/111)        \nremote: Counting objects:  24% (27/111)        \nremote: Counting objects:  25% (28/111)        \nremote: Counting objects:  26% (29/111)        \nremote: Counting objects:  27% (30/111)        \nremote: Counting objects:  28% (32/111)        \nremote: Counting objects:  29% (33/111)        \nremote: Counting objects:  30% (34/111)        \nremote: Counting objects:  31% (35/111)        \nremote: Counting objects:  32% (36/111)        \nremote: Counting objects:  33% (37/111)        \nremote: Counting objects:  34% (38/111)        \nremote: Counting objects:  35% (39/111)        \nremote: Counting objects:  36% (40/111)        \nremote: Counting objects:  37% (42/111)        \nremote: Counting objects:  38% (43/111)        \nremote: Counting objects:  39% (44/111)        \nremote: Counting objects:  40% (45/111)        \nremote: Counting objects:  41% (46/111)        \nremote: Counting objects:  42% (47/111)        \nremote: Counting objects:  43% (48/111)        \nremote: Counting objects:  44% (49/111)        \nremote: Counting objects:  45% (50/111)        \nremote: Counting objects:  46% (52/111)        \nremote: Counting objects:  47% (53/111)        \nremote: Counting objects:  48% (54/111)        \nremote: Counting objects:  49% (55/111)        \nremote: Counting objects:  50% (56/111)        \nremote: Counting objects:  51% (57/111)        \nremote: Counting objects:  52% (58/111)        \nremote: Counting objects:  53% (59/111)        \nremote: Counting objects:  54% (60/111)        \nremote: Counting objects:  55% (62/111)        \nremote: Counting objects:  56% (63/111)        \nremote: Counting objects:  57% (64/111)        \nremote: Counting objects:  58% (65/111)        \nremote: Counting objects:  59% (66/111)        \nremote: Counting objects:  60% (67/111)        \nremote: Counting objects:  61% (68/111)        \nremote: Counting objects:  62% (69/111)        \nremote: Counting objects:  63% (70/111)        \nremote: Counting objects:  64% (72/111)        \nremote: Counting objects:  65% (73/111)        \nremote: Counting objects:  66% (74/111)        \nremote: Counting objects:  67% (75/111)        \nremote: Counting objects:  68% (76/111)        \nremote: Counting objects:  69% (77/111)        \nremote: Counting objects:  70% (78/111)        \nremote: Counting objects:  71% (79/111)        \nremote: Counting objects:  72% (80/111)        \nremote: Counting objects:  73% (82/111)        \nremote: Counting objects:  74% (83/111)        \nremote: Counting objects:  75% (84/111)        \nremote: Counting objects:  76% (85/111)        \nremote: Counting objects:  77% (86/111)        \nremote: Counting objects:  78% (87/111)        \nremote: Counting objects:  79% (88/111)        \nremote: Counting objects:  80% (89/111)        \nremote: Counting objects:  81% (90/111)        \nremote: Counting objects:  82% (92/111)        \nremote: Counting objects:  83% (93/111)        \nremote: Counting objects:  84% (94/111)        \nremote: Counting objects:  85% (95/111)        \nremote: Counting objects:  86% (96/111)        \nremote: Counting objects:  87% (97/111)        \nremote: Counting objects:  88% (98/111)        \nremote: Counting objects:  89% (99/111)        \nremote: Counting objects:  90% (100/111)        \nremote: Counting objects:  91% (102/111)        \nremote: Counting objects:  92% (103/111)        \nremote: Counting objects:  93% (104/111)        \nremote: Counting objects:  94% (105/111)        \nremote: Counting objects:  95% (106/111)        \nremote: Counting objects:  96% (107/111)        \nremote: Counting objects:  97% (108/111)        \nremote: Counting objects:  98% (109/111)        \nremote: Counting objects:  99% (110/111)        \nremote: Counting objects: 100% (111/111)        \nremote: Counting objects: 100% (111/111), done.        \nremote: Compressing objects:   0% (1/106)        \nremote: Compressing objects:   1% (2/106)        \nremote: Compressing objects:   2% (3/106)        \nremote: Compressing objects:   3% (4/106)        \nremote: Compressing objects:   4% (5/106)        \nremote: Compressing objects:   5% (6/106)        \nremote: Compressing objects:   6% (7/106)        \nremote: Compressing objects:   7% (8/106)        \nremote: Compressing objects:   8% (9/106)        \nremote: Compressing objects:   9% (10/106)        \nremote: Compressing objects:  10% (11/106)        \nremote: Compressing objects:  11% (12/106)        \nremote: Compressing objects:  12% (13/106)        \nremote: Compressing objects:  13% (14/106)        \nremote: Compressing objects:  14% (15/106)        \nremote: Compressing objects:  15% (16/106)        \nremote: Compressing objects:  16% (17/106)        \nremote: Compressing objects:  17% (19/106)        \nremote: Compressing objects:  18% (20/106)        \nremote: Compressing objects:  19% (21/106)        \nremote: Compressing objects:  20% (22/106)        \nremote: Compressing objects:  21% (23/106)        \nremote: Compressing objects:  22% (24/106)        \nremote: Compressing objects:  23% (25/106)        \nremote: Compressing objects:  24% (26/106)        \nremote: Compressing objects:  25% (27/106)        \nremote: Compressing objects:  26% (28/106)        \nremote: Compressing objects:  27% (29/106)        \nremote: Compressing objects:  28% (30/106)        \nremote: Compressing objects:  29% (31/106)        \nremote: Compressing objects:  30% (32/106)        \nremote: Compressing objects:  31% (33/106)        \nremote: Compressing objects:  32% (34/106)        \nremote: Compressing objects:  33% (35/106)        \nremote: Compressing objects:  34% (37/106)        \nremote: Compressing objects:  35% (38/106)        \nremote: Compressing objects:  36% (39/106)        \nremote: Compressing objects:  37% (40/106)        \nremote: Compressing objects:  38% (41/106)        \nremote: Compressing objects:  39% (42/106)        \nremote: Compressing objects:  40% (43/106)        \nremote: Compressing objects:  41% (44/106)        \nremote: Compressing objects:  42% (45/106)        \nremote: Compressing objects:  43% (46/106)        \nremote: Compressing objects:  44% (47/106)        \nremote: Compressing objects:  45% (48/106)        \nremote: Compressing objects:  46% (49/106)        \nremote: Compressing objects:  47% (50/106)        \nremote: Compressing objects:  48% (51/106)        \nremote: Compressing objects:  49% (52/106)        \nremote: Compressing objects:  50% (53/106)        \nremote: Compressing objects:  51% (55/106)        \nremote: Compressing objects:  52% (56/106)        \nremote: Compressing objects:  53% (57/106)        \nremote: Compressing objects:  54% (58/106)        \nremote: Compressing objects:  55% (59/106)        \nremote: Compressing objects:  56% (60/106)        \nremote: Compressing objects:  57% (61/106)        \nremote: Compressing objects:  58% (62/106)        \nremote: Compressing objects:  59% (63/106)        \nremote: Compressing objects:  60% (64/106)        \nremote: Compressing objects:  61% (65/106)        \nremote: Compressing objects:  62% (66/106)        \nremote: Compressing objects:  63% (67/106)        \nremote: Compressing objects:  64% (68/106)        \nremote: Compressing objects:  65% (69/106)        \nremote: Compressing objects:  66% (70/106)        \nremote: Compressing objects:  67% (72/106)        \nremote: Compressing objects:  68% (73/106)        \nremote: Compressing objects:  69% (74/106)        \nremote: Compressing objects:  70% (75/106)        \nremote: Compressing objects:  71% (76/106)        \nremote: Compressing objects:  72% (77/106)        \nremote: Compressing objects:  73% (78/106)        \nremote: Compressing objects:  74% (79/106)        \nremote: Compressing objects:  75% (80/106)        \nremote: Compressing objects:  76% (81/106)        \nremote: Compressing objects:  77% (82/106)        \nremote: Compressing objects:  78% (83/106)        \nremote: Compressing objects:  79% (84/106)        \nremote: Compressing objects:  80% (85/106)        \nremote: Compressing objects:  81% (86/106)        \nremote: Compressing objects:  82% (87/106)        \nremote: Compressing objects:  83% (88/106)        \nremote: Compressing objects:  84% (90/106)        \nremote: Compressing objects:  85% (91/106)        \nremote: Compressing objects:  86% (92/106)        \nremote: Compressing objects:  87% (93/106)        \nremote: Compressing objects:  88% (94/106)        \nremote: Compressing objects:  89% (95/106)        \nremote: Compressing objects:  90% (96/106)        \nremote: Compressing objects:  91% (97/106)        \nremote: Compressing objects:  92% (98/106)        \nremote: Compressing objects:  93% (99/106)        \nremote: Compressing objects:  94% (100/106)        \nremote: Compressing objects:  95% (101/106)        \nremote: Compressing objects:  96% (102/106)        \nremote: Compressing objects:  97% (103/106)        \nremote: Compressing objects:  98% (104/106)        \nremote: Compressing objects:  99% (105/106)        \nremote: Compressing objects: 100% (106/106)        \nremote: Compressing objects: 100% (106/106), done.        \nReceiving objects:   0% (1/111)\nReceiving objects:   1% (2/111)\nReceiving objects:   2% (3/111)\nReceiving objects:   3% (4/111)\nReceiving objects:   4% (5/111)\nReceiving objects:   5% (6/111)\nReceiving objects:   6% (7/111)\nReceiving objects:   7% (8/111)\nReceiving objects:   8% (9/111)\nReceiving objects:   9% (10/111)\nReceiving objects:  10% (12/111)\nReceiving objects:  11% (13/111)\nReceiving objects:  12% (14/111)\nReceiving objects:  13% (15/111)\nReceiving objects:  14% (16/111)\nReceiving objects:  15% (17/111)\nReceiving objects:  16% (18/111)\nReceiving objects:  17% (19/111)\nReceiving objects:  18% (20/111)\nReceiving objects:  19% (22/111)\nReceiving objects:  20% (23/111)\nReceiving objects:  21% (24/111)\nReceiving objects:  22% (25/111)\nReceiving objects:  23% (26/111)\nReceiving objects:  24% (27/111)\nReceiving objects:  25% (28/111)\nReceiving objects:  26% (29/111)\nReceiving objects:  27% (30/111)\nReceiving objects:  28% (32/111)\nReceiving objects:  29% (33/111)\nReceiving objects:  30% (34/111)\nReceiving objects:  31% (35/111)\nReceiving objects:  32% (36/111)\nReceiving objects:  33% (37/111)\nReceiving objects:  34% (38/111)\nReceiving objects:  35% (39/111)\nReceiving objects:  36% (40/111)\nReceiving objects:  37% (42/111)\nReceiving objects:  38% (43/111)\nReceiving objects:  39% (44/111)\nReceiving objects:  40% (45/111)\nReceiving objects:  41% (46/111)\nReceiving objects:  42% (47/111)\nReceiving objects:  43% (48/111)\nReceiving objects:  44% (49/111)\nReceiving objects:  45% (50/111)\nReceiving objects:  46% (52/111)\nReceiving objects:  47% (53/111)\nReceiving objects:  48% (54/111)\nReceiving objects:  49% (55/111)\nReceiving objects:  50% (56/111)\nReceiving objects:  51% (57/111)\nReceiving objects:  52% (58/111)\nReceiving objects:  53% (59/111)\nReceiving objects:  54% (60/111)\nReceiving objects:  55% (62/111)\nReceiving objects:  56% (63/111)\nReceiving objects:  57% (64/111)\nReceiving objects:  58% (65/111)\nReceiving objects:  59% (66/111)\nReceiving objects:  60% (67/111)\nReceiving objects:  61% (68/111)\nReceiving objects:  62% (69/111)\nReceiving objects:  63% (70/111)\nReceiving objects:  64% (72/111)\nReceiving objects:  65% (73/111)\nReceiving objects:  66% (74/111)\nReceiving objects:  67% (75/111)\nReceiving objects:  68% (76/111)\nReceiving objects:  69% (77/111)\nReceiving objects:  70% (78/111)\nReceiving objects:  71% (79/111)\nReceiving objects:  72% (80/111)\nReceiving objects:  73% (82/111)\nReceiving objects:  74% (83/111)\nReceiving objects:  75% (84/111)\nReceiving objects:  76% (85/111)\nReceiving objects:  77% (86/111)\nReceiving objects:  78% (87/111)\nremote: Total 111 (delta 10), reused 35 (delta 1), pack-reused 0 (from 0)        \nReceiving objects:  79% (88/111)\nReceiving objects:  80% (89/111)\nReceiving objects:  81% (90/111)\nReceiving objects:  82% (92/111)\nReceiving objects:  83% (93/111)\nReceiving objects:  84% (94/111)\nReceiving objects:  85% (95/111)\nReceiving objects:  86% (96/111)\nReceiving objects:  87% (97/111)\nReceiving objects:  88% (98/111)\nReceiving objects:  89% (99/111)\nReceiving objects:  90% (100/111)\nReceiving objects:  91% (102/111)\nReceiving objects:  92% (103/111)\nReceiving objects:  93% (104/111)\nReceiving objects:  94% (105/111)\nReceiving objects:  95% (106/111)\nReceiving objects:  96% (107/111)\nReceiving objects:  97% (108/111)\nReceiving objects:  98% (109/111)\nReceiving objects:  99% (110/111)\nReceiving objects: 100% (111/111)\nReceiving objects: 100% (111/111), 1.66 MiB | 14.57 MiB/s, done.\nResolving deltas:   0% (0/10)\nResolving deltas:  10% (1/10)\nResolving deltas:  20% (2/10)\nResolving deltas:  30% (3/10)\nResolving deltas:  40% (4/10)\nResolving deltas:  50% (5/10)\nResolving deltas:  60% (6/10)\nResolving deltas:  70% (7/10)\nResolving deltas:  80% (8/10)\nResolving deltas:  90% (9/10)\nResolving deltas: 100% (10/10)\nResolving deltas: 100% (10/10), done.\nFrom https://github.com/logos-co/logos-rln-modules\n * [new ref]         65697028baffc072e1aeebaec7c7e35e7e12cab1 -> refs/__nix_internal_fetchers_48ae34d6b380c5ec__/tip-65\nunpacking 'github:logos-co/logos-module-builder/9f420c2901e35a16ba8fc77383e796480000a1d2?narHash=sha256-E7Pz2qSKddt4N15RezxKkcQTDvvbUTDSc5P0%2BoSovdA%3D' into the Git cache...\nunpacking 'github:logos-co/logos-nix/30285b1025f053b0adca39a6a5c94f93df0619e2?narHash=sha256-7HylwQZ9ywzlwAqwBboJJkV0r4RhRvnLatQR%2BYv8sdE%3D' into the Git cache...\nunpacking 'github:logos-co/logos-nix/6e0f4a7120fced10829b0b3a698ff619a11d4605?narHash=sha256-Bl1A0UgsIXioZw5uEW8Jl5u7FfZcFMnpYlpsdezFwK0%3D' into the Git cache...\nthese 46 paths will be fetched (56.0 MiB download, 383.8 MiB unpacked):\n  /nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3\n  /nix/store/i0fy7kjl7pn4rbk67cvi1hf332yxydlz-boost-1.87.0\n  /nix/store/vs6s6pyvplqfydn5nc5bc65vk4kl2bam-brotli-1.1.0-lib\n  /nix/store/7q428fv2c4hy8qi1sj6n1djgrpc0i5ls-bzip2-1.0.8\n  /nix/store/kbq0liixw7m2zwq26sdav41m4blaxdwy-cups-2.4.12-lib\n  /nix/store/h02zsqlr12xcvvxqm5pfzs7v7pr23zxv-dns-root-data-2025-04-14\n  /nix/store/ryagpsd3yniv3gbsciwykwv6a2lv14l4-double-conversion-3.3.1\n  /nix/store/fq5vfwngsda7wnc0qfvnb73wx1zw75h6-freetype-2.13.3\n  /nix/store/cwdz2vy0kkc17aw2s1b3sw7wspy8rs7j-gettext-0.25.1\n  /nix/store/kqldrch5kkd3gli81iyqga4b5xahwayc-glib-2.84.4\n  /nix/store/fs5knwhd8fhm7gjj5wq39j5sc5rr15fv-gmp-with-cxx-6.3.0\n  /nix/store/8xb4mk3i9hzhdjr7wb8dgpz6pin42afx-gnutls-3.8.10\n  /nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1\n  /nix/store/2m9qm23q9pw260raj6gpgbmkabcly0lr-krb5-1.22.1-lib\n  /nix/store/gl76ki4d1zbdr2b0q4rm3r3milypy7vx-libb2-0.98.1\n  /nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7\n  /nix/store/2a46a4y1gzassmm0498ybdhj7i0fkvd9-libevent-2.1.12\n  /nix/store/vzzkad9sba320sc46r3bfadxf1z1cg7c-libffi-39\n  /nix/store/kd3szgd2rwcysjr9qp1wcv7fz8z6n20n-libiconv-1.17\n  /nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109\n  /nix/store/dlzsiqfwvwz13x3ql8zjjgz16ribdfg1-libidn2-2.3.8\n  /nix/store/1hzi3q31h7jr4wlpm8w91h4s90paj2wx-libjpeg-turbo-3.1.1\n  /nix/store/3phm5w9qv904sk76q4srxml0b8dc8iqp-libpng-apng-1.6.49\n  /nix/store/nq1slnkngwk353qfcfmglw0y8xxs677d-libpq-17.6\n  /nix/store/xbpw0yw65al9vrnskqw9zycxlw0r2h1c-libresolv-83\n  /nix/store/287gda10k7lpgij3qjk2rs9k7ridfqzs-libtasn1-4.20.0\n  /nix/store/bb660sql9f5ix965g8bwdqarar11v5xc-libunistring-1.3\n  /nix/store/d7f41cas0kczsdys7iwxhg9fimmihim8-libxml2-2.14.5\n  /nix/store/xpp7ar4ks7mjcpjgsx8922qn3ak974vb-logos-chat_ui-module\n  /nix/store/cb4hvwbjrf7q8rq8lfk9gm33f5lx3s68-md4c-0.5.2-lib\n  /nix/store/9saar1bhdgvvp0vxk46mzwzpm7vas91v-nettle-3.10.2\n  /nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1\n  /nix/store/0c5s1gnq8mr276cb8pk6n4n09q7h5fvn-p11-kit-0.25.5\n  /nix/store/9akz133p77hk9dn1q5j66pg5vnz0hj2k-pcre2-10.44\n  /nix/store/a9aq909fc6ymnawnk877qcs4gklzm1c1-qtbase-6.9.2\n  /nix/store/fn7iqppsl6z7ikbspxnjirwdz345w8mj-qtdeclarative-6.9.2\n  /nix/store/a0z4ipq0hcakknsi5f1icgpdmch3simf-qtremoteobjects-6.9.2\n  /nix/store/6mjqccb1hfr5mffqz80icfvh8w0lvqmf-qtsvg-6.9.2\n  /nix/store/zl2xd67ccxzn1mkhlxql04qjgs7y4274-qttranslations-6.9.2\n  /nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2\n  /nix/store/pzhlz6i8jzjk8fibz51jq9k4bnl0jlpc-unbound-1.23.1-lib\n  /nix/store/czicqca5jsi2qq2lah11h1p4abrrga8r-unixODBC-2.3.12\n  /nix/store/yj80w3ph1aj452z6bvc4gld85a1393aj-xcbuild-0.1.1-unstable-2019-11-20\n  /nix/store/5bqq0ws6akawcx31shp9bl2v1b2jdchv-xz-5.8.1\n  /nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1\n  /nix/store/lik04w1qipzcdpzclr8z44bzm9xfmvii-zstd-1.5.7\ncopying path '/nix/store/8qhdaryhrcvz2mfgvhci2j63qa22bjsl-libcxx-19.1.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0ais7wnqw8xzj0331c2jka53s6g14wqb-openssl-3.5.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/7q428fv2c4hy8qi1sj6n1djgrpc0i5ls-bzip2-1.0.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vs6s6pyvplqfydn5nc5bc65vk4kl2bam-brotli-1.1.0-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/k385hp16fsc8llfacr3phmmwnlfymdrz-bash-5.3p3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/gl76ki4d1zbdr2b0q4rm3r3milypy7vx-libb2-0.98.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xbpw0yw65al9vrnskqw9zycxlw0r2h1c-libresolv-83' from 'https://cache.nixos.org'...\ncopying path '/nix/store/1hzi3q31h7jr4wlpm8w91h4s90paj2wx-libjpeg-turbo-3.1.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9akz133p77hk9dn1q5j66pg5vnz0hj2k-pcre2-10.44' from 'https://cache.nixos.org'...\ncopying path '/nix/store/zl2xd67ccxzn1mkhlxql04qjgs7y4274-qttranslations-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cb4hvwbjrf7q8rq8lfk9gm33f5lx3s68-md4c-0.5.2-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/clci1zxqwa39qp135b1lfbbwad9qa4g0-libiconv-109' from 'https://cache.nixos.org'...\ncopying path '/nix/store/5bqq0ws6akawcx31shp9bl2v1b2jdchv-xz-5.8.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vzzkad9sba320sc46r3bfadxf1z1cg7c-libffi-39' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nx8r6a40877h1dmb8cm7lhl1ch2yb4jc-zlib-1.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/h02zsqlr12xcvvxqm5pfzs7v7pr23zxv-dns-root-data-2025-04-14' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2a46a4y1gzassmm0498ybdhj7i0fkvd9-libevent-2.1.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kd3szgd2rwcysjr9qp1wcv7fz8z6n20n-libiconv-1.17' from 'https://cache.nixos.org'...\ncopying path '/nix/store/287gda10k7lpgij3qjk2rs9k7ridfqzs-libtasn1-4.20.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3phm5w9qv904sk76q4srxml0b8dc8iqp-libpng-apng-1.6.49' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vrhjlpnqn999pk2j95pj9inzxk12dzxg-sqlite-3.50.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fq5vfwngsda7wnc0qfvnb73wx1zw75h6-freetype-2.13.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/bb660sql9f5ix965g8bwdqarar11v5xc-libunistring-1.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fs5knwhd8fhm7gjj5wq39j5sc5rr15fv-gmp-with-cxx-6.3.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/ryagpsd3yniv3gbsciwykwv6a2lv14l4-double-conversion-3.3.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lxzs5j6ywzl51jnd093diy1v9i7260rz-icu4c-76.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/lik04w1qipzcdpzclr8z44bzm9xfmvii-zstd-1.5.7' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9saar1bhdgvvp0vxk46mzwzpm7vas91v-nettle-3.10.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/dlzsiqfwvwz13x3ql8zjjgz16ribdfg1-libidn2-2.3.8' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2m9qm23q9pw260raj6gpgbmkabcly0lr-krb5-1.22.1-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/pzhlz6i8jzjk8fibz51jq9k4bnl0jlpc-unbound-1.23.1-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/nq1slnkngwk353qfcfmglw0y8xxs677d-libpq-17.6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/i0fy7kjl7pn4rbk67cvi1hf332yxydlz-boost-1.87.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/d7f41cas0kczsdys7iwxhg9fimmihim8-libxml2-2.14.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/cwdz2vy0kkc17aw2s1b3sw7wspy8rs7j-gettext-0.25.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/czicqca5jsi2qq2lah11h1p4abrrga8r-unixODBC-2.3.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yj80w3ph1aj452z6bvc4gld85a1393aj-xcbuild-0.1.1-unstable-2019-11-20' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kqldrch5kkd3gli81iyqga4b5xahwayc-glib-2.84.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/0c5s1gnq8mr276cb8pk6n4n09q7h5fvn-p11-kit-0.25.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/8xb4mk3i9hzhdjr7wb8dgpz6pin42afx-gnutls-3.8.10' from 'https://cache.nixos.org'...\ncopying path '/nix/store/kbq0liixw7m2zwq26sdav41m4blaxdwy-cups-2.4.12-lib' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a9aq909fc6ymnawnk877qcs4gklzm1c1-qtbase-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/6mjqccb1hfr5mffqz80icfvh8w0lvqmf-qtsvg-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/fn7iqppsl6z7ikbspxnjirwdz345w8mj-qtdeclarative-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a0z4ipq0hcakknsi5f1icgpdmch3simf-qtremoteobjects-6.9.2' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xpp7ar4ks7mjcpjgsx8922qn3ak974vb-logos-chat_ui-module' from 'https://logos-co.cachix.org'...\n", "status": "pass"}], "md": "### 1.1 Build the plugin\n\n```bash\nnix build 'github:logos-co/logos-chat-ui'\n```\n\nThe build runs the universal UI codegen (`logos-qt-generator --backend\nui`) over `src/ChatBackend.rep`, compiles `ChatBackend` (which derives\n`ChatBackendSimpleSource` + `LogosUiPluginContext`), and emits the\n`chat_ui_plugin` / replica-factory glue around it."}, {"execs": [], "md": "## What the chat UI does\n\nThe window is a two-pane messenger:\n\n- **Left:** your conversations, under a **New chat** button (start a\n  direct message from someone's address, or a group), with your own\n  account card at the foot: its short form, the delivery state\n  (`Stopped` \u2192 `Initialising...` \u2192 `Online`), and your address with a\n  copy button beside it.\n- **Right:** the message thread for the selected conversation, under a\n  header carrying its avatar, its description and who is in it, and a\n  composer with the send action at its end.\n\nUnder the hood the backend calls `modules().chat_module` \u2014 typed methods\n(`init`, `get_address`, `create_conversation`, `send_message`, \u2026)\nand string-keyed event subscriptions (`message_received`,\n`delivery_state_changed`, \u2026) that push updates into the view with no\npolling. `init` kicks off the delivery node asynchronously and returns\nimmediately; the UI flips to **Online** when the\n`delivery_state_changed` event reports the network is up."}, {"execs": [], "md": "## Step 2: Launch and connect, then share your address\n\nRun the app headless (offscreen Qt) and drive it: wait for the network to\ncome up, then copy your address \u2014 the everything-a-single-window-shows\nhalf of the tour."}, {"execs": [{"actions": [{"description": "Window opens: wait for ['New chat']", "index": 1, "status": "not_run"}, {"description": "Network connects: wait for ['Online']", "index": 2, "status": "not_run"}, {"description": "Copy your address: click objectName='copyMyAddressButton'", "index": 3, "status": "not_run"}, {"description": "Copied confirmation: wait for ['Copied to clipboard']", "index": 4, "status": "not_run"}], "cmd": "nix run 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d' --override-input chat_module github:logos-co/logos-chat-module/8e5b68d95647527d406e1780d75b64b1aa7818e2", "kind": "ui_test", "note": "inspector not available on port 3768 after 120s", "output": "warning: ignoring untrusted flake configuration setting 'extra-substituters'.\nPass '--accept-flake-config' to trust it\nwarning: ignoring untrusted flake configuration setting 'extra-trusted-public-keys'.\nPass '--accept-flake-config' to trust it\nwarning: not writing modified lock file of flake 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d':\n\u2022 Updated input 'chat_module':\n    'github:logos-co/logos-chat-module/5053dd5' (2026-09-29)\n  \u2192 'github:logos-co/logos-chat-module/8e5b68d' (2026-10-23)", "runner_cmd": "", "status": "fail"}], "md": "### 2.1 Drive the app\n\n```bash\nnix run 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d'\n```\n\nThe chat window opens; the account card starts at **Stopped** while delivery boots.\n\n`init` returned right away and the delivery node bootstrapped in\nthe background. When it connects, the `delivery_state_changed`\nevent lands and the state flips to **Online** \u2014 **New chat**\nenables and the backend reads `get_address()` onto the account\ncard. That address is what a peer needs to open a conversation\nwith you; your key package was published to the registry during\n`init`, so the address alone is enough.\n\n![Network connects](images/connected.png)\n\nCopied \u2014 you'd send this to whoever you want to chat with."}]}, {"meta": {"name": "Tutorial: Run the automated message-exchange test", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"execs": [], "md": "# Tutorial: Run the automated message-exchange test\n\nA conversation takes two people: one shares their address, the other pastes\nit into **New DM**, sends a first message, and the reply flows back. That\nround-trip spans **two** app instances, so the single-window walkthrough in\n*The Logos Chat UI* tutorial can't express it \u2014 and neither can the doc-test\n`ui_test` driver on its own, which works against one instance and can only set\nliteral field values (it can't read one window's address out and paste it\ninto another).\n\n`logos-chat-ui` ships an automated test for exactly this. The `exchange` app\ndrives the real two-party round-trip over the live network between two headless\ninstances, then exposes the receiving window so the finished thread can be\ncaptured. This tutorial runs that test and shows its result; the full\nstep-by-step flow \u2014 address, first message, reply \u2014 with screenshots of **both**\nwindows is in\n[docs/two-instance-exchange.md](../docs/two-instance-exchange.md).\n\n**What you'll build:** A verified end-to-end message round-trip between two chat UI instances, captured from the receiving window.\n\n**What you'll learn:**\n\n- How the `exchange` app runs the full two-party round-trip headless over the live network\n- Why a two-window exchange needs a dedicated runner rather than the single-instance `ui_test` driver\n- Where the step-by-step, both-windows walkthrough and its regeneration script live\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\n- **A Linux or macOS machine.** Nix provides every toolchain (Qt, CMake, Rust) during the builds.\n- **Network access.** The two delivery nodes discover each other over the configured network preset; an isolated sandbox won't complete the exchange."}, {"execs": [], "md": "## Step 1: Run the automated exchange\n\nThe `exchange` app launches two instances offscreen and runs the real\nround-trip over the live network \u2014 Alice shares her address, Bob opens a\nconversation with it and, once she joins, sends the first message, Alice\nreplies \u2014 then opens the capture port onto the live receiving window so\nthe finished thread is on screen. The whole round-trip happens while the\nlaunch is still coming up, so the screenshot below captures the\nalready-completed conversation."}, {"execs": [], "md": "### 1.1 Run the round-trip and show the result\n\n```bash\nnix run 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d#exchange'\n```\n\nThe receiving window after the round-trip: the peer's opening\nmessage and the reply, each end-to-end-encrypted and carried over\n`delivery_module`. The same exchange, step by step across both\nwindows, is in\n[docs/two-instance-exchange.md](../docs/two-instance-exchange.md).\n\n![Round-trip complete](images/exchange.png)"}]}, {"meta": {"name": "Tutorial: Run the automated group-chat test", "platform": "Darwin (ext=dylib)", "release": "(none)"}, "rows": [{"execs": [], "md": "# Tutorial: Run the automated group-chat test\n\nA group conversation goes further than a DM: one person creates it,\ninvites others by address, and every message fans out to the whole roster with\nthe sender attributed. That spans **three** app instances and grows by\nmembership commits over the live network \u2014 more than the single-window\nwalkthrough in *The Logos Chat UI* tutorial can express, and more than the\ndoc-test `ui_test` driver can orchestrate on its own (it works against one\ninstance and can't read one window's address out to invite it into another).\n\n`logos-chat-ui` ships an automated test for exactly this. The `group` app\ndrives the real three-party flow over the live network between three headless\ninstances \u2014 Alice creates the group, invites Bob and Carol, and once the roster\nconverges sends a message that reaches both \u2014 then exposes the newest member's\nwindow so the finished group can be captured.\n\n**What you'll build:** A verified three-member, end-to-end-encrypted group conversation across three chat UI instances, captured from a receiving member's window.\n\n**What you'll learn:**\n\n- How the `group` app forms a three-member group and fans a message out to it, headless over the live network\n- How the group UI adds a members pane and per-message sender attribution over a DM\n- Why a multi-window group needs a dedicated runner rather than the single-instance `ui_test` driver\n\n## Prerequisites\n\n- **Nix** with flakes enabled. Install from [nixos.org](https://nixos.org/download.html), then:\n\n```bash\nmkdir -p ~/.config/nix\necho 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf\n```\n\n- **A Linux or macOS machine.** Nix provides every toolchain (Qt, CMake, Rust) during the builds.\n- **Network access.** The three delivery nodes discover each other over the configured network preset; an isolated sandbox won't complete the flow. Expect membership changes to take minutes."}, {"execs": [], "md": "## Step 1: Run the automated group chat\n\nThe `group` app launches three instances offscreen and runs the real flow\nover the live network \u2014 Alice creates the group, invites Bob and Carol,\nand once all three are in she sends a message that fans out to both \u2014 then\nopens the capture port onto Carol's live window so her copy of the group is\non screen. The whole flow happens while the launch is still coming up, so\nthe screenshot below captures the already-formed group: the creator's\nmessage, received with its sender label, beside the three-member roster."}, {"execs": [], "md": "### 1.1 Run the group flow and show the result\n\n```bash\nnix run 'github:logos-co/logos-chat-ui/15c16ca4ad48efe63993daa0765cac8ca9f7c36d#group'\n```\n\nCarol's window after the group formed: Alice's message, received\nwith its sender label and end-to-end-encrypted over\n`delivery_module`, beside the members pane listing the\nthree-member roster.\n\n![Group message received](images/group.png)"}]}], "version": 1}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  if (window.marked) { marked.setOptions({ gfm: true, breaks: false }); }
+  const mdToHtml = (s) => window.marked ? marked.parse(s || "") : ("<pre>" + (s || "") + "</pre>");
+
+  const sum = DATA.summary;
+  document.getElementById("summary").innerHTML =
+    `<span class="pill pass">${sum.passed} passed</span> ` +
+    (sum.failed ? `<span class="pill fail">${sum.failed} failed</span> ` : "") +
+    (sum.skipped ? `<span class="pill skip">${sum.skipped} skipped</span>` : "");
+
+  const picker = document.getElementById("picker");
+  DATA.tutorials.forEach((t, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = t.meta.name; picker.appendChild(o);
+  });
+
+  function execHtml(e) {
+    const badge = `<span class="badge ${e.status}">${e.status.toUpperCase()}</span>`;
+    const kind = `<span class="kind">${e.kind}${e.platform ? " · " + e.platform : ""}${e.exit_code !== undefined ? " · exit " + e.exit_code : ""}</span>`;
+    let h = `<div class="exec"><div class="exec-head">${badge}${kind}</div>`;
+    if (e.note) h += `<div class="note">${escapeHtml(e.note)}</div>`;
+    if (e.cmd) h += `<pre class="cmd">${escapeHtml(e.cmd)}</pre>`;
+    if (e.runner_cmd) h += `<pre class="cmd">${escapeHtml(e.runner_cmd)}</pre>`;
+    if (e.actions) {
+      const passed = e.actions.filter(a => a.status === "pass").length;
+      h += `<div class="kind">UI actions: ${passed}/${e.actions.length} passed</div>`;
+      h += `<table class="ui-actions"><tbody>`;
+      for (const a of e.actions) {
+        const label = a.status === "not_run" ? "NOT RUN" :
+          a.status === "running" ? "INTERRUPTED" : a.status.toUpperCase();
+        h += `<tr><td>${a.index}</td><td><span class="badge ${a.status}">${label}</span></td>`;
+        h += `<td>${escapeHtml(a.description)}`;
+        if (a.error) h += `<div class="note">${escapeHtml(a.error)}</div>`;
+        h += `</td><td>${a.duration_ms !== undefined ? a.duration_ms + " ms" : ""}</td></tr>`;
+      }
+      h += `</tbody></table>`;
+    }
+    const out = (e.output || "").trim();
+    if (out) {
+      const long = out.split("\n").length > 12;
+      if (long) {
+        h += `<details><summary>output (${out.split("\n").length} lines)</summary><pre class="output">${escapeHtml(out)}</pre></details>`;
+      } else {
+        h += `<pre class="output">${escapeHtml(out)}</pre>`;
+      }
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  }
+
+  function render(idx) {
+    const t = DATA.tutorials[idx];
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const h = document.createElement("div");
+    h.className = "tutorial-title";
+    h.textContent = t.meta.name + "  —  " + t.meta.platform;
+    main.appendChild(h);
+
+    t.rows.forEach(row => {
+      const isStructural = row.execs.length === 0 &&
+        (/^#\s|^##\s/.test(row.md.trim()));
+      const div = document.createElement("div");
+      const hasExec = row.execs.length > 0;
+      const hasFail = row.execs.some(e => e.status === "fail");
+      div.className = "row" + (hasExec ? "" : (isStructural ? " section" : " preamble")) +
+        (hasFail ? " has-fail" : "");
+
+      const left = document.createElement("div");
+      left.className = "col left";
+      left.innerHTML = `<div class="md">${mdToHtml(row.md)}</div>`;
+      div.appendChild(left);
+
+      if (hasExec || !isStructural) {
+        const right = document.createElement("div");
+        right.className = "col right";
+        if (hasExec) {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            row.execs.map(execHtml).join("");
+        } else {
+          right.innerHTML = `<div class="col-label">Executed</div>` +
+            `<div class="empty">No commands run for this step.</div>`;
+        }
+        div.appendChild(right);
+      }
+      main.appendChild(div);
+    });
+
+    addAnchors(main, slug(t.meta.name));
+  }
+
+  function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  // Octicon "link" — the same glyph GitHub puts next to markdown headings.
+  const LINK_ICON =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d=' +
+    '"M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 ' +
+    '.75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 ' +
+    '9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 ' +
+    '2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"></path></svg>';
+
+  // Give every heading a stable slug id (deduplicated the way GitHub does, with
+  // -1/-2 suffixes) and a permalink whose href is "#<tutorial>/<heading>".
+  function addAnchors(container, tutSlug) {
+    const used = new Map();
+    const nodes = container.querySelectorAll(
+      ".tutorial-title, .md h1, .md h2, .md h3, .md h4, .md h5, .md h6"
+    );
+    nodes.forEach(node => {
+      const text = node.textContent.trim();
+      const isTitle = node.classList.contains("tutorial-title");
+      let href = "#" + tutSlug;
+      if (!isTitle) {
+        const base = slug(text) || "section";
+        const n = (used.get(base) || 0) + 1;
+        used.set(base, n);
+        node.id = n > 1 ? base + "-" + n : base;
+        href += "/" + node.id;
+      }
+      node.classList.add("heading-anchored");
+      const a = document.createElement("a");
+      a.className = "anchor";
+      a.href = href;
+      a.title = "Copy link to this section";
+      a.setAttribute("aria-label", "Permalink: " + text);
+      a.innerHTML = LINK_ICON;
+      node.insertBefore(a, node.firstChild);
+    });
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+  }
+
+  // navigator.clipboard needs a secure context; reports are often opened over
+  // file://, so fall back to the old execCommand path there.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(
+        () => toast("Link copied"),
+        () => toast(text)
+      );
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    toast(ok ? "Link copied" : text);
+  }
+
+  function scrollToId(id) {
+    if (!id) { window.scrollTo(0, 0); return; }
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    el.classList.remove("flash");
+    void el.offsetWidth;  // restart the animation on a repeat click
+    el.classList.add("flash");
+  }
+
+  document.addEventListener("click", ev => {
+    const a = ev.target.closest && ev.target.closest("a.anchor");
+    if (!a) return;
+    ev.preventDefault();
+    const href = a.getAttribute("href");
+    copyText(location.href.split("#")[0] + href);
+    if (location.hash === href) scrollToId(a.parentNode.id);
+    else location.hash = href;  // hashchange scrolls
+  });
+
+  // "#<tutorial>" (name, slug, or index) optionally followed by "/<heading>".
+  function parseHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (!raw) return { idx: 0, frag: "" };
+    const cut = raw.indexOf("/");
+    const tut = cut >= 0 ? raw.slice(0, cut) : raw;
+    const frag = cut >= 0 ? raw.slice(cut + 1) : "";
+    if (/^\d+$/.test(tut) && +tut < DATA.tutorials.length) return { idx: +tut, frag };
+    const i = DATA.tutorials.findIndex(
+      t => slug(t.meta.name) === tut || t.meta.name === tut
+    );
+    if (i >= 0) return { idx: i, frag };
+    // No tutorial matched: treat a bare hash as a heading in the current one.
+    return { idx: currentIdx >= 0 ? currentIdx : 0, frag: cut >= 0 ? frag : raw };
+  }
+
+  let currentIdx = -1;
+  function show(idx, frag) {
+    if (idx !== currentIdx) {
+      picker.value = idx;
+      render(idx);
+      currentIdx = idx;
+    }
+    if (frag) requestAnimationFrame(() => scrollToId(frag));
+  }
+  picker.addEventListener("change", () => {
+    location.hash = slug(DATA.tutorials[+picker.value].meta.name);
+    show(+picker.value);
+  });
+  window.addEventListener("hashchange", () => {
+    const h = parseHash();
+    show(h.idx, h.frag);
+  });
+  const initial = parseHash();
+  show(initial.idx, initial.frag);
+  // Inlined screenshots have no intrinsic size until decoded, so the first
+  // scroll can land short; re-anchor once everything has loaded.
+  if (initial.frag) {
+    window.addEventListener("load", () => scrollToId(initial.frag), { once: true });
+  }
+</script>
+</body>
+</html>
