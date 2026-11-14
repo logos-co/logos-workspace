@@ -43,13 +43,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-cpp-sdk = {
-      url = "github:logos-co/logos-cpp-sdk/3bf5365c5412f89bbbf30e3f46237cd68cff0599";
+      url = "github:logos-co/logos-cpp-sdk/05e14426d73e798d4e000e1e8e47372b0fb40f37";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-view-module-runtime = {
-      url = "github:logos-co/logos-view-module-runtime/a04b4630d12e1e4f5327976b3263698b64f22675";
+      url = "github:logos-co/logos-view-module-runtime/3e69973acc259505f2ffb0ab8753cabd820193a9";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-plugin-qt.follows = "logos-plugin-qt";
@@ -65,13 +65,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module = {
-      url = "github:logos-co/logos-module/ceee1e35649cc938c213515c672fa40df0a32469";
+      url = "github:logos-co/logos-module/a6ac9bd1fd291df3d024898616e286096fb4048d";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-liblogos = {
-      url = "github:logos-co/logos-liblogos/96032559b0b84c2f30531a6f5103dc2439c0e476";
+      url = "github:logos-co/logos-liblogos/af19e519c9b579a1dab86e8dc3960925fc28b526";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-module.follows = "logos-module";
@@ -85,7 +85,7 @@
       inputs.process-stats.follows = "process-stats";
     };
     logos-logoscore-cli = {
-      url = "github:logos-co/logos-logoscore-cli/cf4792bb3ef9678fede12d8b4635bd09347b9cac";
+      url = "github:logos-co/logos-logoscore-cli/66d098d3af1367cf831b69c13a5aa8345edeb682";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-liblogos.follows = "logos-liblogos";
@@ -102,25 +102,24 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-capability-module = {
-      url = "github:logos-co/logos-capability-module/eec51d344bf22068538c3649aab787d49ad9d670";
+      url = "github:logos-co/logos-capability-module/0edae0eed8f7475f8e48e0202388f968865b2736";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package = {
-      url = "github:logos-co/logos-package/e8aa6ef073729e27eea3a6672549c2bc47f9498f";
+      url = "github:logos-co/logos-package/4bdd9041ebfbd06c2b22134afdcd27fce8a43f3c";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-plugin-qt = {
-      url = "github:logos-co/logos-plugin-qt/2d36a08819b8df36094036d02d130aa4bd3a6132";
+      url = "github:logos-co/logos-plugin-qt/98519c78ec2130fc3dabf61931e65f1fff008012";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-module-builder = {
-      url = "github:logos-co/logos-module-builder/76f0a7e1f6d4356ca505dcd9151f570f3676c689";
+      url = "github:logos-co/logos-module-builder/5f74cdb3cecacde054c68d72fcc0d2cfe2195900";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
-      inputs.logos-design-system.follows = "logos-design-system";
       inputs.logos-module.follows = "logos-module";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-plugin-core.follows = "logos-plugin-qt";
@@ -128,19 +127,18 @@
       inputs.logos-protocol.follows = "logos-protocol";
       inputs.logos-qt-sdk.follows = "logos-qt-sdk";
       inputs.logos-rust-sdk.follows = "logos-rust-sdk";
-      inputs.logos-standalone-app.follows = "logos-standalone-app";
       inputs.logos-view-module.follows = "logos-view-module";
       inputs.logos-view-module-runtime.follows = "logos-view-module-runtime";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-dir = {
-      url = "github:logos-co/nix-bundle-dir/7d0d6a7727eb4adaf5c9113bd4d357a4359d20fc";
+      url = "github:logos-co/nix-bundle-dir/66d7f61792c4be0b7e3e6b9890dc1d58f52a4beb";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-bundle-lgx = {
-      url = "github:logos-co/nix-bundle-lgx/c2360a62ba0a948aafa75b86bd93bf8b95b1a5a2";
+      url = "github:logos-co/nix-bundle-lgx/e65d38263f2e1e6bca274d676684350b0fb54185";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -170,7 +168,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-basecamp = {
-      url = "github:logos-co/logos-basecamp/63c1643f973df2149219f73f9e2505427784b05d";
+      url = "github:logos-co/logos-basecamp/b642a9aba732b80343a3a7b622dad8c65e534bdb";
       inputs.logos-capability-module.follows = "logos-capability-module";
       inputs.logos-cpp-sdk.follows = "logos-cpp-sdk";
       inputs.logos-design-system.follows = "logos-design-system";
@@ -198,11 +196,12 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-accounts-ui = {
-      url = "github:logos-co/logos-accounts-ui/026565ee83587368ed07f64a6614bde2663f8869";
+      url = "github:logos-co/logos-accounts-ui/3a48ded1d96c59e1cb567c39c0c8d8848824d6a1";
+      inputs.lez_core.follows = "logos-execution-zone-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-chat-module = {
-      url = "github:logos-co/logos-chat-module/0ef339ea97b12404b2e3f631ec6aaaa45acc52b3";
+      url = "github:logos-co/logos-chat-module/8e5b68d95647527d406e1780d75b64b1aa7818e2";
       inputs.logos-delivery-module.follows = "logos-delivery-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
@@ -213,7 +212,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-package-manager = {
-      url = "github:logos-co/logos-package-manager/30b3a3f8a4f05d99e6b377fb40e02018c101882b";
+      url = "github:logos-co/logos-package-manager/73c21ab64e3ddc4b5745ec7c91405eb56c691de2";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -221,7 +220,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-downloader = {
-      url = "github:logos-co/logos-package-downloader/010059417a3d70cbba508205071343f6eb118d1c";
+      url = "github:logos-co/logos-package-downloader/5c9ed0fb97b4e6c3bc3d71e45ff419d4ea03b41f";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-package.follows = "logos-package";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
@@ -229,36 +228,36 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-package-manager-module = {
-      url = "github:logos-co/logos-package-manager-module/6955a098b1c8a2e20e39b8e006eadcf7d87b6366";
+      url = "github:logos-co/logos-package-manager-module/f12ef8597660b71770fd7984f91c28113c0ae8d9";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package-manager.follows = "logos-package-manager";
     };
     logos-package-downloader-module = {
-      url = "github:logos-co/logos-package-downloader-module/c91d79d2c4c2f547aef495b84e26309074041ae5";
+      url = "github:logos-co/logos-package-downloader-module/1999184e5c1a40fe27657ce8068375c7a70f0840";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package-downloader.follows = "logos-package-downloader";
       inputs.modules_state.follows = "logos-modules-state-module";
       inputs.storage_module.follows = "logos-storage-module";
     };
     logos-package-manager-ui = {
-      url = "github:logos-co/logos-package-manager-ui/8b67bf0213596e021d441e5d1d43f857142003b6";
+      url = "github:logos-co/logos-package-manager-ui/15c5a4142f271a9cd5963ede1cf6180e4fcf0cb2";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-package.follows = "logos-package";
       inputs.package_downloader.follows = "logos-package-downloader-module";
       inputs.package_manager.follows = "logos-package-manager-module";
     };
     logos-storage-module = {
-      url = "github:logos-co/logos-storage-module/7548f41ae189917d58c37f0fb6d3a2700b99f59b";
+      url = "github:logos-co/logos-storage-module/74d77e39e07f0334ba3cdc4b2528c11be2b1d1e4";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-storage-ui = {
-      url = "github:logos-co/logos-storage-ui/7b89afee451b6ee7b2efb6c7f48002e1752e4a3b";
+      url = "github:logos-co/logos-storage-ui/f4500698f19fa15774262adde9b8a8a688e9a342";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.storage_module.follows = "logos-storage-module";
     };
     logos-wallet-module = {
-      url = "github:logos-co/logos-wallet-module/f6f9c160410db824531f42dd8b27ccecd39ca589";
+      url = "github:logos-co/logos-wallet-module/d22562a9baaf33498e690e25c2e89f8b11f26796";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-wallet-ui = {
@@ -268,40 +267,40 @@
       inputs.wallet_module.follows = "logos-wallet-module";
     };
     logos-delivery-module = {
-      url = "github:logos-co/logos-delivery-module/7d2e057687c170e93a34f519d682b1d84294b2d1";
+      url = "github:logos-co/logos-delivery-module/c6f12705fad65f08f7f3a290eefb444518190c27";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-delivery-demo = {
-      url = "github:logos-co/logos-delivery-demo/2b6200d503fa0fc7466030b03d180c800f516081";
+      url = "github:logos-co/logos-delivery-demo/c32d57045baaeac989e42b8f103a7777ff3bcc5d";
       inputs.delivery_module.follows = "logos-delivery-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-blockchain-module = {
-      url = "github:logos-blockchain/logos-blockchain-module/b2a19e46987cd96902ef5fbe6c6f2a78f26aa6cf";
+      url = "github:logos-blockchain/logos-blockchain-module/c4f52b952b21c5655ff2e11a95aa20d2f03ab446";
       inputs.logos-blockchain.follows = "logos-blockchain";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-blockchain-ui = {
-      url = "github:logos-blockchain/logos-blockchain-ui/efa2f0d5c7796c8545642b956caca2e7eded944d";
+      url = "github:logos-blockchain/logos-blockchain-ui/292192ec3e55d53851e8e483f574301ce57e89a7";
       inputs.blockchain_module.follows = "logos-blockchain-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.process-stats.follows = "process-stats";
     };
     logos-execution-zone-wallet-ui = {
-      url = "github:logos-blockchain/logos-execution-zone-wallet-ui/486379ec41ea0bd4e59cf3c82632429b0fed393b";
+      url = "github:logos-blockchain/logos-execution-zone-wallet-ui/29b3cadb12f959d6e398efa803a1036a5992dd87";
       inputs.lez_core.follows = "logos-execution-zone-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-execution-zone-module = {
-      url = "github:logos-blockchain/logos-execution-zone-module/51a6fee385eedfdc65ba71f01447c5411a54bdf7";
+      url = "github:logos-blockchain/logos-execution-zone-module/cc73ebfe0857705cfc1c3b29743fb6c8c6aebd82";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-libp2p-module = {
-      url = "github:logos-co/logos-libp2p-module/322ccd11d199902d304cd7cb80514b465f54f0ff";
+      url = "github:logos-co/logos-libp2p-module/b11b976e64db8b2d62d647d93a0c0c4a2f2fdd29";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.openmetrics-module.follows = "openmetrics-module";
     };
@@ -316,7 +315,7 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-design-system = {
-      url = "github:logos-co/logos-design-system/a4f30148197536547abc2d23594fe94f35e9b711";
+      url = "github:logos-co/logos-design-system/493a243454451a844a7b73ef501616141d1308de";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nix-bundle-appimage.follows = "nix-bundle-appimage";
       inputs.nix-bundle-dir.follows = "nix-bundle-dir";
@@ -335,16 +334,16 @@
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/040e94e83873249dc5f27da8c2a01c3dcaaa630d";
+    logos-rust-sdk.url = "github:logos-co/logos-rust-sdk/263d1c42165b3eee99536de938186520ecb79e81";
     logos-logoscore-py = {
-      url = "github:logos-co/logos-logoscore-py/74cda3ef61fb64a016f9fc1bd047ed1a92d4898c";
+      url = "github:logos-co/logos-logoscore-py/8c140cc53b9535fd21e3da500d38247c615d9352";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-nix.follows = "logos-nix";
       inputs.logos-test-modules.follows = "logos-test-modules";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-test-modules = {
-      url = "github:logos-co/logos-test-modules/5d991467d585c9c19ba1168a0bd9159b8b9b1c55";
+      url = "github:logos-co/logos-test-modules/73a9f7c6e3388f954cb1be6491fc59f14ad607ae";
       inputs.logos-liblogos.follows = "logos-liblogos";
       inputs.logos-logoscore-cli.follows = "logos-logoscore-cli";
       inputs.logos-module-builder.follows = "logos-module-builder";
@@ -366,21 +365,21 @@
     };
     logos-evm-net-proxy.url = "github:logos-co/logos-evm-net-proxy/e2d0c01bf066d2a8cd085d6bdc04ab1263e00c42";
     logos-evm-keystore-module = {
-      url = "github:logos-co/logos-evm-keystore-module/1f3d62f306f0e4dc7e5d96d478f9770ab3713ce6";
+      url = "github:logos-co/logos-evm-keystore-module/9d9a43204699a31f6b3122398efe7091cc710e35";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-eth-rpc-module = {
-      url = "github:logos-co/logos-evm-eth-rpc-module/42cc465e0cbd748117a0af0cf983404348683335";
+      url = "github:logos-co/logos-evm-eth-rpc-module/6965f3252986eef02e9342198a0625fa725aad8d";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.modules_state.follows = "logos-modules-state-module";
       inputs.verified_proxy_module.follows = "logos-verified-proxy-module";
     };
     logos-evm-token-list-module = {
-      url = "github:logos-co/logos-evm-token-list-module/213e62853fe817bad02db8588b8be6ecd1e72211";
+      url = "github:logos-co/logos-evm-token-list-module/5750f54c42bcdf836eb263af10e2898f9ef4714b";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-uniswap-module = {
-      url = "github:logos-co/logos-evm-uniswap-module/cc677c301f45a00a1baac0358082df1fb271a650";
+      url = "github:logos-co/logos-evm-uniswap-module/2755021f53d38c192edffcd67877f5a4e90e2fe0";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
@@ -409,75 +408,79 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-uniswap-backend = {
-      url = "github:logos-co/logos-uniswap-backend/b561baac2d32e7f9aa234c8529deb66eb344ec00";
+      url = "github:logos-co/logos-uniswap-backend/d1cc6d15224192ae1bc96ba47bd0172c335fa3c0";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.evm_assets_module.follows = "logos-evm-assets-module";
       inputs.fee_module.follows = "logos-evm-fee-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.signer_manager_module.follows = "logos-signer-manager-module";
       inputs.token_list_module.follows = "logos-evm-token-list-module";
       inputs.tx_sender_module.follows = "logos-evm-tx-sender-module";
       inputs.uniswap_module.follows = "logos-evm-uniswap-module";
     };
     logos-evm-fee-module = {
-      url = "github:logos-co/logos-evm-fee-module/5bf49b768cf178d2e8c58267f17822060f813fbf";
+      url = "github:logos-co/logos-evm-fee-module/f2065e787eebcd7fa49f6cf6ab1dc39457cba981";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-assets-module = {
-      url = "github:logos-co/logos-evm-assets-module/3235e6bfaa63c85f5857591da290bb1631ece183";
+      url = "github:logos-co/logos-evm-assets-module/8d6a71c7a66fc906c8cf967c4c4ce2245da1dcec";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-tx-sender-module = {
-      url = "github:logos-co/logos-evm-tx-sender-module/47212238cbff99c842581573b12306331d97d8ae";
+      url = "github:logos-co/logos-evm-tx-sender-module/f1754c3b13c7c580ee449116ba8982ca193e114d";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.fee_module.follows = "logos-evm-fee-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.signer_manager_module.follows = "logos-signer-manager-module";
     };
     logos-signer-manager-module = {
-      url = "github:logos-co/logos-signer-manager-module/80bc40ccbe6c689caadc736b3db2136bfbde1818";
+      url = "github:logos-co/logos-signer-manager-module/152c96d185f4b31d11485e5b0dca4b6266615e57";
+      inputs.keycard_module.follows = "logos-keycard-module";
+      inputs.keycard_shell_module.follows = "logos-keycard-shell-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-evm-keystore-cli = {
-      url = "github:logos-co/logos-evm-keystore-cli/99b7af1f6fa02258c4de2275ed3a019c1235aaba";
+      url = "github:logos-co/logos-evm-keystore-cli/c6db2ad320f6e14d938d63d5d3fe4977ec909ca5";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.signer_manager_module.follows = "logos-signer-manager-module";
     };
     logos-evm-keystore-ui = {
-      url = "github:logos-co/logos-evm-keystore-ui/f3fdc18f382887905c761312098203506e357c75";
+      url = "github:logos-co/logos-evm-keystore-ui/2754637854decd147a7f0b74253781e03878f042";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.signer_manager_module.follows = "logos-signer-manager-module";
     };
     logos-evm-signer-cli = {
-      url = "github:logos-co/logos-evm-signer-cli/07929a33ec2d44901a1335064960d4a718b13ebe";
+      url = "github:logos-co/logos-evm-signer-cli/2cb46d8d2a8456afa01b26906ffb206d064e26ec";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.signer_manager_module.follows = "logos-signer-manager-module";
       inputs.token_list_module.follows = "logos-evm-token-list-module";
     };
     logos-evm-signer-ui = {
-      url = "github:logos-co/logos-evm-signer-ui/05cf10b2039dd33da1134736280952274b3fc385";
+      url = "github:logos-co/logos-evm-signer-ui/f64fba2fb26d865229e7a9d70c642d5319b0affa";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-tx-decoder.follows = "logos-tx-decoder";
       inputs.signer_manager_module.follows = "logos-signer-manager-module";
       inputs.token_list_module.follows = "logos-evm-token-list-module";
     };
     logos-eth-wallet-backend = {
-      url = "github:logos-co/logos-eth-wallet-backend/975774fe13a253463b4c1a08570b4aad20505bc8";
+      url = "github:logos-co/logos-eth-wallet-backend/23b6423b25f9b367e6eb709d6fc30e9e25a9496f";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.evm_assets_module.follows = "logos-evm-assets-module";
       inputs.fee_module.follows = "logos-evm-fee-module";
       inputs.keystore_module.follows = "logos-evm-keystore-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
+      inputs.signer_manager_module.follows = "logos-signer-manager-module";
       inputs.token_list_module.follows = "logos-evm-token-list-module";
       inputs.tx_sender_module.follows = "logos-evm-tx-sender-module";
     };
     logos-eth-wallet-ui = {
-      url = "github:logos-co/logos-eth-wallet-ui/81f86760371fd038fcabbbe49d2728aa062eab59";
+      url = "github:logos-co/logos-eth-wallet-ui/5d2fb8af322d3ad4a7ec799b7cb394758207c2eb";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.eth_wallet_backend.follows = "logos-eth-wallet-backend";
       inputs.evm_assets_module.follows = "logos-evm-assets-module";
@@ -488,42 +491,43 @@
       inputs.tx_sender_module.follows = "logos-evm-tx-sender-module";
     };
     logos-eth-rpc-ui = {
-      url = "github:logos-co/logos-eth-rpc-ui/d670fdf03597a06450b50668d1284b9f11f33aec";
+      url = "github:logos-co/logos-eth-rpc-ui/37338abc43f3ed7ce6741a7b25c1546f9d13b684";
       inputs.eth_rpc_module.follows = "logos-evm-eth-rpc-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-token-list-ui = {
-      url = "github:logos-co/logos-token-list-ui/7fc7ba66f3ab609e3d6d5b2ebf237593d493700b";
+      url = "github:logos-co/logos-token-list-ui/33d9563d186f2a1bf27b22c393b6d7fe03c04b3c";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.token_list_module.follows = "logos-evm-token-list-module";
     };
     logos-uniswap-ui = {
-      url = "github:logos-co/logos-uniswap-ui/69caca706845475f19c78202e3f5426ef11a7d5c";
+      url = "github:logos-co/logos-uniswap-ui/2512d4769cee19e7340d0f3e6bfc267b243627b3";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.uniswap_backend.follows = "logos-uniswap-backend";
     };
     logos-verified-proxy-module = {
-      url = "github:logos-co/logos-verified-proxy-module/f0cf1f45def716515bca735ff04deab565c4a962";
+      url = "github:logos-co/logos-verified-proxy-module/fa984790c5c5d7b39f37ed42d7b66abfc9e72b67";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-nix.follows = "logos-nix";
     };
     logos-verified-proxy-ui = {
-      url = "github:logos-co/logos-verified-proxy-ui/28d4cdd7cbbe7f6819739c687105c725ca492da1";
+      url = "github:logos-co/logos-verified-proxy-ui/1dc2fa8943f360fbe75cd2d02aba21a63ceaddfa";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
       inputs.verified_proxy_module.follows = "logos-verified-proxy-module";
     };
     logos-keycard-module = {
-      url = "github:logos-co/logos-keycard-module/719bad502210b6c08a066d3ece95c52048e2bea3";
+      url = "github:logos-co/logos-keycard-module/a7faad07e3ac8d44fce6f6e2f269c7d5f36f6119";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-keycard-ui = {
-      url = "github:logos-co/logos-keycard-ui/fbb4f1f6565389be12101a8fb1fc007cce34c82b";
+      url = "github:logos-co/logos-keycard-ui/6684747b281de1dc0d94501d12feea03ac4dd9fc";
       inputs.keycard_module.follows = "logos-keycard-module";
+      inputs.keycard_shell_module.follows = "logos-keycard-shell-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-keycard-shell-module = {
-      url = "github:logos-co/logos-keycard-shell-module/b9c6b7c3323c231d05845736f841a2ed8cdbbe0d";
+      url = "github:logos-co/logos-keycard-shell-module/7893fc1ad070a6bf88fc6094175c06cada769ac9";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-keycard-shell-ui = {
@@ -532,85 +536,85 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-monero-nix = {
-      url = "github:logos-co/logos-monero-nix/5f7ee441d0e3b823b423117d18750352ab68b0ff";
+      url = "github:logos-co/logos-monero-nix/f8aa90321fdd13170c9ab8c493e90839d14c34b4";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-monerod-module = {
-      url = "github:logos-co/logos-monerod-module/246ff75bb1253478516bb47b041c47638c268a7d";
+      url = "github:logos-co/logos-monerod-module/b921a3f9f000db15cdb37209de27f1e15e5a0639";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-monero-nix.follows = "logos-monero-nix";
     };
     logos-monerod-ui = {
-      url = "github:logos-co/logos-monerod-ui/634637ddf8daed02f13172bfa68dbde5bbcd9c0a";
+      url = "github:logos-co/logos-monerod-ui/1068ae89efbb76a316cdac69cae9b3361fd75bf0";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.monerod_module.follows = "logos-monerod-module";
     };
     logos-monero-node-module = {
-      url = "github:logos-co/logos-monero-node-module/787cff16dad4b077e4601415a706874bbf168458";
+      url = "github:logos-co/logos-monero-node-module/179c0a867b532841ce85c76861ba448b9b9eeb63";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.monerod_module.follows = "logos-monerod-module";
     };
     logos-monero-wallet-core-module = {
-      url = "github:logos-co/logos-monero-wallet-core-module/c513e58d05a08abfdb789e82c94bab052f3eb7e5";
+      url = "github:logos-co/logos-monero-wallet-core-module/5cb66069ead1c4a864edd76c938a4bfcc8236ffe";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-monero-nix.follows = "logos-monero-nix";
       inputs.monero_node_module.follows = "logos-monero-node-module";
     };
     logos-monero-wallet-backend = {
-      url = "github:logos-co/logos-monero-wallet-backend/a17d0df6e7c89bb5a82ae196e7eb2f02599ae29a";
+      url = "github:logos-co/logos-monero-wallet-backend/34f2c86decec60d93df230653d2957f8432e74ee";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.monero_node_module.follows = "logos-monero-node-module";
       inputs.monero_wallet_core_module.follows = "logos-monero-wallet-core-module";
     };
     logos-monero-wallet-cli = {
-      url = "github:logos-co/logos-monero-wallet-cli/fa4b388dd9d0dce63bb218cb5ea42f3fedf39369";
+      url = "github:logos-co/logos-monero-wallet-cli/f1ea8a4825a3bd28e15750d5af7739e1205b6a61";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.monero_wallet_backend.follows = "logos-monero-wallet-backend";
     };
     logos-monero-wallet-ui = {
-      url = "github:logos-co/logos-monero-wallet-ui/b2e3c6a697751337bcc51a0965a23199ffee6730";
+      url = "github:logos-co/logos-monero-wallet-ui/c90c10293153e33de183d76e1604e8cb86bb892e";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.monero_wallet_backend.follows = "logos-monero-wallet-backend";
     };
     logos-zebra-nix = {
-      url = "github:logos-co/logos-zebra-nix/f509508dd94ab2ea0ce8b4f2a0f62aa67e64779a";
+      url = "github:logos-co/logos-zebra-nix/7895e2ed60dca02c07627d5373e9d76871d1f6cd";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     logos-zebrad-module = {
-      url = "github:logos-co/logos-zebrad-module/3fd55426fa5ccddc9fee16f4b5e0d2f9bdc6eda6";
+      url = "github:logos-co/logos-zebrad-module/6fa866344af89684f50b7a63919c17da0a60fdea";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.logos-zebra-nix.follows = "logos-zebra-nix";
     };
     logos-zebrad-ui = {
-      url = "github:logos-co/logos-zebrad-ui/1913534d3a9730bc1ef7e0dfcbd029e795ce983f";
+      url = "github:logos-co/logos-zebrad-ui/3b4f4e948b17065bd6576726cb71a18061e906e2";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zebrad_module.follows = "logos-zebrad-module";
     };
     logos-zcash-node-module = {
-      url = "github:logos-co/logos-zcash-node-module/8c920084ee38e39825ddf0dadf71d1d19a9697e6";
+      url = "github:logos-co/logos-zcash-node-module/0e0d6b7c27177efc557944f222d800b954652565";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zebrad_module.follows = "logos-zebrad-module";
     };
     logos-zcash-wallet-core-module = {
-      url = "github:logos-co/logos-zcash-wallet-core-module/cd7a032a5edfa6cfb510d2ef7cdeb5b6f4a67271";
+      url = "github:logos-co/logos-zcash-wallet-core-module/75d8218d3d7778992bcd54eae42cef0961f55b98";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zebrad_module.follows = "logos-zebrad-module";
     };
     logos-zcash-wallet-backend = {
-      url = "github:logos-co/logos-zcash-wallet-backend/fe8d6a1c3b15c3181780483db62423ed16d3bf16";
+      url = "github:logos-co/logos-zcash-wallet-backend/d49db93bf6c9379e0cad0b067e8dea930e621519";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zcash_node_module.follows = "logos-zcash-node-module";
       inputs.zcash_wallet_core_module.follows = "logos-zcash-wallet-core-module";
     };
     logos-zcash-wallet-cli = {
-      url = "github:logos-co/logos-zcash-wallet-cli/e4c311c8290d56c83c3e9baf5393b6e42da38f2b";
+      url = "github:logos-co/logos-zcash-wallet-cli/c211533df4eefc812caf4d534399566f9bc6d12c";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zcash_wallet_backend.follows = "logos-zcash-wallet-backend";
     };
     logos-zcash-wallet-ui = {
-      url = "github:logos-co/logos-zcash-wallet-ui/dd72f454d2d0a5072d603776135156b3b396b2fd";
+      url = "github:logos-co/logos-zcash-wallet-ui/908ba4ca75340105c19906836aca126e81fc3c9e";
       inputs.logos-module-builder.follows = "logos-module-builder";
       inputs.zcash_wallet_backend.follows = "logos-zcash-wallet-backend";
     };
@@ -619,12 +623,12 @@
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-view-module = {
-      url = "github:logos-co/logos-view-module/8fd4811489116b5e9522c70b8b820391bd203279";
+      url = "github:logos-co/logos-view-module/4b5c41f591a22373d14b730f646aee6748c37cf2";
       inputs.logos-nix.follows = "logos-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     openmetrics-module = {
-      url = "github:logos-co/openmetrics-module/802012aabbc63e24755251e0b1419769dda68715";
+      url = "github:logos-co/openmetrics-module/124196227f8a4c81f737ab14d1a363fb9fe7b85c";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
     logos-libp2p-ui = {
@@ -634,7 +638,7 @@
       inputs.nix-bundle-lgx.follows = "nix-bundle-lgx";
     };
     logos-uplink-app = {
-      url = "github:logos-co/logos-uplink-app/c12bc3c8b72a092e024daee196149e604c7d36d3";
+      url = "github:logos-co/logos-uplink-app/bb4d4e18f3db1142fd8135cd26333e0c657561be";
       inputs.blockchain_module.follows = "logos-blockchain-module";
       inputs.lez_core.follows = "logos-execution-zone-module";
       inputs.logos-module-builder.follows = "logos-module-builder";
