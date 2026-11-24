@@ -82,11 +82,13 @@ Named sets of repos for batch operations. Groups can reference other groups (res
 
 ```bash
 # Built-in groups:
-#   core            — logos-cpp-sdk, logos-module, logos-liblogos, logos-module-builder,
-#                     logos-capability-module, logos-package-manager-module, logos-test-modules
+#   core            — logos-cpp-sdk, logos-module, logos-liblogos, logos-view-module, logos-module-builder,
+#                     logos-capability-module, logos-intents-module, logos-package-manager-module, logos-test-modules
 #   chat            — core + logos-chat-module, logos-chatsdk-module, logos-waku-module, logos-irc-module
 #   package-manager — logos-package, logos-package-manager-module, logos-package-manager-ui, nix-bundle-lgx
 #   app             — core + logos-basecamp, logos-package-manager-ui
+#   intents         — logos-intents-module, logos-view-module, logos-module-builder,
+#                     logos-package-manager-ui, logos-basecamp
 
 # List groups and their members
 ws groups
@@ -128,6 +130,8 @@ nixpkgs (Qt 6, system libs — pinned via logos-cpp-sdk)
 | logos-logoscore-cli | Headless CLI runtime (`logoscore`) — frontend for logos-liblogos |
 | logos-module | Plugin introspection library + `lm` CLI |
 | logos-module-builder | Scaffolding + build system (metadata.json -> CMake) |
+| logos-view-module | View-module backend: the generated plugin glue and CMake for `ui_qml` apps (used by logos-module-builder) |
+| logos-intents-module | `intents_module`: routes intents between modules; Basecamp is its presenter (preview, `--intents-module`) |
 | logos-basecamp | Desktop app shell with sidebar, tabs, plugin management |
 | logos-package | LGX package format + `lgx` CLI |
 | nix-bundle-dir | Bundles Nix derivations into portable self-contained dirs |

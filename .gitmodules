@@ -355,3 +355,6 @@
 [submodule "repos/logos-modules-release-tool"]
 	path = repos/logos-modules-release-tool
 	url = git@github.com:logos-co/logos-modules-release-tool.git
+[submodule "repos/logos-intents-module"]
+	path = repos/logos-intents-module
+	url = git@github.com:logos-co/logos-intents-module.git

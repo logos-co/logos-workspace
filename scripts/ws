@@ -89,6 +89,7 @@ REPOS=(
   "logos-liblogos|logos-liblogos|https://github.com/logos-co/logos-liblogos.git|yes"
   "logos-logoscore-cli|logos-logoscore-cli|https://github.com/logos-co/logos-logoscore-cli.git|yes"
   "logos-capability-module|logos-capability-module|https://github.com/logos-co/logos-capability-module.git|yes"
+  "logos-intents-module|logos-intents-module|https://github.com/logos-co/logos-intents-module.git|yes"
   "logos-package|logos-package|https://github.com/logos-co/logos-package.git|yes"
   "logos-plugin-qt|logos-plugin-qt|https://github.com/logos-co/logos-plugin-qt.git|yes"
   "logos-module-builder|logos-module-builder|https://github.com/logos-co/logos-module-builder.git|yes"
@@ -241,10 +242,11 @@ REPOS=(
 # Members can be repo names or other group names (resolved recursively).
 
 REPO_GROUPS=(
-  "core|logos-protocol,logos-qt-sdk,logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-module-builder,logos-capability-module,logos-package-manager-module,logos-test-modules"
+  "core|logos-protocol,logos-qt-sdk,logos-cpp-sdk,logos-module,logos-liblogos,logos-logoscore-cli,logos-view-module,logos-module-builder,logos-capability-module,logos-intents-module,logos-package-manager-module,logos-test-modules"
   "chat|core,logos-chat-module"
   "package-manager|logos-package,logos-package-manager,logos-package-downloader,logos-package-manager-module,logos-package-downloader-module,logos-package-manager-ui,nix-bundle-lgx"
   "app|core,logos-basecamp,logos-package-manager-ui"
+  "intents|logos-intents-module,logos-view-module,logos-module-builder,logos-package-manager-ui,logos-basecamp"
   "evm-wallet|logos-evm-net-proxy,logos-evm-keystore-module,logos-evm-eth-rpc-module,logos-evm-token-list-module,logos-evm-uniswap-module,logos-evm-railgun-module,logos-evm-wallet-backend-module,logos-evm-wallet-ui,logos-tx-decoder,logos-uniswap-backend,logos-evm-fee-module,logos-evm-assets-module,logos-evm-tx-sender-module,logos-signer-manager-module,logos-evm-keystore-cli,logos-evm-keystore-ui,logos-evm-signer-cli,logos-evm-signer-ui,logos-eth-wallet-backend,logos-eth-wallet-ui,logos-eth-rpc-ui,logos-token-list-ui,logos-uniswap-ui,logos-verified-proxy-module,logos-verified-proxy-ui"
   "keycard|logos-keycard-module,logos-keycard-ui,logos-keycard-shell-module,logos-keycard-shell-ui"
   "monero|logos-monero-nix,logos-monerod-module,logos-monerod-ui,logos-monero-node-module,logos-monero-wallet-core-module,logos-monero-wallet-backend,logos-monero-wallet-cli,logos-monero-wallet-ui"
