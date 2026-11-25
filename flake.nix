@@ -105,6 +105,10 @@
       url = "github:logos-co/logos-capability-module/eec51d344bf22068538c3649aab787d49ad9d670";
       inputs.logos-module-builder.follows = "logos-module-builder";
     };
+    logos-intents-module = {
+      url = "github:logos-co/logos-intents-module/d28b816c67ad137dc99e3462d4671bc70c9dc451";
+      inputs.logos-module-builder.follows = "logos-module-builder";
+    };
     logos-package = {
       url = "github:logos-co/logos-package/e8aa6ef073729e27eea3a6672549c2bc47f9498f";
       inputs.logos-nix.follows = "logos-nix";

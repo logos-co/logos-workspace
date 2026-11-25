@@ -59932,6 +59932,27 @@
         "type": "github"
       }
     },
+    "logos-intents-module": {
+      "inputs": {
+        "logos-module-builder": [
+          "logos-module-builder"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795531390,
+        "narHash": "sha256-nSW/Zgk+1MatRS/tYxQsQBxU5k1sUO3+uBADf8nRNlg=",
+        "owner": "logos-co",
+        "repo": "logos-intents-module",
+        "rev": "d28b816c67ad137dc99e3462d4671bc70c9dc451",
+        "type": "github"
+      },
+      "original": {
+        "owner": "logos-co",
+        "repo": "logos-intents-module",
+        "rev": "d28b816c67ad137dc99e3462d4671bc70c9dc451",
+        "type": "github"
+      }
+    },
     "logos-js-sdk": {
       "inputs": {
         "logos-lidl": "logos-lidl_731",
@@ -672823,6 +672844,7 @@
         "logos-evm-wallet-ui": "logos-evm-wallet-ui",
         "logos-execution-zone-module": "logos-execution-zone-module",
         "logos-execution-zone-wallet-ui": "logos-execution-zone-wallet-ui",
+        "logos-intents-module": "logos-intents-module",
         "logos-js-sdk": "logos-js-sdk",
         "logos-keycard-module": "logos-keycard-module",
         "logos-keycard-shell-module": "logos-keycard-shell-module",
